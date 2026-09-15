@@ -17,11 +17,11 @@
 
     &-head {
         flex: initial;
+        z-index: 1;
     }
 
     &-body {
         flex: auto;
-        overflow: hidden;
     }
 
     &-body-content {

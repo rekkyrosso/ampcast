@@ -38,6 +38,12 @@
         inset: 0;
         color: white;
         background-color: rgba(0, 0, 0, 0.33);
+        pointer-events: none;
+        display: none;
+
+        .spotify-browser & {
+            display: none !important; // Spotify branding rules.
+        }
 
         .icon {
             position: absolute;
@@ -47,6 +53,10 @@
             height: 25%;
             filter: drop-shadow(2px 1px 0 rgba(16, 16, 16, 1));
         }
+    }
+
+    &-synthetic &-icon-overlay {
+        display: block;
     }
 
     &-star & {
@@ -72,6 +82,20 @@
 
         &-icon {
             fill: yellow;
+        }
+    }
+
+    &:not(&-synthetic) & {
+        &-icon-overlay {
+            background-color: transparent;
+        }
+
+        &-image {
+            filter: none;
+        }
+
+        &-icon {
+            fill: white;
         }
     }
 }

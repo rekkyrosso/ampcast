@@ -111,7 +111,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
                 <Thumbnail item={artist} />
                 <Title title={artist.title} />
                 <Genre genres={artist.genres} />
-                <Country country={artist.country} />
+                <Country country={artist.origin} />
                 <div className="media-info-icon-bar">
                     <Badges item={artist} />
                     <Actions item={artist} />
@@ -341,9 +341,9 @@ function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
     }
 }
 
-function Country<T extends MediaArtist>({country}: Pick<T, 'country'>) {
+function Country({country}: {country?: string}) {
     if (country) {
-        return <p className="country">Country: {country}</p>;
+        return <p className="country">From: {country}</p>;
     } else {
         return null;
     }

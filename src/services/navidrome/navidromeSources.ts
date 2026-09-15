@@ -15,7 +15,7 @@ import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import {getItemTypeFromSrc} from 'utils';
 import {t} from 'services/i18n';
-import mediaSources from 'services/mediaServices/mediaSources';
+import {createMediaSourceFromObject} from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
 import NavidromeIndexedPager from './NavidromeIndexedPager';
 import NavidromeRecentlyPlayedPager from './NavidromeRecentlyPlayedPager';
@@ -35,7 +35,7 @@ import {
     defaultMediaItemCard,
     albumsLayout,
     mostPlayedTracksLayout,
-    radiosLayoutSmall,
+    radiosLayout,
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
     artistsLayout,
@@ -70,7 +70,7 @@ export function createSourceFromObject<T extends MediaObject>(src: string): Medi
     const itemType = getItemTypeFromSrc(src);
     switch (itemType) {
         case ItemType.Artist:
-            return mediaSources.createFromObject<MediaArtist>({
+            return createMediaSourceFromObject<MediaArtist>({
                 src,
                 itemType,
                 secondaryItems: {
@@ -81,7 +81,7 @@ export function createSourceFromObject<T extends MediaObject>(src: string): Medi
             }) as MediaSource<T>;
 
         case ItemType.Playlist:
-            return mediaSources.createFromObject<MediaPlaylist>({
+            return createMediaSourceFromObject<MediaPlaylist>({
                 src,
                 itemType,
                 primaryItems: {
@@ -93,7 +93,7 @@ export function createSourceFromObject<T extends MediaObject>(src: string): Medi
             }) as MediaSource<T>;
 
         default:
-            return mediaSources.createFromObject<T>({
+            return createMediaSourceFromObject<T>({
                 src,
                 itemType,
             });
@@ -101,7 +101,7 @@ export function createSourceFromObject<T extends MediaObject>(src: string): Medi
 }
 
 export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    return mediaSources.createFromObject<MediaPlaylist>({
+    return createMediaSourceFromObject<MediaPlaylist>({
         src: pin.src,
         itemType: ItemType.Playlist,
         isPin: true,
@@ -605,7 +605,7 @@ const navidromeRadio: MediaSource<MediaItem> = {
     defaultHidden: true,
     primaryItems: {
         label: 'Radios',
-        layout: radiosLayoutSmall,
+        layout: radiosLayout,
         sort: navidromeRadiosSort,
     },
 

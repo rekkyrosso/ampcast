@@ -14,7 +14,6 @@ import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {chunk, groupBy} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
-import mediaSources from 'services/mediaServices/mediaSources';
 import {dispatchMetadataChanges} from 'services/metadata';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
@@ -37,6 +36,7 @@ import appleSources, {
     createSourceFromObject,
     createSourceFromPin,
 } from './appleSources';
+import {createSongsPager} from './musicKitUtils';
 import Credentials from './components/AppleCredentials';
 import Login from './components/AppleLogin';
 import StreamingSettings from './components/AppleStreamingSettings';
@@ -76,7 +76,7 @@ const apple: PublicMediaService = {
     canStore,
     compareForRating,
     createPlaylist,
-    createSongRadio,
+    createSongsPager,
     createSourceFromObject,
     createSourceFromPin,
     getDroppedItems,
@@ -189,19 +189,6 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: items.length,
     };
-}
-
-function createSongRadio(song: MediaItem): MediaItem | null {
-    const catalogId = song.apple?.catalogId;
-    if (catalogId) {
-        return mediaSources.createRadioItem({
-            src: `${serviceId}:stations:ra.${catalogId}`,
-            title: `${song.title} Station`,
-            thumbnails: song.thumbnails,
-        });
-    } else {
-        return null;
-    }
 }
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
@@ -334,16 +321,19 @@ async function getGenres(filterType: FilterType): Promise<readonly MediaFilter[]
 async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
     src = getSrcFromUrl(src);
     const [, type, id] = src.split(':');
-    const isLibraryItem = type.startsWith('library-');
-    const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
+    const path = type.startsWith('library-') ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
     const pager = new MusicKitPager<T>(
-        `${path}/${type.replace('library-', '')}/${id}${isLibraryItem && !type.endsWith('playlists') ? '/catalog' : ''}`,
+        `${path}/${type.replace('library-', '')}/${id}`,
         {
             'include[songs]': 'artists,albums',
             'include[library-songs]': 'catalog,artists,albums',
             'include[albums]': 'artists',
             'include[library-albums]': 'catalog,artists',
             'include[library-artists]': 'catalog',
+            'include[library-playlists]': 'catalog',
+            'include[music-videos]': 'artists,albums',
+            'include[library-music-videos]': 'catalog,artists,albums',
+            'extend[artists]': 'editorialNotes',
             'omit[resource:artists]': 'relationships',
         },
         {passive: true, pageSize: 0}

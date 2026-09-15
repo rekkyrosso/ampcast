@@ -24,7 +24,7 @@ type BaseMediaObject = UserData & {
     readonly synthetic?: boolean; // Created by ampcast, does not exist as metadata (e.g. "Top Tracks")
     readonly nanoId?: string; // Transient id for uniqueness in lists.
     readonly links?: {
-        readonly self?: boolean;
+        readonly self?: string | boolean;
     }
     readonly apple?: {
         readonly catalogId: string;

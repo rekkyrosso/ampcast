@@ -1,6 +1,7 @@
 {
     "name": "ampcast-app",
     "productName": "ampcast",
+    "desktopName": "org.rekkyrosso.ampcast",
     "version": "0.9.32",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",

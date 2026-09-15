@@ -17,7 +17,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import {exists, getItemTypeFromSrc} from 'utils';
 import {NoFavoritesPlaylistError} from 'services/errors';
-import mediaSources from 'services/mediaServices/mediaSources';
+import {createMediaSourceFromObject} from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
 import {songChartsLayout} from 'components/MediaList/layouts';
@@ -61,14 +61,14 @@ const appleLibrarySort: MediaListSort = {
 
 export function createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
     const itemType = getItemTypeFromSrc(src);
-    return mediaSources.createFromObject<T>({
+    return createMediaSourceFromObject<T>({
         src,
         itemType,
     });
 }
 
 export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    return mediaSources.createFromObject<MediaPlaylist>({
+    return createMediaSourceFromObject<MediaPlaylist>({
         src: pin.src,
         itemType: ItemType.Playlist,
         isPin: true,
@@ -186,16 +186,17 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
         {q = ''}: {q?: string} = {},
         {sortBy, sortOrder} = appleLibrarySort.defaultSort
     ): Pager<MediaItem> {
+        const params: Record<string, string> = {
+            'include[library-songs]': 'catalog,artists,albums',
+            'include[library-albums]': 'catalog,artists',
+            'include[library-artists]': 'catalog',
+            'omit[resource:artists]': 'relationships',
+        };
         if (q) {
-            return createSearchPager('library-songs', q);
+            return createSearchPager('library-songs', q, params);
         } else {
-            return new MusicKitPager('/v1/me/library/songs', {
-                'include[library-songs]': 'catalog,artists,albums',
-                'include[library-albums]': 'catalog,artists',
-                'include[library-artists]': 'catalog',
-                'omit[resource:artists]': 'relationships',
-                sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
-            });
+            params.sort = `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`;
+            return new MusicKitPager('/v1/me/library/songs', params);
         }
     },
 };
@@ -214,16 +215,16 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
         {q = ''}: {q?: string} = {},
         {sortBy, sortOrder} = appleLibrarySort.defaultSort
     ): Pager<MediaAlbum> {
+        const params: Record<string, string> = {
+            'include[library-albums]': 'catalog,artists',
+            'include[library-artists]': 'catalog',
+            'omit[resource:artists]': 'relationships',
+        };
         if (q) {
-            return createSearchPager('library-albums', q);
+            return createSearchPager('library-albums', q, params);
         } else {
-            return new MusicKitPager('/v1/me/library/albums', {
-                'fields[library-albums]': 'name,artistName,playParams,artwork',
-                'include[library-albums]': 'catalog,artists',
-                'include[library-artists]': 'catalog',
-                'omit[resource:artists]': 'relationships',
-                sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
-            });
+            params.sort = `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`;
+            return new MusicKitPager('/v1/me/library/albums', params);
         }
     },
 };
@@ -247,14 +248,14 @@ const appleLibraryArtists: MediaSource<MediaArtist> = {
     },
 
     search({q = ''}: {q?: string} = {}): Pager<MediaArtist> {
+        const params: Record<string, string> = {
+            'include[library-artists]': 'catalog',
+            'omit[resource:artists]': 'relationships',
+        };
         if (q) {
-            return createSearchPager('library-artists', q);
+            return createSearchPager('library-artists', q, params);
         } else {
-            return new MusicKitPager('/v1/me/library/artists', {
-                'fields[library-artists]': 'name,playParams,artwork',
-                'include[library-artists]': 'catalog',
-                'omit[resource:artists]': 'relationships',
-            });
+            return new MusicKitPager('/v1/me/library/artists', params);
         }
     },
 };
@@ -273,14 +274,14 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
         {q = ''}: {q?: string} = {},
         {sortBy, sortOrder} = appleLibrarySort.defaultSort
     ): Pager<MediaPlaylist> {
+        const params: Record<string, string> = {
+            'include[library-playlists]': 'catalog',
+        };
         if (q) {
-            return createSearchPager('library-playlists', q);
+            return createSearchPager('library-playlists', q, params);
         } else {
-            return new MusicKitPager('/v1/me/library/playlists', {
-                'fields[library-playlists]': 'name,playParams,artwork,canEdit',
-                'include[library-playlists]': 'catalog',
-                sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
-            });
+            params.sort = `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`;
+            return new MusicKitPager('/v1/me/library/playlists', params);
         }
     },
 };
@@ -293,7 +294,6 @@ export const appleEditablePlaylists: MediaSource<MediaPlaylist> = {
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager('/v1/me/library/playlists', {
-            'fields[library-playlists]': 'name,playParams,artwork,canEdit',
             'include[library-playlists]': 'catalog',
             'filter[featured]': 'suggested',
         });
@@ -319,16 +319,17 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
         {q = ''}: {q?: string} = {},
         {sortBy, sortOrder} = appleLibrarySort.defaultSort
     ): Pager<MediaItem> {
+        const params: Record<string, string> = {
+            'include[library-music-videos]': 'catalog,artists,albums',
+            'include[library-albums]': 'catalog,artists',
+            'include[library-artists]': 'catalog',
+            'omit[resource:artists]': 'relationships',
+        };
         if (q) {
-            return createSearchPager('library-music-videos', q);
+            return createSearchPager('library-music-videos', q, params);
         } else {
-            return new MusicKitPager('/v1/me/library/music-videos', {
-                'include[library-music-videos]': 'catalog,artists,albums',
-                'include[library-albums]': 'catalog,artists',
-                'include[library-artists]': 'catalog',
-                'omit[resource:artists]': 'relationships',
-                sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
-            });
+            params.sort = `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`;
+            return new MusicKitPager('/v1/me/library/music-videos', params);
         }
     },
 };

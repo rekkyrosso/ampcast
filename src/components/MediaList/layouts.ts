@@ -86,8 +86,8 @@ export const otherTracksLayout: MediaListLayout = {
     extraFields: allMediaItemFields,
 };
 
-export const radiosLayoutSmall: MediaListLayout = {
-    view: 'card minimal',
+export const radiosLayout: MediaListLayout = {
+    view: 'card small',
     views: [],
     card: {h1: 'Name'},
     details: ['Name'],

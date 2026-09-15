@@ -1,7 +1,8 @@
 import React from 'react';
 import ItemType from 'types/ItemType';
-import MediaSource, {MediaSourceItems} from 'types/MediaSource';
+import MediaSource from 'types/MediaSource';
 import {getMediaLabel} from 'utils';
+import {getSourceItems} from 'services/mediaServices/mediaSources'
 import {
     getSourceSorting,
     setSourceView,
@@ -15,7 +16,7 @@ import PopupMenu, {
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
-import useSyntheticAlbumSource from './useSyntheticAlbumSource';
+import useSyntheticAlbumSource from './useSyntheticAlbumSource';;
 
 interface ShowMediaSourceMenuParams {
     source: MediaSource;
@@ -119,19 +120,14 @@ function getMenuItems(
     isSearch?: boolean
 ): MenuItems {
     const id = `${source.sourceId || source.id}/${level}`;
-    const items: MediaSourceItems | undefined =
-        level === 3
-            ? source.tertiaryItems
-            : level === 2
-              ? source.secondaryItems
-              : source.primaryItems;
+    const items = getSourceItems(source, level);
     const menuItems: MenuItems = {
-        label: items?.label || getDefaultLabel(source.id, itemType),
+        label: items.label || getDefaultLabel(source.id, itemType),
     };
     if (source?.singular && level === 1) {
         return menuItems;
     }
-    if (items?.sort && !isSearch) {
+    if (items.sort && !isSearch) {
         const sorting = getSourceSorting(id) || items.sort.defaultSort;
         const sortOptions = items.sort.sortOptions || {};
         const sortKeys = Object.keys(sortOptions);
@@ -167,7 +163,7 @@ function getMenuItems(
             );
         }
     }
-    const views = items?.layout?.views || ['card', 'card compact', 'card small', 'details'];
+    const views = items.layout?.views || ['card', 'card compact', 'card small', 'details'];
     const listView = document.getElementById(id);
     const currentView = listView?.dataset.view;
     menuItems.view = views.length ? (

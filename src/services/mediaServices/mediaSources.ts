@@ -2,7 +2,7 @@ import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaSourceItems} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
@@ -21,7 +21,7 @@ type CreateFromObjectParams<T extends MediaObject> = Pick<
     readonly createChildPager?: CreateChildPager<any>;
 };
 
-function createFromObject<T extends MediaObject>({
+export function createMediaSourceFromObject<T extends MediaObject>({
     src,
     itemType,
     isPin,
@@ -44,15 +44,7 @@ function createFromObject<T extends MediaObject>({
         icon: 'data',
         itemType,
         isPin,
-        primaryItems: isPin
-            ? primaryItems
-            : {
-                  ...primaryItems,
-                  layout: {
-                      ...primaryItems?.layout,
-                      view: 'card compact',
-                  },
-              },
+        primaryItems,
         secondaryItems,
         tertiaryItems,
         search() {
@@ -78,7 +70,7 @@ function createFromObject<T extends MediaObject>({
     };
 }
 
-function createRadioItem({
+export function createRadioStation({
     src,
     title,
     thumbnails,
@@ -99,9 +91,15 @@ function createRadioItem({
     };
 }
 
-const mediaSources = {
-    createFromObject,
-    createRadioItem,
-};
-
-export default mediaSources;
+export function getSourceItems<T extends MediaObject>(
+    source?: MediaSource<any>,
+    level?: 1 | 2 | 3
+): MediaSourceItems<T> {
+    const sourceItems =
+        level === 3
+            ? source?.tertiaryItems
+            : level === 2 && !(source?.singular && source.itemType === ItemType.Media)
+              ? source?.secondaryItems
+              : source?.primaryItems;
+    return sourceItems || {};
+}

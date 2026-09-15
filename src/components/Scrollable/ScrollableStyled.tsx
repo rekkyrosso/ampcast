@@ -108,24 +108,19 @@ export default function ScrollableStyled({
         }
     }, []);
 
-    const onContentResize = useCallback(() => {
-        setScrollRect((scrollRect) => {
-            const width = noInitialScrollWidth ? contentRef.current!.scrollWidth : scrollRect.width;
-            return width > 0 ? {width, height: scrollRect.height} : scrollRect;
-        });
-    }, [noInitialScrollWidth]);
-
     const onBodyContentResize = useCallback(() => {
         setScrollRect((scrollRect) => {
             const height = noInitialScrollHeight
                 ? bodyContentRef.current!.scrollHeight + (headRef.current?.clientHeight || 0)
                 : scrollRect.height;
-            return height > 0 ? {width: scrollRect.width, height} : scrollRect;
+            const width = noInitialScrollWidth
+                ? bodyContentRef.current!.scrollWidth
+                : scrollRect.width;
+            return height > 0 ? {width, height} : scrollRect;
         });
-    }, [noInitialScrollHeight]);
+    }, [noInitialScrollWidth, noInitialScrollHeight]);
 
     useOnResize(containerRef, onContainerResize);
-    useOnResize(contentRef, onContentResize);
     useOnResize(bodyContentRef, onBodyContentResize);
 
     useEffect(() => {

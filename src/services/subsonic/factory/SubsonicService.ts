@@ -27,7 +27,7 @@ import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getItemTypeFromSrc, getMediaObjectId, getTextFromHtml, Logger} from 'utils';
 import {OpenSubsonicRequiredError} from 'services/errors';
-import mediaSources from 'services/mediaServices/mediaSources';
+import {createMediaSourceFromObject, createRadioStation} from 'services/mediaServices/mediaSources';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -36,7 +36,7 @@ import {
     albumsLayout,
     defaultMediaItemCard,
     mostPlayedTracksLayout,
-    radiosLayoutSmall,
+    radiosLayout,
     recentlyAddedAlbumsLayout,
 } from 'components/MediaList/layouts';
 import SubsonicApi from './SubsonicApi';
@@ -450,7 +450,7 @@ export default class SubsonicService implements PersonalMediaService {
             defaultHidden: true,
             primaryItems: {
                 label: 'Radios',
-                layout: radiosLayoutSmall,
+                layout: radiosLayout,
             },
 
             search(): Pager<MediaItem> {
@@ -680,28 +680,34 @@ export default class SubsonicService implements PersonalMediaService {
             return {items, atEnd: true};
         });
     }
-
-    createSongRadio(song: MediaItem): MediaItem | null {
-        const id = getMediaObjectId(song);
-        return mediaSources.createRadioItem({
-            src: `${this.id}:song-radio:${id}`,
-            title: `${song.title} - Radio`,
-            thumbnails: song.thumbnails,
-        });
+    createSongsPager(item: MediaItem): Pager<MediaItem> {
+        if (item.mediaType === MediaType.Video) {
+            return new SimpleMediaPager(async () => [item]);
+        } else {
+            return new SimpleMediaPager(async () => {
+                const id = getMediaObjectId(item);
+                const radio = createRadioStation({
+                    src: `${this.id}:song-radio:${id}`,
+                    title: `${item.title} - Radio`,
+                    thumbnails: item.thumbnails,
+                });
+                return [item, radio];
+            });
+        }
     }
 
     createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
         const itemType = getItemTypeFromSrc(src);
         switch (itemType) {
             case ItemType.Playlist:
-                return mediaSources.createFromObject<MediaPlaylist>({
+                return createMediaSourceFromObject<MediaPlaylist>({
                     src,
                     itemType,
                     secondaryItems: subsonicPlaylistItems,
                 }) as MediaSource<T>;
 
             default:
-                return mediaSources.createFromObject<T>({
+                return createMediaSourceFromObject<T>({
                     src,
                     itemType,
                 });
@@ -709,7 +715,7 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-        return mediaSources.createFromObject<MediaPlaylist>({
+        return createMediaSourceFromObject<MediaPlaylist>({
             src: pin.src,
             itemType: ItemType.Playlist,
             isPin: true,

@@ -2,7 +2,7 @@ import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import {chunk, compareArrays} from 'utils';
-import mediaSources from 'services/mediaServices/mediaSources';
+import {createRadioStation} from 'services/mediaServices/mediaSources';
 import {sorter} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -106,7 +106,7 @@ export default class SubsonicArtistAlbumsPager extends SimpleMediaPager<MediaAlb
     private createRadios(artist: Subsonic.Artist): MediaAlbum {
         const src = `${this.serviceId}:artist-radio:${artist.id}`;
         const thumbnails = this.utils.createThumbnails(artist.coverArt);
-        const radio = mediaSources.createRadioItem({
+        const radio = createRadioStation({
             src,
             title: `${artist.name} - Radio`,
             thumbnails,

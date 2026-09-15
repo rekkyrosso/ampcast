@@ -121,7 +121,7 @@ export async function isHlsMedia(url: string): Promise<boolean> {
 }
 
 export function srcToPath(src: string): string {
-    const [serviceId, type = '', ...rest] = src.split(':');
+    const [serviceId, type, ...rest] = src.split(':');
     return `${serviceId}/${type}/${rest.join(':')}`;
 }
 

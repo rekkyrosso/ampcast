@@ -152,6 +152,36 @@ export function createNowPlayingItem(
     }
 }
 
+export function createSongsPager(song: MediaItem): Pager<MediaItem> {
+    const songPager = new SimpleMediaPager(async () => [song]);
+    const catalogId = song.apple?.catalogId;
+    if (catalogId && song.mediaType !== MediaType.Video) {
+        return new WrappedPager(
+            undefined,
+            songPager,
+            new SimpleMediaPager(async () => {
+                const fetchItems = async (
+                    pager: Pager<MediaItem>
+                ): Promise<readonly MediaItem[]> => {
+                    try {
+                        const items = await fetchFirstPage(pager);
+                        return items;
+                    } catch (err) {
+                        logger.error(err);
+                        return [];
+                    }
+                };
+                const videosPager = createRelationshipPager('songs', catalogId, 'music-videos');
+                const radiosPager = createRelationshipPager('songs', catalogId, 'station');
+                const items = await Promise.all([fetchItems(videosPager), fetchItems(radiosPager)]);
+                return items.flat();
+            })
+        );
+    } else {
+        return songPager;
+    }
+}
+
 function createMediaPlaylist(
     playlist: AppleMusicApi.Playlist | LibraryPlaylist,
     position?: number
@@ -291,6 +321,10 @@ function createMediaItem(
     const artists = getNamedArtists(
         catalogRelationships?.artists?.data || song.relationships?.artists.data
     );
+    let artistNames: string[] | undefined = artists?.map((artist) => artist.attributes.name);
+    if (String(artistNames) === 'Various Artists') {
+        artistNames = undefined;
+    }
 
     return {
         itemType: ItemType.Media,
@@ -302,9 +336,7 @@ function createMediaItem(
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,
         thumbnails: createThumbnails(item),
-        artists:
-            artists?.map((artist) => artist.attributes.name) ||
-            (item.artistName ? [item.artistName] : undefined),
+        artists: artistNames || (item.artistName ? [item.artistName] : undefined),
         albumArtists:
             albumArtists?.map((artist) => artist.attributes.name) ||
             (album?.attributes?.artistName ? [album?.attributes.artistName] : undefined),
@@ -326,10 +358,12 @@ function createMediaItem(
             catalogId
         ),
         links: {
-            self: !isLibraryItem,
+            self: catalogId
+                ? `${serviceId}:${song.type.replace('library-', '')}:${catalogId}`
+                : false,
             album: album ? getLink(album) : undefined,
             albumArtists: albumArtists?.map((artist) => getLink(artist)),
-            artists: artists?.map((artist) => getLink(artist)),
+            artists: artistNames ? artists?.map((artist) => getLink(artist)) : undefined,
         },
     };
 }
@@ -374,8 +408,7 @@ function createRadioItem(station: Station): SetRequired<MediaItem, 'apple'> {
     const description = attributes.editorialNotes?.standard || attributes.editorialNotes?.short;
     const catalogId = getCatalogId(station);
     const src = `${serviceId}:${station.type}:${station.id}`;
-
-    const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
+    return {
         src,
         itemType: ItemType.Media,
         mediaType: attributes.mediaKind === 'video' ? MediaType.Video : MediaType.Audio,
@@ -393,11 +426,14 @@ function createRadioItem(station: Station): SetRequired<MediaItem, 'apple'> {
         skippable: !attributes.isLive,
         isFavoriteStation: stationStore.isFavorite({src}),
     };
-    return mediaItem;
 }
 
 function createFromLibrary<T>(item: any): NonNullable<T> {
-    return bestOf(item.attributes, getCatalog(item)?.attributes);
+    const itemAttributes = item.attributes;
+    const catalogAttributes = getCatalog(item)?.attributes as any;
+    const attributes = bestOf(itemAttributes, catalogAttributes);
+    attributes.description = catalogAttributes?.description || itemAttributes.description;
+    return attributes;
 }
 
 function createShareLink(
@@ -448,7 +484,7 @@ function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): 
         'include[library-artists]': 'catalog',
         'omit[resource:artists]': 'relationships',
     });
-    if (artist.type.startsWith('library-')) {
+    if (artist.type === 'library-artists') {
         return albumsPager;
     }
     const topTracks = createArtistTopTracks(artist);
@@ -472,9 +508,7 @@ function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): 
     return new WrappedPager(syntheticAlbumsPager, albumsPager);
 }
 
-function createArtistTopTracks(
-    artist: AppleMusicApi.Artist | LibraryArtist
-): SetRequired<MediaAlbum, 'apple'> {
+function createArtistTopTracks(artist: AppleMusicApi.Artist): SetRequired<MediaAlbum, 'apple'> {
     const item = createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
 
     return {
@@ -484,7 +518,7 @@ function createArtistTopTracks(
         thumbnails: createThumbnails(item as any),
         artists: [item.name],
         genres: getGenres(item),
-        pager: createTopTracksPager(artist),
+        pager: createViewPager(artist.type, artist.id, 'top-songs'),
         synthetic: true,
         inLibrary: false,
         trackCount: undefined,
@@ -495,9 +529,8 @@ function createArtistTopTracks(
     };
 }
 
-function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): MediaAlbum {
+function createArtistRadios(artist: AppleMusicApi.Artist): MediaAlbum {
     const item = createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
-
     return {
         itemType: ItemType.Album,
         src: `${serviceId}:radios:${artist.id}`,
@@ -505,7 +538,7 @@ function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): Media
         thumbnails: createThumbnails(item as any),
         artists: [item.name],
         genres: getGenres(item),
-        pager: createRadiosPager(artist),
+        pager: createArtistRadiosPager(artist),
         synthetic: true,
         inLibrary: false,
         trackCount: undefined,
@@ -516,9 +549,8 @@ function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): Media
     };
 }
 
-function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): MediaAlbum {
+function createArtistVideos(artist: AppleMusicApi.Artist): MediaAlbum {
     const item = createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
-
     return {
         itemType: ItemType.Album,
         src: `${serviceId}:videos:${artist.id}`,
@@ -526,7 +558,7 @@ function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): Media
         thumbnails: createThumbnails(item as any),
         artists: [item.name],
         genres: getGenres(item),
-        pager: createVideosPager(artist),
+        pager: createViewPager(artist.type, artist.id, 'top-music-videos'),
         synthetic: true,
         inLibrary: false,
         trackCount: undefined,
@@ -537,11 +569,7 @@ function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): Media
     };
 }
 
-function createTopTracksPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
-    return createArtistViewPager(artist, 'top-songs');
-}
-
-function createRadiosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
+function createArtistRadiosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
     return new MusicKitPager(
         `/v1/catalog/{{storefrontId}}/stations?`,
         {ids: [`ra.a-${artist.id}`, `ra.${artist.id}`]},
@@ -549,18 +577,22 @@ function createRadiosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<
     );
 }
 
-function createVideosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
-    return createArtistViewPager(artist, 'top-music-videos');
+function createRelationshipPager(
+    type: string,
+    id: string,
+    relationship: string,
+    params?: Record<string, string>
+): Pager<MediaItem> {
+    return new MusicKitPager(`/v1/catalog/{{storefrontId}}/${type}/${id}/${relationship}`, params, {
+        pageSize: 0,
+    });
 }
 
-function createArtistViewPager(
-    artist: AppleMusicApi.Artist | LibraryArtist,
-    view: string
-): Pager<MediaItem> {
+function createViewPager(type: string, id: string, view: string): Pager<MediaItem> {
     return new MusicKitPager(
-        artist.href!,
+        `/v1/catalog/{{storefrontId}}/${type}/${id}`,
         {
-            [`limit[artists:${view}]`]: 30,
+            [`limit[${type}:${view}]`]: 30,
             views: view,
         },
         {maxSize: 100, pageSize: 0},

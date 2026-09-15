@@ -37,7 +37,7 @@ type BaseMediaService = Auth & {
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;
-    readonly starRatingIncrement?: 0.5 | 1;
+    readonly starRatingIncrement?: 0.5 | 1; // Default is 1.
     readonly Components?: {
         readonly Credentials?: React.FC<{service: MediaService}>;
         readonly Login?: React.FC<{service: MediaService}>;
@@ -73,7 +73,8 @@ type BaseMediaService = Auth & {
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
     createRadioPager?: (radio: MediaItem) => Pager<MediaItem>;
-    createSongRadio?: (song: MediaItem) => MediaItem | null;
+    createRelatedItemsPager?: <T extends MediaObject>(item: T) => Pager<T> | null;
+    createSongsPager?: (song: MediaItem) => Pager<T>;
     createSourceFromObject?: <T extends MediaObject>(src: string) => MediaSource<T>;
     createSourceFromPin?: <T extends Pinnable>(pin: Pin) => MediaSource<T>;
     deletePlaylist?: (playlist: MediaPlaylist) => Promise<void>;

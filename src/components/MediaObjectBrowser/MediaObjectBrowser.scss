@@ -31,6 +31,7 @@
 
         .error-box {
             height: calc(100% - var(--gutter-width));
+            border-top-left-radius: 0;
 
              h2 {
                 display: none;
@@ -39,7 +40,7 @@
     }
 
     .tab-list-tabs {
-        z-index: 0;
+        flex-wrap: wrap;
     }
 
     .tab-list-panels {
@@ -62,15 +63,39 @@
         }
     }
 
+    .tab-panel-info {
+        & > .scrollable {
+            background-color: var(--background-color);
+            bottom: var(--gutter-width);
+        }
+    }
+
+    .mixed-media-items .cover-art-icon-overlay {
+        display: block;
+    }
+
     .media-info {
         padding: 1em;
         color: var(--text-color);
-        background-color: var(--background-color);
-        height: calc(100% - 1em);
+        min-width: 24em;
+        max-width: 75ch;
+
+        .description {
+            max-height: none;
+            font-size: 1em;
+
+            .scrollbar {
+                display: none;
+            }
+        }
     }
 
     .media-details {
         height: calc(100% - var(--gutter-width));
+
+        .list-view {
+            border-top-left-radius: 0;
+        }
     }
 
     .status-bar {

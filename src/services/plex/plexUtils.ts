@@ -223,7 +223,7 @@ function createMediaArtist(
         externalUrl: getExternalUrl(artist),
         title: artist.title,
         description: artist.summary,
-        country: artist.Country?.map((country) => country.tag).join(', '),
+        origin: artist.Country?.map((country) => country.tag).join(', '),
         addedAt: artist.addedAt,
         rating: getRating(artist.userRating),
         globalRating: getRating(artist.rating),

@@ -26,11 +26,13 @@ export default function useMediaListLayout(
     layoutOptions?: Partial<MediaListLayout>,
     parentPlaylist?: MediaPlaylist
 ): ListViewLayout<MediaObject> {
-    const view = useMediaListView(listId);
+    const singular = level === 1 && source?.singular;
+    const suggestedView = useMediaListView(listId);
+    const view = singular && !source.isPin ? 'card compact' : suggestedView;
     const fields = useMediaListFields(listId);
     return useMemo(() => {
         let card = layoutOptions?.card || defaultLayout.card;
-        if (level === 1 && (source?.singular || source?.isPin)) {
+        if (level === 1 && source?.singular) {
             card = {...card, h1: 'IconTitle'};
         }
         const details = addRating(layoutOptions?.details || defaultLayout.details, source, level);

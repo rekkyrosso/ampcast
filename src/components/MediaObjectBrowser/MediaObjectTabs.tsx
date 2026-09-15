@@ -4,6 +4,7 @@ import ErrorBox from 'components/Errors/ErrorBox';
 import MediaDetails from 'components/MediaInfo/MediaDetails';
 import MediaInfo from 'components/MediaInfo';
 import TabList, {TabItem} from 'components/TabList';
+import Scrollable from 'components/Scrollable';
 
 export interface MediaObjectTabsProps<T extends MediaObject> {
     item: T | undefined;
@@ -31,7 +32,15 @@ export default function MediaObjectTabs<T extends MediaObject>({
             },
             {
                 tab: 'Info',
-                panel: errorBox || (item ? <MediaInfo item={item} /> : <div />),
+                panel:
+                    errorBox ||
+                    (item ? (
+                        <Scrollable>
+                            <MediaInfo item={item} />
+                        </Scrollable>
+                    ) : (
+                        <div />
+                    )),
                 prefix: 'info',
             },
             {

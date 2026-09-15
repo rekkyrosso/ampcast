@@ -18,7 +18,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import SortParams from 'types/SortParams';
 import {getItemTypeFromSrc} from 'utils';
-import mediaSources from 'services/mediaServices/mediaSources';
+import {createMediaSourceFromObject} from 'services/mediaServices/mediaSources';
 import {CreateChildPager} from 'services/pagers/MediaPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -34,7 +34,7 @@ import {
     artistsLayout,
     defaultMediaItemCard,
     mostPlayedTracksLayout,
-    radiosLayoutSmall,
+    radiosLayout,
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
     topTracksLayout,
@@ -74,7 +74,7 @@ export function createSourceFromObject<T extends MediaObject>(src: string): Medi
     const itemType = getItemTypeFromSrc(src);
     switch (itemType) {
         case ItemType.Artist:
-            return mediaSources.createFromObject<MediaArtist>({
+            return createMediaSourceFromObject<MediaArtist>({
                 src,
                 itemType,
                 secondaryItems: {
@@ -85,14 +85,14 @@ export function createSourceFromObject<T extends MediaObject>(src: string): Medi
             }) as MediaSource<T>;
 
         case ItemType.Playlist:
-            return mediaSources.createFromObject<MediaPlaylist>({
+            return createMediaSourceFromObject<MediaPlaylist>({
                 src,
                 itemType,
                 secondaryItems: plexPlaylistItems,
             }) as MediaSource<T>;
 
         default:
-            return mediaSources.createFromObject<T>({
+            return createMediaSourceFromObject<T>({
                 src,
                 itemType,
             });
@@ -100,7 +100,7 @@ export function createSourceFromObject<T extends MediaObject>(src: string): Medi
 }
 
 export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    return mediaSources.createFromObject<MediaPlaylist>({
+    return createMediaSourceFromObject<MediaPlaylist>({
         src: pin.src,
         itemType: ItemType.Playlist,
         isPin: true,
@@ -189,7 +189,7 @@ const plexRadio: MediaSource<MediaItem> = {
     filterType: FilterType.ByPlexStationType,
     primaryItems: {
         label: 'Radios',
-        layout: radiosLayoutSmall,
+        layout: radiosLayout,
     },
 
     search(type?: MediaFilter): Pager<MediaItem> {

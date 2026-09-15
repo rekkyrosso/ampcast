@@ -8,6 +8,6 @@ export default interface MediaArtist extends BaseMediaObject {
     readonly pager: Pager<MediaAlbum>;
     // Everything below here should be optional.
     readonly artist_mbid?: string;
-    readonly country?: string;
+    readonly origin?: string; // Where the artist is from (or the band was formed).
     readonly countryCode?: string;
 }

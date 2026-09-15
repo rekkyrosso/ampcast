@@ -6,11 +6,12 @@ import ItemType from 'types/ItemType';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSource, {MediaSourceItems} from 'types/MediaSource';
+import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import SortParams from 'types/SortParams';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
+import {getSourceItems} from 'services/mediaServices/mediaSources';
 import {performAction, showActionsMenu} from 'components/Actions';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {Column, ListViewProps} from 'components/ListView';
@@ -347,19 +348,6 @@ export default function MediaList<T extends MediaObject>({
             ) : null}
         </div>
     );
-}
-
-function getSourceItems<T extends MediaObject>(
-    source?: MediaSource<any>,
-    level?: 1 | 2 | 3
-): MediaSourceItems<T> {
-    const sourceItems =
-        level === 3
-            ? source?.tertiaryItems
-            : level === 2
-              ? source?.secondaryItems
-              : source?.primaryItems;
-    return sourceItems || {};
 }
 
 function isPlaylist(item?: MediaObject): item is MediaPlaylist {

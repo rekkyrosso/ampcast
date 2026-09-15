@@ -2,7 +2,7 @@ import {useCallback} from 'react';
 import {BehaviorSubject} from 'rxjs';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaSource from 'types/MediaSource';
-import {otherTracksLayout, radiosLayoutSmall, videosLayout} from 'components/MediaList/layouts';
+import {otherTracksLayout, radiosLayout, videosLayout} from 'components/MediaList/layouts';
 import useObservable from 'hooks/useObservable';
 
 // THis provides a way to hijack the view menus so that we can 
@@ -23,7 +23,7 @@ export default function useSyntheticAlbumSource() {
             let layout = otherTracksLayout;
             const [, type] = album.src.split(':');
             if (type === 'radios') {
-                layout = radiosLayoutSmall;
+                layout = radiosLayout;
                 label = 'Radios';
             } else if (type === 'videos') {
                 layout = videosLayout;

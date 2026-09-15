@@ -33,10 +33,14 @@ type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 const Index: RenderField = (_, info) => <Text value={info.rowIndex + 1} />;
 
 const Title: RenderField = (item) => {
+    const linkToSelf = item.links?.self;
     return (
         <span className="title-with-badge">
-            {item.links?.self ? (
-                <InternalLink className="text" path={srcToPath(item.src)}>
+            {linkToSelf ? (
+                <InternalLink
+                    className="text"
+                    path={srcToPath(linkToSelf === true ? item.src : linkToSelf)}
+                >
                     {item.title}
                 </InternalLink>
             ) : (
@@ -355,13 +359,14 @@ const Badges: RenderField<MediaItem> = (item) => {
 };
 
 export const Country: RenderField<MediaItem | MediaArtist> = (item) => {
-    return item.country && item.countryCode ? (
+    const location = item.itemType === ItemType.Artist ? item.origin : item.country;
+    return location && item.countryCode ? (
         <>
             <Flag country={item.countryCode} />
-            <Text value={item.country} />
+            <Text value={location} />
         </>
     ) : (
-        <Text value={item.country} />
+        <Text value={location} />
     );
 };
 

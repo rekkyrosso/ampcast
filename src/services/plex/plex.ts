@@ -17,7 +17,7 @@ import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getMediaObjectId, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
-import mediaSources from 'services/mediaServices/mediaSources';
+import {createRadioStation} from 'services/mediaServices/mediaSources';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -91,7 +91,7 @@ const plex: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createRadioPager,
-    createSongRadio,
+    createSongsPager,
     createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
@@ -187,16 +187,19 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
         : new PlexRadioPager(item.src);
 }
 
-function createSongRadio(song: MediaItem): MediaItem | null {
-    if (plexSettings.sonicAnalysis) {
-        const id = getMediaObjectId(song);
-        return mediaSources.createRadioItem({
-            src: `${serviceId}:song-radio:${id}`,
-            title: `${song.title} - Radio`,
-            thumbnails: song.thumbnails,
+function createSongsPager(item: MediaItem): Pager<MediaItem> {
+    if (plexSettings.sonicAnalysis && item.mediaType !== MediaType.Video) {
+        return new SimpleMediaPager(async () => {
+            const id = getMediaObjectId(item);
+            const radio = createRadioStation({
+                src: `${serviceId}:song-radio:${id}`,
+                title: `${item.title} - Radio`,
+                thumbnails: item.thumbnails,
+            });
+            return [item, radio];
         });
     } else {
-        return null;
+        return new SimpleMediaPager(async () => [item]);
     }
 }
 

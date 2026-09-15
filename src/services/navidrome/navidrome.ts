@@ -9,6 +9,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
+import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
@@ -16,8 +17,9 @@ import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getMediaObjectId, getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
-import mediaSources from 'services/mediaServices/mediaSources';
+import {createRadioStation} from 'services/mediaServices/mediaSources';
 import {bestOf} from 'services/metadata';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
@@ -93,7 +95,7 @@ const navidrome: PersonalMediaService = {
     createSourceFromPin,
     editPlaylist,
     createRadioPager,
-    createSongRadio,
+    createSongsPager,
     getFilters,
     getLyrics,
     getMediaObject,
@@ -216,13 +218,20 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
     return subsonicService.createRadioPager(item);
 }
 
-function createSongRadio(song: MediaItem): MediaItem | null {
-    const id = getMediaObjectId(song);
-    return mediaSources.createRadioItem({
-        src: `${serviceId}:song-radio:${id}`,
-        title: `${song.title} - Radio`,
-        thumbnails: song.thumbnails,
-    });
+function createSongsPager(item: MediaItem): Pager<MediaItem> {
+    if (item.mediaType === MediaType.Video) {
+        return new SimpleMediaPager(async () => [item]);
+    } else {
+        return new SimpleMediaPager(async () => {
+            const id = getMediaObjectId(item);
+            const radio = createRadioStation({
+                src: `${serviceId}:song-radio:${id}`,
+                title: `${item.title} - Radio`,
+                thumbnails: item.thumbnails,
+            });
+            return [item, radio];
+        });
+    }
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {

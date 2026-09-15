@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaSource from 'types/MediaSource';
-import MediaType from 'types/MediaType';
 import {getServiceFromSrc} from 'services/mediaServices';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import MediaItemList from 'components/MediaList/MediaItemList';
@@ -11,6 +10,7 @@ import {PagedItemsProps} from './PagedItems';
 
 export default function MediaItems({source, ...props}: PagedItemsProps<MediaItem>) {
     const [[selectedItem], setSelectedItem] = useState<readonly MediaItem[]>([]);
+    const item = useFirstValue(selectedItem);
     const [error, setError] = useState<unknown>();
 
     const itemList = (
@@ -27,8 +27,8 @@ export default function MediaItems({source, ...props}: PagedItemsProps<MediaItem
     return (
         <div className="panel">
             {source.singular ? (
-                <MediaObjectBrowser item={selectedItem} itemList={itemList} error={error}>
-                    <BrowserItems source={source} item={selectedItem} />
+                <MediaObjectBrowser item={item} itemList={itemList} error={error}>
+                    <BrowserItems source={source} item={item} />
                 </MediaObjectBrowser>
             ) : (
                 itemList
@@ -43,26 +43,28 @@ interface BrowserItemsProps {
 }
 
 function BrowserItems({source, item}: BrowserItemsProps) {
-    const firstItem = useFirstValue(item);
     const pager = useMemo(() => {
-        if (firstItem) {
-            return new SimpleMediaPager(async () => {
-                const items = [firstItem];
-                if (firstItem.mediaType === MediaType.Audio && !firstItem.linearType) {
-                    const service = getServiceFromSrc(firstItem);
-                    if (service?.createSongRadio) {
-                        const radio = service.createSongRadio(firstItem);
-                        if (radio) {
-                            items.push(radio);
-                        }
-                    }
+        if (item) {
+            const service = getServiceFromSrc(item);
+            if (service?.createSongsPager) {
+                const pager = service.createSongsPager(item);
+                if (pager) {
+                    return pager;
                 }
-                return items;
-            });
+            }
+            return new SimpleMediaPager(async () => [item]);
         } else {
             return null;
         }
-    }, [firstItem]);
+    }, [item]);
 
-    return <MediaItemList title={source.title} source={source} pager={pager} level={2} />;
+    return (
+        <MediaItemList
+            className="mixed-media-items"
+            title={source.title}
+            source={source}
+            pager={pager}
+            level={2}
+        />
+    );
 }

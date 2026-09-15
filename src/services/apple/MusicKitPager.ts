@@ -82,6 +82,8 @@ export class MusicKitPlaylistItemsPager extends MusicKitPager<MediaItem> {
                 'include[albums]': 'artists',
                 'include[library-albums]': 'catalog,artists',
                 'include[library-artists]': 'catalog',
+                'include[music-videos]': 'artists,albums',
+                'include[library-music-videos]': 'catalog,artists,albums',
                 'omit[resource:artists]': 'relationships',
             },
             {
