@@ -20,6 +20,7 @@ const enum Action {
     DeletePlaylist = 'delete-playlist',
     DeletePlaylistItems = 'delete-playlist-items',
     EditPlaylist = 'edit-playlist',
+    ExportPlaylist = 'export-playlist',
 }
 
 export default Action;

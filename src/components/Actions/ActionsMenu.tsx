@@ -234,6 +234,13 @@ function ContextualActions<T extends MediaObject>({
             {item.itemType === ItemType.Playlist ? (
                 <>
                     <PopupMenuSeparator />
+                    {__target__ === 'electron' && service?.id === 'jellyfin' ? (
+                        <PopupMenuItem<Action>
+                            label="Export to MP3…"
+                            value={Action.ExportPlaylist}
+                            key={Action.ExportPlaylist}
+                        />
+                    ) : null}
                     {service?.editPlaylist ? (
                         <PopupMenuItem<Action>
                             label="Edit playlist details…"
