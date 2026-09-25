@@ -49,7 +49,7 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     title: 'Loved Tracks',
     icon: 'heart',
     itemType: ItemType.Media,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
 
     search(): Pager<MediaItem> {
         return new LastFmPager(

@@ -248,7 +248,7 @@ const navidromeLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     primaryItems: {
         emptyMessage: t("You don't have any favorite songs."),
         sort: {
@@ -283,7 +283,7 @@ const navidromeLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     primaryItems: {
         emptyMessage: t("You don't have any favorite albums."),
         sort: {
@@ -317,7 +317,7 @@ const navidromeLikedArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     defaultHidden: true,
     primaryItems: {
         emptyMessage: t("You don't have any favorite artists."),
@@ -362,7 +362,7 @@ const navidromeTopTracks: MediaSource<MediaItem> = {
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
-    lockActionsStore: true,
+    lockActionType: 'rating',
     defaultHidden: true,
     primaryItems: {
         layout: topTracksLayout,
@@ -383,7 +383,7 @@ const navidromeTopAlbums: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
-    lockActionsStore: true,
+    lockActionType: 'rating',
     defaultHidden: true,
     primaryItems: {
         layout: {
@@ -410,7 +410,7 @@ const navidromeTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
-    lockActionsStore: true,
+    lockActionType: 'rating',
     defaultHidden: true,
     primaryItems: {
         layout: {

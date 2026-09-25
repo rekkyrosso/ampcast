@@ -64,7 +64,7 @@ type BaseMediaService = Auth & {
         items: readonly MediaItem[],
         position?: number
     ) => Promise<void>;
-    bulkRate?: (items: readonly MediaObject[], rating: number) => Promise<void>;
+    bulkRate?: (items: readonly MediaObject[], ratings: readonly number[]) => Promise<void>;
     bulkStore?: (items: readonly MediaObject[], inLibrary: boolean) => Promise<void>;
     canPin?: (item: MediaObject, inListView?: boolean) => boolean;
     canRate?: (item: MediaObject, inListView?: boolean) => boolean;

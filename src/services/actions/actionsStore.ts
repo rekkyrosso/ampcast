@@ -1,333 +1,288 @@
-import type {Observable} from 'rxjs';
-import {
-    catchError,
-    concatMap,
-    debounceTime,
-    distinctUntilChanged,
-    filter,
-    map,
-    BehaviorSubject,
-    combineLatest,
-    mergeMap,
-    skipWhile,
-    take,
-    tap,
-} from 'rxjs';
-import Dexie, {liveQuery} from 'dexie';
+import {filter, fromEvent, map, Observable, Subject} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
-import {Logger, chunk, groupBy} from 'utils';
-import {getService, getServiceFromSrc, observeEnabledServices} from 'services/mediaServices';
+import {Logger, chunk, partition} from 'utils';
+import {getService, getServiceFromSrc, isPersonalMediaService} from 'services/mediaServices';
 import {dispatchMetadataChanges} from 'services/metadata';
 
-export type StorableMediaObject = Omit<MediaObject, 'pager'>;
+type ActionType = 'inLibrary' | 'rating';
 
-interface LockedService {
-    serviceId: string;
+interface InLibraryEntry {
+    item: MediaObject;
+    value: boolean;
+    originalValue?: boolean;
+}
+
+interface RatingEntry {
+    item: MediaObject;
+    value: number;
+    originalValue?: number;
+}
+
+interface BaseLock {
+    service: MediaService;
     itemType: ItemType;
 }
 
-class ActionsStore extends Dexie {
-    private readonly inLibraryChanges!: Dexie.Table<StorableMediaObject, string>;
-    private readonly inLibraryChanges$ = new BehaviorSubject<readonly StorableMediaObject[]>([]);
-    private readonly ratingChanges!: Dexie.Table<StorableMediaObject, string>;
-    private readonly ratingChanges$ = new BehaviorSubject<readonly StorableMediaObject[]>([]);
-    private readonly lockedService$ = new BehaviorSubject<LockedService | null>(null);
-    private readonly logger = new Logger('actionsStore');
+interface InLibraryLock extends BaseLock {
+    actionType: 'inLibrary';
+    entries: InLibraryEntry[];
+}
 
-    constructor() {
-        super('ampcast/pending-actions');
+interface RatingLock extends BaseLock {
+    actionType: 'rating';
+    entries: RatingEntry[];
+}
 
-        this.version(2).stores({
-            inLibraryChanges: `&src`,
-            ratingChanges: `&src`,
-        });
+type Lock = InLibraryLock | RatingLock;
 
-        liveQuery(() => this.inLibraryChanges.toArray()).subscribe(this.inLibraryChanges$);
-        liveQuery(() => this.ratingChanges.toArray()).subscribe(this.ratingChanges$);
+const logger = new Logger('actionsStore');
 
-        observeEnabledServices()
-            .pipe(
-                skipWhile((services) => services.length === 0),
-                tap((services) => this.registerServices(services)),
-                take(1)
-            )
-            .subscribe(this.logger);
+const locks: Lock[] = [];
+const unlocking = new Map<Lock, Promise<void>>();
 
-        // Clear the store if actions haven't been processed within ten seconds.
-        this.lockedService$
-            .pipe(
-                map((locked) => !!locked),
-                distinctUntilChanged(),
-                debounceTime(10_000),
-                filter((locked) => !locked),
-                mergeMap(() => this.clear())
-            )
-            .subscribe(this.logger);
-    }
+const lock$ = new Subject<Lock>();
+const unlock$ = new Subject<Lock>();
 
-    registerServices(services: readonly MediaService[]): void {
-        for (const service of services) {
-            this.registerService(service);
+fromEvent(window, 'pagehide', () => {
+    locks.forEach(applyChanges);
+});
+
+function observeLock(
+    service: MediaService,
+    itemType: ItemType,
+    actionType: ActionType
+): Observable<void> {
+    return lock$.pipe(
+        filter(
+            (lock) =>
+                lock.service === service &&
+                lock.itemType === itemType &&
+                lock.actionType === actionType
+        ),
+        map(() => undefined)
+    );
+}
+
+function observeUnlock(
+    service: MediaService,
+    itemType: ItemType,
+    actionType: ActionType
+): Observable<boolean> {
+    return unlock$.pipe(
+        filter(
+            (lock) =>
+                lock.service === service &&
+                lock.itemType === itemType &&
+                lock.actionType === actionType
+        ),
+        map((lock) => lock.entries.some((entry) => entry.value !== entry.originalValue))
+    );
+}
+
+function getInLibrary(item: MediaObject, defaultValue?: boolean | undefined): boolean | undefined {
+    const service = getServiceFromSrc(item);
+    if (service) {
+        const lock = getLock(service, item.itemType, 'inLibrary') as InLibraryLock;
+        const entry = lock?.entries.find((entry) => entry.item.src === item.src);
+        if (entry) {
+            return entry.value;
         }
     }
+    return defaultValue;
+}
 
-    lock(serviceId: string, itemType: ItemType): void {
-        this.lockedService$.next({serviceId, itemType});
+function getRating(item: MediaObject, defaultValue?: number | undefined): number | undefined {
+    const service = getServiceFromSrc(item);
+    if (service) {
+        const lock = getLock(service, item.itemType, 'rating') as RatingLock;
+        const entry = lock?.entries.find((entry) => entry.item.src === item.src);
+        if (entry) {
+            return entry.value;
+        }
     }
+    return defaultValue;
+}
 
-    unlock(): void {
-        this.lockedService$.next(null);
+function isLocked(service: MediaService, itemType: ItemType, actionType: ActionType): boolean {
+    return findLockIndex(service, itemType, actionType) !== -1;
+}
+
+function lock(service: MediaService, itemType: ItemType, actionType: ActionType): void {
+    if (!isLocked(service, itemType, actionType)) {
+        const lock = {service, itemType, actionType, entries: []};
+        locks.push(lock);
+        lock$.next(lock);
     }
+}
 
-    getInLibrary(item: MediaObject, defaultValue?: boolean | undefined): boolean | undefined {
-        const changedItem = this.getInLibraryChangedItem(item);
-        return changedItem ? changedItem.inLibrary : defaultValue;
-    }
-
-    getRating(item: MediaObject, defaultValue?: number | undefined): number | undefined {
-        const changedItem = this.getRatingChangedItem(item);
-        return changedItem ? changedItem.rating : defaultValue;
-    }
-
-    async rate(item: MediaObject, rating: number): Promise<void> {
-        const src = item.src;
-        const [serviceId] = src.split(':');
-        const service = getService(serviceId);
-        if (service) {
-            if (service.rate) {
-                if (this.isLockedObject(item)) {
-                    await this.ratingChanges.put(this.createStorableMediaObject({...item, rating}));
-                } else {
-                    const changedItem = this.getRatingChangedItem(item);
-                    if (changedItem) {
-                        await this.ratingChanges.delete(changedItem.src);
-                    }
-                    await service.rate(item, rating);
-                }
-                dispatchMetadataChanges({
-                    match: (object) => service.compareForRating(object, item),
-                    values: {rating},
-                });
+async function rate(item: MediaObject, rating: number): Promise<void> {
+    const src = item.src;
+    const [serviceId] = src.split(':');
+    const service = getService(serviceId);
+    if (service) {
+        if (service.rate) {
+            const lockIndex = findLockIndex(service, item.itemType, 'rating');
+            if (lockIndex === -1) {
+                await service.rate(item, rating);
             } else {
-                throw Error(`rate() not supported by ${serviceId}`);
-            }
-        } else {
-            throw Error(`Service not found '${serviceId}'`);
-        }
-    }
-
-    async store<T extends MediaObject>(item: T, inLibrary: boolean): Promise<void> {
-        const src = item.src;
-        const [serviceId] = src.split(':');
-        const service = getService(serviceId);
-        if (service) {
-            if (service.store) {
-                const toggledItem = this.getInLibraryChangedItem(item);
-                if (toggledItem) {
-                    await this.inLibraryChanges.delete(toggledItem.src);
-                }
-                if (this.isLockedObject(item)) {
-                    if (!toggledItem) {
-                        await this.inLibraryChanges.put(
-                            this.createStorableMediaObject({...item, inLibrary})
-                        );
-                    }
+                const lock = locks[lockIndex] as RatingLock;
+                const entries = lock.entries;
+                const index = entries.findIndex((entry) => entry.item.src === item.src);
+                if (index === -1) {
+                    entries.push({
+                        item,
+                        value: rating,
+                        originalValue: item.rating,
+                    });
                 } else {
-                    await service.store(item, inLibrary);
+                    const entry = entries[index];
+                    entries[index] = {...entry, value: rating};
                 }
-                dispatchMetadataChanges({
-                    match: (object) => service.compareForRating(object, item),
-                    values: {inLibrary},
-                });
-            } else {
-                throw Error(`store() not supported by ${serviceId}`);
             }
-        } else {
-            throw Error(`Service not found '${serviceId}'`);
-        }
-    }
-
-    private observeInLibraryChanges(
-        service: MediaService
-    ): Observable<readonly StorableMediaObject[]> {
-        return this.observeUpdates(service, this.inLibraryChanges$);
-    }
-
-    private observeRatingChanges(
-        service: MediaService
-    ): Observable<readonly StorableMediaObject[]> {
-        return this.observeUpdates(service, this.ratingChanges$);
-    }
-
-    private observeUpdates(
-        service: MediaService,
-        updates$: Observable<readonly StorableMediaObject[]>
-    ): Observable<readonly StorableMediaObject[]> {
-        return combineLatest([updates$, this.lockedService$]).pipe(
-            filter(([items]) => items.length > 0),
-            map(([items]) =>
-                items.filter(
-                    (item) => item.src.startsWith(`${service.id}:`) && !this.isLockedObject(item)
-                )
-            ),
-            distinctUntilChanged((a, b) => {
-                const srcsA = a.map((item) => item.src).sort();
-                const srcsB = b.map((item) => item.src).sort();
-                return String(srcsA) === String(srcsB);
-            })
-        );
-    }
-
-    private async bulkRate<T extends MediaObject>(
-        service: MediaService,
-        items: readonly T[],
-        rating: number,
-        chunkSize = 10
-    ): Promise<void> {
-        const applyChanges = async (items: readonly T[]): Promise<void> => {
-            const srcs = items.map((item) => item.src);
-            await this.ratingChanges.bulkDelete(srcs);
             dispatchMetadataChanges({
-                match: (object) => items.some((item) => service.compareForRating(object, item)),
+                match: (object) => service.compareForRating(object, item),
                 values: {rating},
             });
-        };
-
-        if (service.bulkRate) {
-            await service.bulkRate(items, rating);
-            applyChanges(items);
         } else {
-            const chunks = chunk(items, chunkSize);
-            for (const chunk of chunks) {
-                await Promise.all(chunk.map((item) => service.rate!(item, rating)));
-                applyChanges(chunk);
-            }
+            throw Error(`rate() not supported by ${service.name}`);
         }
+    } else {
+        throw Error(`Service not found: '${serviceId}'`);
     }
+}
 
-    private async bulkStore<T extends MediaObject>(
-        service: MediaService,
-        items: readonly T[],
-        inLibrary: boolean,
-        chunkSize = 10
-    ): Promise<void> {
-        const applyChanges = async (items: readonly T[]): Promise<void> => {
-            const srcs = items.map((item) => item.src);
-            await this.inLibraryChanges.bulkDelete(srcs);
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
+    const src = item.src;
+    const [serviceId] = src.split(':');
+    const service = getService(serviceId);
+    if (service) {
+        if (service.store) {
+            const lockIndex = findLockIndex(service, item.itemType, 'inLibrary');
+            if (lockIndex === -1) {
+                await service.store(item, inLibrary);
+            } else {
+                const lock = locks[lockIndex] as InLibraryLock;
+                const entries = lock.entries;
+                const index = entries.findIndex((entry) => entry.item.src === item.src);
+                if (index === -1) {
+                    entries.push({
+                        item,
+                        value: inLibrary,
+                        originalValue: item.inLibrary,
+                    });
+                } else {
+                    const entry = entries[index];
+                    entries[index] = {...entry, value: inLibrary};
+                }
+            }
             dispatchMetadataChanges({
-                match: (object) => items.some((item) => service.compareForRating(object, item)),
+                match: (object) => service.compareForRating(object, item),
                 values: {inLibrary},
             });
-        };
-
-        if (service.bulkStore) {
-            await service.bulkStore(items, inLibrary);
-            applyChanges(items);
         } else {
-            const chunks = chunk(items, chunkSize);
-            for (const chunk of chunks) {
-                await Promise.all(chunk.map((item) => service.store!(item, inLibrary)));
-                applyChanges(chunk);
-            }
+            throw Error(`store() not supported by ${service.name}`);
         }
+    } else {
+        throw Error(`Service not found: '${serviceId}'`);
     }
+}
 
-    private async clear(): Promise<void> {
-        await Promise.all([this.inLibraryChanges.clear(), this.ratingChanges.clear()]);
+async function unlock(
+    service: MediaService,
+    itemType: ItemType,
+    actionType: ActionType
+): Promise<void> {
+    const lock = getLock(service, itemType, actionType);
+    if (lock) {
+        if (!unlocking.has(lock)) {
+            unlocking.set(lock, applyChanges(lock));
+        }
+        return unlocking.get(lock);
     }
+}
 
-    private createStorableMediaObject<T extends MediaObject>(item: T): StorableMediaObject {
-        if ('pager' in item) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const {pager, ...storableItem} = item;
-            return storableItem;
+export default {
+    observeLock,
+    observeUnlock,
+    getInLibrary,
+    getRating,
+    isLocked,
+    lock,
+    rate,
+    store,
+    unlock,
+};
+
+async function applyChanges(lock: Lock): Promise<void> {
+    try {
+        if (lock.actionType === 'inLibrary') {
+            await applyInLibraryChanges(lock);
         } else {
-            return item;
+            await applyRatingChanges(lock);
         }
+    } catch (err) {
+        logger.error(err);
     }
+    const index = locks.indexOf(lock);
+    locks.splice(index, 1);
+    unlocking.delete(lock);
+    unlock$.next(lock);
+}
 
-    private getInLibraryChangedItem(
-        item: MediaObject | StorableMediaObject
-    ): StorableMediaObject | undefined {
-        const service = getServiceFromSrc(item);
-        if (service?.store) {
-            return this.inLibraryChanges$.value.find((changed) =>
-                service.compareForRating(changed as MediaObject, item as MediaObject)
-            );
-        }
-    }
-
-    private getRatingChangedItem(
-        item: MediaObject | StorableMediaObject
-    ): StorableMediaObject | undefined {
-        const service = getServiceFromSrc(item);
-        if (service?.rate) {
-            return this.ratingChanges$.value.find((changed) =>
-                service.compareForRating(changed as MediaObject, item as MediaObject)
-            );
-        }
-    }
-
-    private isLockedObject(item: StorableMediaObject): boolean {
-        const locked = this.lockedService$.value;
-        if (locked) {
-            const [serviceId] = item.src.split(':');
-            return locked.serviceId === serviceId && locked.itemType === item.itemType;
-        } else {
-            return false;
-        }
-    }
-
-    private registerService(service: MediaService, maxChunkSize?: number): void {
-        if (service.rate) {
-            const logger = this.logger.id(`${service.id}/rating`);
-            this.observeRatingChanges(service)
-                .pipe(
-                    filter((items) => items.length > 0),
-                    map((items) => groupBy(items, (item) => item.rating!)),
-                    mergeMap((byRating) =>
-                        Object.keys(byRating).map((rating) => ({
-                            items: byRating[rating as any],
-                            rating: Number(rating),
-                        }))
-                    ),
-                    concatMap(({items, rating}) =>
-                        this.bulkRate(service, items as MediaObject[], rating, maxChunkSize)
-                    ),
-                    catchError((err) => {
-                        logger.error(err);
-                        return [];
-                    })
-                )
-                .subscribe(logger);
-        }
-        if (service.store) {
-            const logger = this.logger.id(`${service.id}/inLibrary`);
-            this.observeInLibraryChanges(service)
-                .pipe(
-                    filter((items) => items.length > 0),
-                    map((items) => groupBy(items, (item) => String(!!item.inLibrary))),
-                    mergeMap((byInLibrary) =>
-                        Object.keys(byInLibrary).map((inLibrary) => ({
-                            items: byInLibrary[inLibrary as any],
-                            inLibrary: inLibrary !== 'false',
-                        }))
-                    ),
-                    concatMap(({items, inLibrary}) =>
-                        this.bulkStore(service, items as MediaObject[], inLibrary, maxChunkSize)
-                    ),
-                    catchError((err) => {
-                        logger.error(err);
-                        return [];
-                    })
-                )
-                .subscribe(logger);
+async function applyInLibraryChanges(lock: InLibraryLock): Promise<void> {
+    const service = lock.service;
+    const entries = lock.entries.filter((entry) => entry.value !== entry.originalValue);
+    if (service.bulkStore) {
+        const [additions, removals] = partition(entries, (entry) => entry.value);
+        await Promise.all([
+            service.bulkStore(
+                removals.map((entry) => entry.item),
+                false
+            ),
+            service.bulkStore(
+                additions.map((entry) => entry.item),
+                true
+            ),
+        ]);
+    } else {
+        const chunkSize = isPersonalMediaService(service) ? 10 : 5;
+        const chunks = chunk(entries, chunkSize);
+        for (const chunk of chunks) {
+            await Promise.all(chunk.map((entry) => service.store!(entry.item, entry.value)));
         }
     }
 }
 
-const actionsStore = new ActionsStore();
+async function applyRatingChanges(lock: RatingLock): Promise<void> {
+    const service = lock.service;
+    const entries = lock.entries.filter((entry) => entry.value !== entry.originalValue);
+    if (service.bulkRate) {
+        const objects = entries.map((item) => item.item);
+        const ratings = entries.map((item) => item.value);
+        await service.bulkRate(objects, ratings);
+    } else {
+        const chunkSize = isPersonalMediaService(service) ? 10 : 5;
+        const chunks = chunk(entries, chunkSize);
+        for (const chunk of chunks) {
+            await Promise.all(chunk.map((entry) => service.rate!(entry.item, entry.value)));
+        }
+    }
+}
 
-export default actionsStore;
+function findLockIndex(service: MediaService, itemType: ItemType, actionType: ActionType): number {
+    return locks.findIndex(
+        (lock) =>
+            lock.service === service && lock.itemType === itemType && lock.actionType === actionType
+    );
+}
+
+function getLock(
+    service: MediaService,
+    itemType: ItemType,
+    actionType: ActionType
+): Lock | undefined {
+    const index = findLockIndex(service, itemType, actionType);
+    return index == -1 ? undefined : locks[index];
+}

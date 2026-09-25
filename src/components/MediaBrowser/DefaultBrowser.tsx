@@ -1,6 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
-import actionsStore from 'services/actions/actionsStore';
 import SearchBar from 'components/SearchBar';
 import useSearch from 'hooks/useSearch';
 import {MediaBrowserProps} from './MediaBrowser';
@@ -21,19 +20,6 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     const searchable = !!source.searchable;
     const showPagerHeader = !searchable && !source.isPin && !source.singular;
     const isSearch = !!query;
-
-    useEffect(() => {
-        if (selectedSource?.lockActionsStore) {
-            actionsStore.lock(service.id, selectedSource.itemType);
-        } else {
-            actionsStore.unlock();
-        }
-    }, [service, selectedSource]);
-
-    useEffect(() => {
-        // Commit unsaved changes.
-        return () => actionsStore.unlock();
-    }, [selectedSource]);
 
     const handleTextChange = useCallback((text: string) => {
         textRef.current = text;

@@ -149,7 +149,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'My Songs',
             icon: 'heart',
             itemType: ItemType.Media,
-            lockActionsStore: true,
+            lockActionType: 'inLibrary',
             primaryItems: {
                 emptyMessage: "You don't have any liked songs.",
             },
@@ -171,7 +171,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'My Albums',
             icon: 'heart',
             itemType: ItemType.Album,
-            lockActionsStore: true,
+            lockActionType: 'inLibrary',
             primaryItems: {
                 emptyMessage: "You don't have any liked albums.",
             },
@@ -193,7 +193,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'My Artists',
             icon: 'heart',
             itemType: ItemType.Artist,
-            lockActionsStore: true,
+            lockActionType: 'inLibrary',
             defaultHidden: true,
             primaryItems: {
                 emptyMessage: "You don't have any liked artists.",
@@ -216,7 +216,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Top Rated',
             icon: 'star',
             itemType: ItemType.Album,
-            lockActionsStore: true,
+            lockActionType: 'rating',
             defaultHidden: true,
             primaryItems: {
                 layout: {

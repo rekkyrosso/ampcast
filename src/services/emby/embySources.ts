@@ -226,7 +226,7 @@ const embyLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     primaryItems: {
         emptyMessage: t("You don't have any favorite songs."),
         sort: embySongsSort,
@@ -246,7 +246,7 @@ const embyLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     primaryItems: {
         emptyMessage: t("You don't have any favorite albums."),
         sort: embyAlbumsSort,
@@ -267,7 +267,7 @@ const embyLikedArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     defaultHidden: true,
     primaryItems: {
         emptyMessage: t("You don't have any favorite artists."),

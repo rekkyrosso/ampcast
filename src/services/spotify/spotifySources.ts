@@ -175,7 +175,7 @@ const spotifyLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     primaryItems: spotifyMediaItems,
 
     search(): Pager<MediaItem> {
@@ -195,7 +195,7 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
 
     search(): Pager<MediaAlbum> {
         return new SpotifyPager(
@@ -214,7 +214,7 @@ const spotifyFollowedArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
 
     search(): Pager<MediaArtist> {
         return new SpotifyPager(
@@ -235,7 +235,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     title: 'My Playlists',
     icon: 'heart',
     itemType: ItemType.Playlist,
-    lockActionsStore: true,
+    lockActionType: 'inLibrary',
     secondaryItems: spotifyPlaylistItems,
 
     search(): Pager<MediaPlaylist> {

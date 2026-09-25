@@ -203,7 +203,7 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     searchable: true,
     searchPlaceholder: 'Search My Songs',
-    lockActionsStore: true,
+    // lockActionType: 'inLibrary', // Not editable.
     defaultHidden: true,
     primaryItems: {sort: appleLibrarySort},
 
@@ -234,7 +234,7 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
     searchable: true,
     searchPlaceholder: 'Search My Albums',
-    lockActionsStore: true,
+    // lockActionType: 'inLibrary', // Not editable.
     primaryItems: {sort: appleLibrarySort},
 
     search(
@@ -263,7 +263,7 @@ const appleLibraryArtists: MediaSource<MediaArtist> = {
     itemType: ItemType.Artist,
     searchable: true,
     searchPlaceholder: 'Search My Artists',
-    lockActionsStore: true,
+    // lockActionType: 'inLibrary', // Not editable.
     defaultHidden: true,
     primaryItems: {
         sort: {
@@ -295,7 +295,7 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     searchable: true,
     searchPlaceholder: 'Search My Playlists',
-    lockActionsStore: true,
+    // lockActionType: 'inLibrary', // Not editable.
     primaryItems: {sort: appleLibrarySort},
 
     search(
@@ -337,7 +337,7 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
     mediaType: MediaType.Video,
     searchable: true,
     searchPlaceholder: 'Search My Videos',
-    lockActionsStore: true,
+    // lockActionType: 'inLibrary', // Not editable.
     defaultHidden: true,
     primaryItems: {
         label: 'Videos',

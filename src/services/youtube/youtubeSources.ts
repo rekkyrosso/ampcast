@@ -110,7 +110,6 @@ const youtubeLikes: MediaSource<MediaItem> = {
     icon: 'thumbs-up',
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
-    lockActionsStore: true,
     defaultHidden: true,
     primaryItems: youtubeVideoItems,
 

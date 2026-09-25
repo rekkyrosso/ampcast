@@ -267,7 +267,7 @@ const plexTopTracks: MediaSource<MediaItem> = {
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
-    lockActionsStore: true,
+    lockActionType: 'rating',
     primaryItems: {
         layout: topTracksLayout,
     },
@@ -289,7 +289,7 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
-    lockActionsStore: true,
+    lockActionType: 'rating',
     primaryItems: {
         layout: {
             ...albumsLayout,
@@ -317,7 +317,7 @@ const plexTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
-    lockActionsStore: true,
+    lockActionType: 'rating',
     defaultHidden: true,
     primaryItems: {
         layout: {

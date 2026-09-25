@@ -8,14 +8,14 @@
     .dialog-buttons {
         display: flex;
         text-align: left;
-    }
 
-    .button {
-        margin-left: auto;
-    }
+        .button {
+            margin-left: auto;
+        }
 
-    .navigation-button {
-        margin-left: 0;
-        cursor: pointer;
+        .navigation-button {
+            margin-left: 0;
+            cursor: pointer;
+        }
     }
 }

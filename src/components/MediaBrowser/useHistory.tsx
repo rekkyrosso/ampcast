@@ -22,6 +22,8 @@ export type HistoryState = {
     readonly index: number;
 };
 
+const MAX_SIZE = 50;
+
 const logger = new Logger('history');
 
 const storage = new LiteStorage('history', 'session');
@@ -40,14 +42,24 @@ if (WEB_LINKS) {
     state$.subscribe((state) => {
         if (state) {
             const {key, path, index} = state;
-            const historyItem = stack$.value.find((entry) => entry?.key === key);
+            const stack = stack$.value.slice();
+            let stackChanged = false;
+            let expiredIndex = index - MAX_SIZE;
+            while (expiredIndex >= 0) {
+                delete stack[expiredIndex];
+                stackChanged = true;
+                expiredIndex--;
+            }
+            const historyItem = stack.find((entry) => entry?.key === key);
             if (!historyItem) {
                 const entry = createHistoryEntry(key, path);
-                const stack = stack$.value.slice();
                 stack[index] = entry;
+                stackChanged = true;
+            }
+            if (stackChanged) {
                 stack$.next(stack);
             }
-            storage.setNumber('index', state.index);
+            storage.setNumber('index', index);
         }
     });
 }
@@ -65,11 +77,14 @@ export default function useHistory() {
     }, []);
 
     const expire = useCallback((key: string) => {
-        const stack = stack$.value.slice();
-        const index = stack.findIndex((entry) => entry?.key === key);
-        if (index !== -1) {
-            delete stack[index];
-            stack$.next(stack);
+        const currentKey = state$.value?.key;
+        if (key !== currentKey) {
+            const stack = stack$.value.slice();
+            const index = stack.findIndex((entry) => entry?.key === key);
+            if (index !== -1) {
+                delete stack[index];
+                stack$.next(stack);
+            }
         }
     }, []);
 

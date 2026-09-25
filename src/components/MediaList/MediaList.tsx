@@ -23,8 +23,9 @@ import usePlaybackState from 'hooks/usePlaybackState';
 import usePreferences from 'hooks/usePreferences';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
-import useOnDragStart from './useOnDragStart';
+import useActionsStore from './useActionsStore';
 import useMediaListSort from './useMediaListSort';
+import useOnDragStart from './useOnDragStart';
 import useViewClassName from './useViewClassName';
 import './MediaList.scss';
 
@@ -107,6 +108,7 @@ export default function MediaList<T extends MediaObject>({
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, busy, complete, error, size, maxSize}, fetchAt] = usePager(pager);
+    const actionsReady = useActionsStore(level === 1 ? source : undefined, complete);
     const empty = items.length === 0;
     const initialError = useFirstValue(empty ? error : null);
     const success = loaded && !initialError;
@@ -165,11 +167,11 @@ export default function MediaList<T extends MediaObject>({
     }, [initialError, onError]);
 
     useEffect(() => {
-        if (scrollIndex >= 0 && pageSize > 0) {
+        if (actionsReady && scrollIndex >= 0 && pageSize > 0) {
             fetchAt(scrollIndex, pageSize);
         }
         // Re-fetch if the pager changes.
-    }, [fetchAt, scrollIndex, pageSize, pager]);
+    }, [fetchAt, actionsReady, scrollIndex, pageSize, pager]);
 
     const isPlayable = useCallback(
         (item: MediaObject): boolean => {
@@ -337,9 +339,9 @@ export default function MediaList<T extends MediaObject>({
                     error={error}
                     size={size}
                     maxSize={maxSize}
-                    loading={!!pager && !loaded}
-                    loadingText={loadingText}
-                    busy={busy}
+                    loading={!!pager && (!loaded || !actionsReady)}
+                    loadingText={actionsReady ? loadingText : 'Synching'}
+                    busy={busy || !actionsReady}
                     selectedCount={selectedItems.length}
                     icons={statusBarIcons}
                 />

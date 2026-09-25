@@ -6,16 +6,19 @@ export default function BrowserHistory() {
 
     return (
         <div className="browser-history">
-            {stack.reverse().map((item) => (
-                <div
-                    className="history-item"
-                    data-key={item.key}
-                    hidden={item.key !== currentKey}
-                    key={item.key}
-                >
-                    {item.node}
-                </div>
-            ))}
+            {stack
+                .slice()
+                .reverse()
+                .map((item) => (
+                    <div
+                        className="history-item"
+                        data-key={item.key}
+                        hidden={item.key !== currentKey}
+                        key={item.key}
+                    >
+                        {item.node}
+                    </div>
+                ))}
         </div>
     );
 }
