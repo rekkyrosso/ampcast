@@ -15,7 +15,7 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {getMediaObjectId, getTextFromHtml, Logger} from 'utils';
+import {getMediaObjectId, getTextFromHtml} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {createRadioStation} from 'services/mediaServices/mediaSources';
 import {bestOf} from 'services/metadata';
@@ -48,8 +48,6 @@ import subsonicApi, {subsonicService} from './subsonicApi';
 import {createMediaObject} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
-
-const logger = new Logger(serviceId);
 
 const navidrome: PersonalMediaService = {
     id: serviceId,
@@ -99,6 +97,7 @@ const navidrome: PersonalMediaService = {
     createSourceFromPin,
     editPlaylist,
     createRadioPager,
+    createShareLink,
     createSongsPager,
     getFilters,
     getLyrics,
@@ -222,8 +221,12 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
     return subsonicService.createRadioPager(item);
 }
 
-function  createRelatedItemsPager<T extends MediaObject>(item: T): Pager<T> | undefined {
+function createRelatedItemsPager<T extends MediaObject>(item: T): Pager<T> | undefined {
     return subsonicService.createRelatedItemsPager(item);
+}
+
+function createShareLink<T extends MediaObject>(item: T): Promise<string> {
+    return subsonicService.createShareLink(item);
 }
 
 function createSongsPager(item: MediaItem): Pager<MediaItem> {
@@ -267,15 +270,6 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
             description: getTextFromHtml(info.biography),
             artist_mbid: info.musicBrainzId,
         };
-    }
-    if ((itemType === ItemType.Media || itemType === ItemType.Album) && !item.shareLink) {
-        try {
-            const shareLink = await subsonicApi.createShare(id);
-            item = {...item, shareLink};
-        } catch (err) {
-            logger.warn(err);
-            logger.info('Could not create share link');
-        }
     }
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;

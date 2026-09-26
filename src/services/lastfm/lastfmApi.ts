@@ -13,6 +13,12 @@ import lastfmSettings from './lastfmSettings';
 
 const logger = new Logger('lastfmApi');
 
+interface InfoOptions {
+    autoCorrect?: boolean;
+    username?: string;
+    signal?: AbortSignal;
+}
+
 export class LastFmApi {
     private readonly host = `https://ws.audioscrobbler.com/2.0`;
     private readonly placeholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
@@ -82,7 +88,10 @@ export class LastFmApi {
     ): Promise<T> {
         try {
             const {title, artists: [artist] = []} = item;
-            const trackInfo = await this.getTrackInfo(title, artist, '', signal);
+            const trackInfo = await this.getTrackInfo(title, artist, {
+                signal,
+                autoCorrect: !strictMatch,
+            });
             if (trackInfo) {
                 const track = this.createMediaItem(trackInfo);
                 if (isSameTrack(item, track, strictMatch)) {
@@ -154,11 +163,14 @@ export class LastFmApi {
             artist = item.albumArtists?.[0] || item.artists?.[0];
         }
         if (album && artist) {
-            const albumInfo = await this.getAlbumInfo(album, artist, undefined, signal);
+            const albumInfo = await this.getAlbumInfo(album, artist, {signal, autoCorrect: true});
             thumbnails = this.createThumbnails(albumInfo?.image);
         }
         if (!thumbnails && item.itemType === ItemType.Media) {
-            const trackInfo = await this.getTrackInfo(item.title, artist, '', signal);
+            const trackInfo = await this.getTrackInfo(item.title, artist, {
+                signal,
+                autoCorrect: true,
+            });
             thumbnails =
                 this.createThumbnails(trackInfo?.image) ||
                 this.createThumbnails(trackInfo?.album?.image);
@@ -169,21 +181,17 @@ export class LastFmApi {
     async getAlbumInfo(
         title: string,
         artist: string | undefined,
-        user?: string,
-        signal?: AbortSignal
+        {autoCorrect, signal, ...options}: InfoOptions = {}
     ): Promise<LastFm.AlbumInfo | undefined> {
         try {
             if (artist) {
                 const params: Record<string, string> = {
                     method: 'album.getInfo',
-                    artist: artist,
+                    artist,
                     album: title,
+                    autocorrect: autoCorrect ? '1' : '0',
+                    ...options,
                 };
-                if (user) {
-                    params.user = user;
-                } else {
-                    params.autocorrect = '1';
-                }
                 const {album} = await this.get<LastFm.AlbumInfoResponse>(params, signal);
                 if (album) {
                     if ('error' in album) {
@@ -194,7 +202,31 @@ export class LastFmApi {
             }
         } catch (err) {
             if (err !== 'Cancelled') {
-                logger.info('Album not found', {artist, title});
+                logger.error(err);
+            }
+        }
+    }
+
+    async getArtistInfo(
+        title: string,
+        {autoCorrect, signal, ...options}: InfoOptions = {}
+    ): Promise<LastFm.ArtistInfo | undefined> {
+        try {
+            const params: Record<string, string> = {
+                method: 'artist.getInfo',
+                artist: title,
+                autocorrect: autoCorrect ? '1' : '0',
+                ...options,
+            };
+            const {artist} = await this.get<LastFm.ArtistInfoResponse>(params, signal);
+            if (artist) {
+                if ('error' in artist) {
+                    throw Error((artist.error as any)?.message || 'Not found');
+                }
+                return artist;
+            }
+        } catch (err) {
+            if (err !== 'Cancelled') {
                 logger.error(err);
             }
         }
@@ -203,8 +235,7 @@ export class LastFmApi {
     async getTrackInfo(
         title: string,
         artist: string | undefined,
-        user?: string,
-        signal?: AbortSignal
+        {autoCorrect, signal, ...options}: InfoOptions = {}
     ): Promise<LastFm.TrackInfo | undefined> {
         try {
             if (artist) {
@@ -212,12 +243,10 @@ export class LastFmApi {
                     method: 'track.getInfo',
                     artist: artist,
                     track: title,
+                    autocorrect: autoCorrect ? '1' : '0',
+                    ...options,
                 };
-                if (user) {
-                    params.user = user;
-                } else {
-                    params.autocorrect = '1';
-                }
+
                 const {track} = await this.get<LastFm.TrackInfoResponse>(params, signal);
                 if (track) {
                     if ('error' in track) {
@@ -228,7 +257,6 @@ export class LastFmApi {
             }
         } catch (err) {
             if (err !== 'Cancelled') {
-                logger.info('Track not found', {artist, title});
                 logger.error(err);
             }
         }

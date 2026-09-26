@@ -30,6 +30,7 @@ import {
 import spotifyApi, {SpotifyItem} from './spotifyApi';
 import spotifySettings from './spotifySettings';
 import spotifySources, {
+    createRelatedPlaylistsSource,
     createSearchPager,
     createSourceFromObject,
     createSourceFromPin,
@@ -77,6 +78,7 @@ const spotify: PublicMediaService = {
     canStore,
     compareForRating,
     createPlaylist,
+    createRelatedPlaylistsSource,
     createSourceFromObject,
     createSourceFromPin,
     editPlaylist,

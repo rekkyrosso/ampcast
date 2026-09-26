@@ -327,7 +327,7 @@ export function createMediaPlaylist(
         itemType: ItemType.Playlist,
         externalUrl: getExternalUrl(id, 'playlists'),
         title: playlist[map.name],
-        description: playlist[map.description],
+        description: playlist[map.description] || undefined,
         thumbnails: createThumbnails(playlist[map.artwork_id]),
         trackCount: trackIds?.length,
         isPinned: pinStore.isPinned(src),

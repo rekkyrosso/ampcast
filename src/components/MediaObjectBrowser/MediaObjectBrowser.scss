@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .media-object-browser {
     background-color: var(--frame-color);
 
@@ -41,6 +43,10 @@
 
     .tab-list-tabs {
         flex-wrap: wrap;
+
+        & > li + li {
+            margin-left: 0.25em;
+        }
     }
 
     .tab-list-panels {
@@ -49,9 +55,12 @@
         border-radius: 0;
     }
 
-    .tab[aria-selected="true"] {
+    .tab {
         border-color: var(--frame-color-lo);
-        border-bottom-color: var(--background-color);
+
+        &[aria-selected="true"] {
+            border-bottom-color: var(--background-color);
+        }
     }
 
     .tab-panel {
@@ -73,6 +82,7 @@
 
         &-info {
             & > .scrollable {
+                @include effects.inset;
                 background-color: var(--background-color);
                 bottom: var(--gutter-width);
             }
@@ -86,12 +96,17 @@
     .media-info {
         padding: 1em;
         color: var(--text-color);
-        min-width: 24em;
-        max-width: 75ch;
+        min-width: 28em;
+        max-width: calc(2em + 75ch);
 
         .description {
             max-height: none;
             font-size: 1em;
+
+            .text-box-content {
+                line-height: 1.4;
+                padding-right: 0;
+            }
 
             .scrollbar {
                 display: none;

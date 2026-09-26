@@ -34,6 +34,7 @@ import {
 } from 'utils';
 import {OpenSubsonicRequiredError} from 'services/errors';
 import {createSingularMediaSource, createRadioStation} from 'services/mediaServices/mediaSources';
+import {dispatchMetadataChanges} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -826,18 +827,16 @@ export default class SubsonicService implements PersonalMediaService {
         if (itemType === ItemType.Media && item.linearType) {
             return item;
         }
-        if (itemType === ItemType.Album) {
-            if (item.description === undefined) {
-                const info = await this.api.getAlbumInfo(id, item.subsonic?.isDir);
-                item = {
-                    ...item,
-                    // These values sometimes come through as `{}` from Ampache.
-                    description: typeof info.notes === 'string' ? getTextFromHtml(info.notes) : '',
-                    release_mbid:
-                        item.release_mbid ||
-                        (typeof info.musicBrainzId === 'string' ? info.musicBrainzId : undefined),
-                };
-            }
+        if (itemType === ItemType.Album && item.description === undefined) {
+            const info = await this.api.getAlbumInfo(id, item.subsonic?.isDir);
+            item = {
+                ...item,
+                // These values sometimes come through as `{}` from Ampache.
+                description: typeof info.notes === 'string' ? getTextFromHtml(info.notes) : '',
+                release_mbid:
+                    item.release_mbid ||
+                    (typeof info.musicBrainzId === 'string' ? info.musicBrainzId : undefined),
+            };
         } else if (itemType === ItemType.Artist && item.description === undefined) {
             const info = await this.api.getArtistInfo(id);
             item = {
@@ -848,16 +847,35 @@ export default class SubsonicService implements PersonalMediaService {
                     (typeof info.musicBrainzId === 'string' ? info.musicBrainzId : undefined),
             };
         }
-        // if ((itemType === ItemType.Media || itemType === ItemType.Album) && !item.shareLink) {
-        //     try {
-        //         const shareLink = await this.api.createShare(id);
-        //         item = {...item, shareLink};
-        //     } catch (err) {
-        //         this.logger.warn(err);
-        //         this.logger.info('Could not create share link');
-        //     }
-        // }
         return item;
+    }
+
+    async createShareLink(item: MediaObject): Promise<string> {
+        if (item.itemType === ItemType.Media || item.itemType === ItemType.Album) {
+            if (item.shareLink) {
+                return item.shareLink;
+            }
+            const id = getMediaObjectId(item);
+            try {
+                const shareLink = await this.api.createShare(id);
+                if (!shareLink) {
+                    throw Error('Could not create share link');
+                }
+                dispatchMetadataChanges({
+                    match: (object) => object.src === item.src,
+                    values: {shareLink},
+                });
+                return shareLink;
+            } catch (err: any) {
+                if (err?.code === 70) {
+                    throw Error('Not supported');
+                } else {
+                    throw err;
+                }
+            }
+        } else {
+            throw Error('Not supported');
+        }
     }
 
     async getPlaybackType(item: MediaItem): Promise<PlaybackType> {

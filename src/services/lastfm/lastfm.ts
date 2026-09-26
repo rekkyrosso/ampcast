@@ -104,14 +104,23 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (item.itemType !== ItemType.Media || item.inLibrary !== undefined) {
-        return item;
-    }
-    const {title, artists: [artist] = []} = item;
-    const track = await lastfmApi.getTrackInfo(title, artist, lastfmSettings.userId);
-    if (track) {
+    if (
+        item.itemType === ItemType.Media &&
+        (item.inLibrary === undefined || item.description === undefined)
+    ) {
+        const {title, artists: [artist] = []} = item;
+        const trackInfo = await lastfmApi.getTrackInfo(title, artist, {
+            username: lastfmSettings.userId,
+        });
+        if (!trackInfo) {
+            return {
+                ...item,
+                inLibrary: item.inLibrary || false,
+                description: item.description || '',
+            };
+        }
         const metadata: Partial<Writable<MediaItem>> = {};
-        const {album, wiki} = track;
+        const {album, wiki} = trackInfo;
         if (album) {
             metadata.album = album.title;
             metadata.albumArtists = album.artist ? [album.artist] : undefined;
@@ -119,9 +128,7 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
                 metadata.thumbnails = lastfmApi.createThumbnails(album.image);
             }
         }
-        if (!item.description && wiki) {
-            metadata.description = getTextFromHtml(wiki.content || wiki.summary);
-        }
+        metadata.description = getTextFromHtml(wiki?.content || wiki?.summary);
         if (!item.year && wiki) {
             metadata.year = wiki.published
                 ? new Date(wiki.published).getFullYear() || undefined
@@ -130,10 +137,20 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
         return {
             ...item,
             ...metadata,
-            inLibrary: actionsStore.getInLibrary(item, !!Number(track.userloved)),
-            playCount: Number(track.userplaycount) || 0,
-            globalPlayCount: Number(track.playcount) || 0,
+            inLibrary: actionsStore.getInLibrary(item, !!Number(trackInfo.userloved)),
+            playCount: Number(trackInfo.userplaycount) || 0,
+            globalPlayCount: Number(trackInfo.playcount) || 0,
         };
+    } else if (item.itemType === ItemType.Album && item.description === undefined) {
+        const albumInfo = await lastfmApi.getAlbumInfo(item.title, item.artists?.[0]);
+        const wiki = albumInfo?.wiki;
+        const description = getTextFromHtml(wiki?.content || wiki?.summary);
+        return {...item, description};
+    } else if (item.itemType === ItemType.Artist && item.description === undefined) {
+        const artistInfo = await lastfmApi.getArtistInfo(item.title);
+        const bio = artistInfo?.bio;
+        const description = getTextFromHtml(bio?.content || bio?.summary);
+        return {...item, description};
     }
     return item;
 }

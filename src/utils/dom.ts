@@ -1,14 +1,21 @@
-export function getTextFromHtml(html = ''): string {
+// `lf` is the number of line feeds that represent a paragraph break.
+export function getTextFromHtml(html = '', lf?: 1 | 2): string {
+    const key = `{key-${Date.now()}}`;
     const element = document.createElement('p');
-    const paragraphs = String(html ?? '')
-        .trim()
-        .split(/\s*[\n\r]+\s*/);
-    return paragraphs
-        .map((html) => {
-            element.innerHTML = html;
-            return element.textContent;
-        })
-        .join('\n');
+    let text = String(html ?? '')
+        .replaceAll('\r', '')
+        .split('\n')
+        .map((line) => line.trim())
+        .join('\n')
+        .replace(/\n\n+/g, '\n\n');
+    if (!lf) {
+        lf = text.includes('\n\n') ? 2 : 1;
+    }
+    if (lf === 1) {
+        text = text.replaceAll('\n', '\n\n');
+    }
+    element.innerHTML = text.replaceAll('\n', key);
+    return element.textContent.replaceAll(key, '\n');
 }
 
 export async function loadLibrary(name: string): Promise<void> {

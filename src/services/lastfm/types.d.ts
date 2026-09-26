@@ -104,6 +104,21 @@ declare namespace LastFm {
         readonly album: AlbumInfo;
     }
 
+    interface ArtistInfo extends Omit<Artist, 'loved' | 'playcount' | 'userplaycount'> {
+        readonly bio?: Wiki;
+        readonly similar?: {
+            readonly artist: readonly Artist[];
+        };
+        readonly stats?: {
+            readonly listeners: string;
+            readonly playcount: string;
+        };
+    }
+
+    interface ArtistInfoResponse {
+        readonly artist: ArtistInfo;
+    }
+
     interface TrackInfo extends Omit<Track, 'loved'> {
         readonly album?: {
             readonly artist: string;

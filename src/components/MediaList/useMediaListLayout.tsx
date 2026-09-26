@@ -43,6 +43,8 @@ export default function useMediaListLayout(
         }
         extraFields = uniq(extraFields);
         return createMediaListLayout(
+            source,
+            level,
             listId,
             {
                 view: view || layoutOptions?.view || defaultLayout.view,
@@ -78,6 +80,8 @@ function addRating(
 }
 
 function createMediaListLayout(
+    source: MediaSource<any> | undefined,
+    level: 1 | 2 | 3,
     listId: string,
     layout: MediaListLayout,
     parentPlaylist?: MediaPlaylist
@@ -85,11 +89,16 @@ function createMediaListLayout(
     if (layout.view === 'none') {
         return {view: 'details', cols: []};
     }
+    const singular = level === 1 && source?.singular;
     const actions: FieldSpec = {
         id: 'Actions' as Field,
         title: 'Actions',
         render: (item: MediaObject) => (
-            <Actions item={item} inListView parentPlaylist={parentPlaylist} />
+            <Actions
+                item={item}
+                location={singular ? 'header' : 'list'}
+                parentPlaylist={parentPlaylist}
+            />
         ),
         className: 'actions',
         align: 'right',

@@ -22,7 +22,11 @@ export default function NavigationButton({item}: NavigationButtonProps) {
     }, [navigateTo, path]);
 
     return WEB_LINKS && canNavigate ? (
-        <Button className="navigation-button" onClick={showInBrowser}>
+        <Button
+            className="navigation-button"
+            title="Show in media browser"
+            onClick={showInBrowser}
+        >
             Go to…
         </Button>
     ) : null;

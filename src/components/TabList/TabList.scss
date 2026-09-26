@@ -29,11 +29,15 @@
     }
 
     .tab {
-        @include effects.button;
+        @include effects.surface;
         @include effects.pressable;
+        --amb-light-hue: var(--frame2-color-h);
+        --amb-light-saturation: var(--frame2-color-s);
+        --amb-key-light-intensity: var(--frame2-color-l2);
         --amb-chamfer: 0;
         --amb-fillet: 0;
         --amb-elevation: 0;
+        color: var(--frame-text-color);
         position: relative;
         padding: 0 1em;
         border: 1px solid #444;

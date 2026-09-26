@@ -17,7 +17,7 @@ import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
-import {Logger, exists, getMediaObjectId, uniq} from 'utils';
+import {Logger, exists, getMediaObjectId, getTextFromHtml, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -120,7 +120,7 @@ export function createMediaItemFromTrack(
         title,
         fileName,
         position,
-        description: track.summary,
+        description: getTextFromHtml(track.summary, 1) || undefined,
         externalUrl: getExternalUrl(track),
         addedAt: track.addedAt,
         artists: track.originalTitle
@@ -180,7 +180,7 @@ function createMediaAlbum(album: plex.Album, noPager?: boolean): MediaAlbum {
                       : undefined,
         externalUrl: getExternalUrl(album),
         title: album.title || '',
-        description: album.summary,
+        description: getTextFromHtml(album.summary, 1) || undefined,
         addedAt: album.addedAt,
         artists: album.parentTitle ? [album.parentTitle] : undefined,
         rating: getRating(album.userRating),
@@ -222,7 +222,7 @@ function createMediaArtist(
         itemType: ItemType.Artist,
         externalUrl: getExternalUrl(artist),
         title: artist.title,
-        description: artist.summary,
+        description: getTextFromHtml(artist.summary, 1) || undefined,
         origin: artist.Country?.map((country) => country.tag).join(', '),
         addedAt: artist.addedAt,
         rating: getRating(artist.userRating),
@@ -250,7 +250,7 @@ function createMediaItemFromVideo(video: plex.MusicVideo): MediaItem {
         srcs: video.Media?.map(({Part: [part]}) => part.key),
         itemType: ItemType.Media,
         mediaType: MediaType.Video,
-        description: video.summary,
+        description: getTextFromHtml(video.summary, 1) || undefined,
         externalUrl: getExternalUrl(video),
         fileName: getFileName(part?.file),
         title: video.title || 'Video',
@@ -277,7 +277,7 @@ function createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaP
         itemType: ItemType.Playlist,
         externalUrl: getExternalUrl(playlist),
         title: playlist.title,
-        description: playlist.summary,
+        description: getTextFromHtml(playlist.summary, 1) || undefined,
         addedAt: playlist.addedAt,
         modifiedAt: playlist.updatedAt,
         duration: playlist.duration / 1000,
@@ -315,7 +315,7 @@ function createRadioStation(radio: plex.Radio): MediaItem {
         mediaType: MediaType.Audio,
         linearType: LinearType.Station,
         playbackType: PlaybackType.Direct,
-        description: radio.summary,
+        description: getTextFromHtml(radio.summary, 1) || undefined,
         duration: MAX_DURATION,
         playedAt: 0,
         skippable: true,

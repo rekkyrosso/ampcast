@@ -18,6 +18,7 @@ import {
 import Browsable from 'types/Browsable';
 import DataService from 'types/DataService';
 import MediaItem from 'types/MediaItem';
+import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaService from 'types/PersonalMediaService';
@@ -154,6 +155,10 @@ export function isMediaService(service: any): service is MediaService {
     return service ? 'serviceType' in service : false;
 }
 
+export function isPersonalMedia(item: MediaObject): boolean {
+    return getServiceFromSrc(item)?.serviceType === ServiceType.PersonalMedia;
+}
+
 export function isPersonalMediaService(service: MediaService): service is PersonalMediaService {
     return isMediaServiceType(service, ServiceType.PersonalMedia);
 }
@@ -226,6 +231,10 @@ export function isPlayableSrc(src: string, immediate?: boolean): boolean {
         }
     }
     return false;
+}
+
+export function isPublicMedia(item: MediaObject): boolean {
+    return getServiceFromSrc(item)?.serviceType === ServiceType.PublicMedia;
 }
 
 export function isPublicMediaService(service: MediaService): service is PublicMediaService {

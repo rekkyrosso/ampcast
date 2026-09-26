@@ -16,7 +16,7 @@ import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
-import {exists, getMediaObjectId, Logger} from 'utils';
+import {exists, getMediaObjectId, getTextFromHtml, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
@@ -83,7 +83,7 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
         src: `${serviceId}:artist:${artist.Id}`,
         externalUrl: getExternalUrl(artist),
         title: artist.Name || '',
-        description: artist.Overview || undefined,
+        description: getTextFromHtml(artist.Overview || '', 1) || undefined,
         playCount: artist.UserData?.PlayCount || undefined,
         genres: artist.Genres || undefined,
         inLibrary: artist.UserData?.IsFavorite,
@@ -104,7 +104,7 @@ function createMediaAlbum(album: BaseItemDto): MediaAlbum {
         src: `${serviceId}:album:${album.Id}`,
         externalUrl: getExternalUrl(album),
         title: album.Name || '',
-        description: album.Overview ?? undefined,
+        description: getTextFromHtml(album.Overview || '', 1) || undefined,
         duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
         addedAt: parseDate(album.DateCreated),
         playedAt: parseDate(album.UserData?.LastPlayedDate),
@@ -133,7 +133,7 @@ function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): Medi
         itemType: ItemType.Playlist,
         externalUrl: getExternalUrl(playlist),
         title: playlist.Name || '',
-        description: playlist.Overview ?? undefined,
+        description: getTextFromHtml(playlist.Overview || '', 1) || undefined,
         duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
         addedAt: parseDate(playlist.DateCreated),
         playedAt: parseDate(playlist.UserData?.LastPlayedDate),

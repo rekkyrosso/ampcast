@@ -161,13 +161,35 @@ function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
 }
 
 function Description<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
-    return description ? (
-        <TextBox className="description">
-            {description.split(/\n+/).map((text, index) => (
-                <p key={index}>{text}</p>
-            ))}
-        </TextBox>
-    ) : null;
+    if (description) {
+        let providerId = '';
+        description = description.replace(/\n\ncredit:(\w+)$/, (_, credit) => {
+            providerId = credit;
+            return '';
+        });
+        const provider = getService(providerId);
+        return (
+            <TextBox className="description">
+                {description.split(/\n\n+/).map((text, index) => (
+                    <p className={text.includes('\n') ? 'free-text' : ''} key={index}>
+                        {text
+                            .split('\n')
+                            .map((line) => <>{line}</>)
+                            // This is basically `Array.join(',')` in React.
+                            .reduce(
+                                (list: React.JSX.Element | null, item: React.JSX.Element | null) =>
+                                    // prettier-ignore
+                                    list ? (<>{list}<br />{item}</>) : item,
+                                null
+                            )}
+                    </p>
+                ))}
+                {provider ? <p className="credit">{`provided by ${provider.name}`}</p> : null}
+            </TextBox>
+        );
+    } else {
+        return null;
+    }
 }
 
 function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
@@ -361,7 +383,7 @@ export function Thumbnail({className = '', ...props}: CoverArtProps) {
 }
 
 function Actions({item}: ActionsProps) {
-    return <DefaultActions item={item} inInfoView />;
+    return <DefaultActions item={item} location="info" />;
 }
 
 function isPlaylistItem(item: MediaItem): item is PlaylistItem {

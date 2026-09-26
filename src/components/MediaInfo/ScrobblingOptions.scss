@@ -5,9 +5,12 @@
 
     .status {
         flex: auto;
-        overflow: hidden;
-        text-overflow: ellipsis;
         margin-right: 0.5em;
+
+        .list-view & {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     .button {

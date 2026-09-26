@@ -120,6 +120,10 @@
         max-height: 10.75em;
         text-align: justify;
 
+        .free-text {
+            text-align: left;
+        }
+
         .scrollable {
             --scrollbar-width: max(10px, calc(1.25em * var(--scrollbar-size)));
         }
@@ -158,5 +162,11 @@
         padding-top: 1.5em;
         font-size: 0.75em;
         line-height: 1.2;
+    }
+
+    .credit {
+        font-size: max(10px, 0.75em);
+        font-style: italic;
+        text-align: right;
     }
 }

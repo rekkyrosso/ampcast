@@ -76,7 +76,7 @@ async function getMediaItem(url: string): Promise<MediaItem> {
         srcs: [url],
         externalUrl: url,
         title: title,
-        description: track.description ? getTextFromHtml(track.description) : undefined,
+        description: getTextFromHtml(track.description) || undefined,
         duration: 0,
         playedAt: 0,
         artists: artist ? [artist] : undefined,

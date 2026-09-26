@@ -18,8 +18,7 @@ import performAction from './performAction';
 
 export interface ActionsProps {
     item: MediaObject;
-    inListView?: boolean; // Rendered in a `ListView` component.
-    inInfoView?: boolean; // Rendered in a `MediaInfo` component.
+    location?: 'list' | 'header' | 'info';
     parentPlaylist?: MediaPlaylist;
 }
 
@@ -35,10 +34,11 @@ const defaultActionLabels: Record<LibraryAction, string> = {
     [Action.Rate]: 'Rate',
 };
 
-export default function Actions({item, inListView, inInfoView, parentPlaylist}: ActionsProps) {
+export default function Actions({item, location = 'list', parentPlaylist}: ActionsProps) {
     const showMenu = useContext(ShowActionsMenuContext);
     const service = getServiceFromSrc(item);
     const internetRadio = getService('internet-radio');
+    const inListView = location === 'list';
     const tabIndex = inListView ? -1 : undefined;
 
     const togglePin = useCallback(() => {
@@ -99,7 +99,7 @@ export default function Actions({item, inListView, inInfoView, parentPlaylist}: 
 
     return (
         <IconButtons>
-            {!inInfoView ? (
+            {location !== 'info' ? (
                 <PopupMenuButton
                     title="More…"
                     tabIndex={tabIndex}
@@ -108,11 +108,11 @@ export default function Actions({item, inListView, inInfoView, parentPlaylist}: 
                 />
             ) : null}
 
-            {!inListView && item.itemType === ItemType.Media ? (
+            {location === 'info' && item.itemType === ItemType.Media ? (
                 <AddToPlaylistButton item={item} />
             ) : null}
 
-            {!inListView && item.rating !== undefined && service?.canRate?.(item, inListView) ? (
+            {location === 'info' && item.rating !== undefined && service?.canRate?.(item, inListView) ? (
                 <StarRating
                     value={item.rating}
                     increment={service.starRatingIncrement}

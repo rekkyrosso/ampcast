@@ -96,6 +96,30 @@ export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T
     } as MediaSource<T>;
 }
 
+export function createRelatedPlaylistsSource<T extends MediaObject>(
+    item: T
+): MediaSource<MediaPlaylist> | undefined {
+    switch (item.itemType) {
+        case ItemType.Artist: {
+            return {
+                id: `${item.src}/related-playlists`,
+                sourceId: `${serviceId}/playlists`,
+                title: 'Related Playlists',
+                icon: 'playlist',
+                itemType: ItemType.Playlist,
+                secondaryItems: spotifyPlaylistItems,
+
+                search(): Pager<MediaPlaylist> {
+                    return createSearchPager(ItemType.Playlist, item.title, {
+                        pageSize: spotifySettings.restrictedApi ? 20 : 10,
+                        maxSize: 20,
+                    });
+                },
+            };
+        }
+    }
+}
+
 export const spotifySearch: MediaMultiSource = {
     id: `${serviceId}/search`,
     title: 'Search',
