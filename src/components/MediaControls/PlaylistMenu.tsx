@@ -47,6 +47,14 @@ export default function PlaylistMenu(props: PopupMenuProps) {
                 disabled={!canSave}
                 key="save-as-playlist"
             />
+            {__target__ === 'electron' ? (
+                <PopupMenuItem
+                    label="Export to MP3…"
+                    value="export-to-usb"
+                    disabled={!canSave}
+                    key="export-to-usb"
+                />
+            ) : null}
             <PopupMenuSeparator />
             <PopupMenuItem label="Add from file…" value="add-from-file" key="add-from-file" />
             <PopupMenuItem label="Add from url…" value="add-from-url" key="add-from-url" />

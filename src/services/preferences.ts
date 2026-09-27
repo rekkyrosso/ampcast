@@ -7,6 +7,28 @@ import {LiteStorage} from 'utils';
 const storage = new LiteStorage('preferences');
 
 const preferences: Preferences = {
+    get askExportBitRate(): boolean {
+        return storage.getBoolean('askExportBitRate', true);
+    },
+
+    set askExportBitRate(ask: boolean) {
+        storage.setBoolean('askExportBitRate', ask);
+    },
+
+    get defaultExportBitRate(): Preferences['defaultExportBitRate'] {
+        const bitRate = storage.getNumber('defaultExportBitRate', 192);
+        return [128, 192, 256, 320].includes(bitRate)
+            ? (bitRate as Preferences['defaultExportBitRate'])
+            : 192;
+    },
+
+    set defaultExportBitRate(bitRate: Preferences['defaultExportBitRate']) {
+        storage.setNumber(
+            'defaultExportBitRate',
+            [128, 192, 256, 320].includes(bitRate) ? bitRate : 192
+        );
+    },
+
     get albumsOrTracks(): Preferences['albumsOrTracks'] {
         return storage.getString('albumsOrTracks', 'tracks');
     },
@@ -29,6 +51,22 @@ const preferences: Preferences = {
 
     set doubleClickBehavior(behavior: Preferences['doubleClickBehavior']) {
         storage.setString('doubleClickBehavior', behavior);
+    },
+
+    get exportConcurrency(): number {
+        return Math.min(Math.max(Math.round(storage.getNumber('exportConcurrency', 3)), 1), 8);
+    },
+
+    set exportConcurrency(concurrency: number) {
+        storage.setNumber('exportConcurrency', Math.min(Math.max(Math.round(concurrency), 1), 8));
+    },
+
+    get showSimplifiedExportTarget(): boolean {
+        return storage.getBoolean('showSimplifiedExportTarget');
+    },
+
+    set showSimplifiedExportTarget(enabled: boolean) {
+        storage.setBoolean('showSimplifiedExportTarget', enabled);
     },
 
     get markExplicitContent(): boolean {

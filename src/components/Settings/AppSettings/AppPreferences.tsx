@@ -7,7 +7,18 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 export default function AppPreferences() {
     const id = useId();
     const submitted = useRef(false);
-    const originalPreferences = useMemo(() => ({...preferences}), []);
+    const originalPreferences = useMemo(
+        () => ({
+            albumsOrTracks: preferences.albumsOrTracks,
+            disableExplicitContent: preferences.disableExplicitContent,
+            doubleClickBehavior: preferences.doubleClickBehavior,
+            markExplicitContent: preferences.markExplicitContent,
+            mediaInfoTabs: preferences.mediaInfoTabs,
+            miniPlayer: preferences.miniPlayer,
+            spacebarTogglePlay: preferences.spacebarTogglePlay,
+        }),
+        []
+    );
 
     const handleSubmit = useCallback(() => {
         submitted.current = true;

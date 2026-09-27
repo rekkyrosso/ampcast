@@ -1,0 +1,54 @@
+.playlist-export-progress {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 2em;
+    background: var(--black);
+    color: var(--soft-white);
+    font-family: var(--system-font-family);
+    text-align: center;
+
+    h2 {
+        margin: 0 0 1em;
+        font-size: max(0.75em, 18px);
+    }
+
+    .export-track-title {
+        width: min(32rem, 80%);
+        margin: 0 0 0.5em;
+        overflow: hidden;
+        font-size: max(0.5em, 14px);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    progress {
+        width: min(32rem, 80%);
+        height: 1rem;
+        accent-color: var(--frame-text-color);
+    }
+
+    .export-progress-label,
+    .export-queue-label {
+        margin: 0.5em 0 1em;
+        font-size: max(0.45em, 13px);
+        opacity: 0.8;
+    }
+
+    .export-queue-label {
+        margin-top: -0.5em;
+    }
+
+    .export-cancel-button {
+        width: 1.25rem;
+        height: 1.25rem;
+        padding: 0.2rem;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+    }
+}

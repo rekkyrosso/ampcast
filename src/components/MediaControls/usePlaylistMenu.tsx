@@ -8,6 +8,7 @@ import {ListViewHandle} from 'components/ListView';
 import {showCreatePlaylistDialog} from 'components/Actions/CreatePlaylistDialog';
 import {PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
 import usePlaylistInject from 'hooks/usePlaylistInject';
+import exportPlaylist from 'services/playlist/exportPlaylist';
 import PlaylistMenu from './PlaylistMenu';
 
 export default function usePlaylistMenu(listViewRef: React.RefObject<ListViewHandle | null>) {
@@ -93,6 +94,10 @@ export default function usePlaylistMenu(listViewRef: React.RefObject<ListViewHan
 
                 case 'save-as-playlist':
                     await showCreatePlaylistDialog(playlist.getItems());
+                    break;
+
+                case 'export-to-usb':
+                    await exportPlaylist(playlist.getItems());
                     break;
             }
         },
