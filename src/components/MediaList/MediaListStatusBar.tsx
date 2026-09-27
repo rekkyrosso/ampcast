@@ -59,9 +59,10 @@ export default function MediaListStatusBar({
         } else if (itemCount === 0) {
             statusText = <span className="message">0 {itemNamePlural}</span>;
         } else {
-            const selection = (
-                <span className="selected">({formatNumber(selectedCount)} selected)</span>
-            );
+            const selection =
+                typeof selectedCount === 'number' && selectedCount > 0 ? (
+                    <span className="selected">({formatNumber(selectedCount)} selected)</span>
+                ) : null;
             const message = complete
                 ? `${size.toLocaleString()} ${size === 1 ? itemName : itemNamePlural}`
                 : `Loaded ${formatNumber(itemCount)} of ${

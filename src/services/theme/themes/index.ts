@@ -27,6 +27,7 @@ export const emptyTheme: Required<Theme> = {
     content: {color: 'black', textColor: 'white'},
     frame: {color: 'black', textColor: 'white'},
     selected: {color: 'blue', textColor: 'white'},
+    currentlyPlayingColor: '',
     button: {},
     mediaButton: {},
     scrollbar: {},

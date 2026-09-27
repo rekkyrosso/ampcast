@@ -99,7 +99,11 @@ export default function useSelectedItems<T>(
         [items]
     );
 
-    return {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt};
+    const clearSelection = useCallback(() => {
+        setSelectedItems([]);
+    }, []);
+
+    return {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt, clearSelection};
 }
 
 function getSelectedIds<T>(

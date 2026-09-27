@@ -47,6 +47,7 @@ export default interface Theme {
     readonly frame: Surface;
     readonly content: Surface;
     readonly selected: Surface;
+    readonly currentlyPlayingColor?: string;
     readonly mediaButton?: Partial<MediaButton>;
     readonly button?: Partial<Button>;
     readonly scrollbar?: Partial<Scrollbar>;

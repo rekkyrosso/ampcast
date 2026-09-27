@@ -39,6 +39,7 @@
     --link-active-color: rgb(255, 40, 40);
     --currently-playing-color-light: yellow;
     --currently-playing-color-dark: blue;
+    --currently-playing-color: var(--currently-playing-color-light);
 
     --button-chamfer: 1;
     --button-fillet: 0;
@@ -199,12 +200,10 @@
 }
 
 .app.dark {
-    --currently-playing-color: var(--currently-playing-color-light);
     color-scheme: dark;
 }
 
 .app.light {
-    --currently-playing-color: var(--currently-playing-color-dark);
     color-scheme: light;
 }
 

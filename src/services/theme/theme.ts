@@ -38,6 +38,7 @@ const optionalProperties: Record<
     spacing: 'number',
     roundness: 'number',
     flat: 'boolean',
+    currentlyPlayingColor: 'string',
 };
 
 const defaultFontName = 'Arial';
@@ -121,6 +122,22 @@ class MainTheme implements CurrentTheme {
 
     get current(): CurrentTheme {
         return this.theme$.value;
+    }
+
+    get currentlyPlayingColor(): string {
+        return (
+            (this.current.currentlyPlayingColor &&
+                new TinyColor(this.current.currentlyPlayingColor).toHexString()) ||
+            this.defaultCurrentlyPlayingColor
+        );
+    }
+
+    set currentlyPlayingColor(currentlyPlayingColor: string | undefined) {
+        this.theme$.next({...this.current, currentlyPlayingColor});
+    }
+
+    get defaultCurrentlyPlayingColor(): string {
+        return this.isDark ? '#ffff00' : '#0000ff';
     }
 
     get defaultMediaButtonColor(): string {
@@ -369,7 +386,7 @@ class MainTheme implements CurrentTheme {
         }, {} as any);
         Object.keys(optionalProperties).forEach((key) => {
             const value = theme[key as keyof Theme];
-            if (JSON.stringify(value) !== '{}') {
+            if (value != null && value !== '' && JSON.stringify(value) !== '{}') {
                 data[key] = value;
             }
         });
