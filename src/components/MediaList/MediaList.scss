@@ -159,13 +159,7 @@
         }
 
         &.selected.playing {
-            .selection-dark & {
-                color: var(--currently-playing-color-light);
-            }
-
-            .selection-light & {
-                color: var(--currently-playing-color-dark);
-            }
+            color: var(--currently-playing-color);
         }
 
         &.unplayable.playing,
@@ -705,7 +699,30 @@
         }
     }
 
-    &:not(.focus) + .status-bar .selected {
+    &:not(:focus-within, .focus) {
+        .list-view-row.selected {
+            background-color: transparent;
+            color: inherit;
+
+            &:nth-child(even) {
+                background-color: var(--even-row-background-color);
+            }
+
+            &:hover {
+                background-color: var(--hover-row-background-color);
+            }
+
+            &.playing {
+                color: var(--currently-playing-color);
+            }
+        }
+
+        .list-view-cursor {
+            visibility: hidden;
+        }
+    }
+
+    &:not(:focus-within, .focus) + .status-bar .selected {
         display: none;
     }
 }

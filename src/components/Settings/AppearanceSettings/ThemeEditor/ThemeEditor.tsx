@@ -1,12 +1,14 @@
 import React, {useCallback, useId} from 'react';
+import {t} from 'services/i18n';
 import theme from 'services/theme';
-import Button from 'components/Button';
+import Button, {IconButton} from 'components/Button';
 import {DialogButtons} from 'components/Dialog';
 import FontSelect from 'components/FontSelect';
 import ButtonEditor from './ButtonEditor';
 import MediaButtonEditor from './MediaButtonEditor';
 import ScrollbarEditor from './ScrollbarEditor';
 import SplitterEditor from './SplitterEditor';
+import ThemeColor from './ThemeColor';
 import ThemeColorPair from './ThemeColorPair';
 import useCurrentTheme from '../useCurrentTheme';
 import useSuggestedColors from './useSuggestedColors';
@@ -43,6 +45,20 @@ export default function ThemeEditor() {
     const handleFlatChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         theme.flat = event.target.checked;
     }, []);
+
+    const currentlyPlayingLocked = !currentTheme.currentlyPlayingColor;
+
+    const handleCurrentlyPlayingColorChange = useCallback((color: string) => {
+        theme.currentlyPlayingColor = color;
+    }, []);
+
+    const toggleCurrentlyPlayingLocked = useCallback(() => {
+        if (currentlyPlayingLocked) {
+            theme.currentlyPlayingColor = theme.defaultCurrentlyPlayingColor;
+        } else {
+            theme.currentlyPlayingColor = undefined;
+        }
+    }, [currentlyPlayingLocked]);
 
     const suggest = useCallback(() => {
         if (suggestedColors && nextSuggestion) {
@@ -84,6 +100,25 @@ export default function ThemeEditor() {
                         Suggest
                     </Button>
                 </ThemeColorPair>
+                <p
+                    className={`theme-color-pair ${currentlyPlayingLocked ? 'locked' : ''}`}
+                    key={`${themeKey}/currentlyPlaying`}
+                >
+                    <label htmlFor={`${id}-now-playing`}>Now playing:</label>
+                    <ThemeColor
+                        id={`${id}-now-playing`}
+                        value={theme.currentlyPlayingColor}
+                        title={t('Now playing track text color')}
+                        onChange={handleCurrentlyPlayingColorChange}
+                    />
+                    <IconButton
+                        icon={currentlyPlayingLocked ? 'locked' : 'unlocked'}
+                        title={
+                            currentlyPlayingLocked ? t('Edit color') : t('Use default color')
+                        }
+                        onClick={toggleCurrentlyPlayingLocked}
+                    />
+                </p>
                 <ThemeColorPair
                     label="Button"
                     surface="button"

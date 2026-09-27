@@ -65,6 +65,7 @@ export interface ListViewHandle {
     scrollTo: (rowIndex: number) => void;
     selectAll: () => void;
     selectAt: (rowIndex: number) => void;
+    clearSelection?: () => void;
 }
 
 export interface ListViewProps<T> {
@@ -181,8 +182,15 @@ export default function ListView<T>({
             ? Math.max(Math.ceil(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
             : 0;
     const size = items.length;
-    const {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt} =
-        useSelectedItems(items, itemKey, rowIndex);
+    const {
+        selectedItems,
+        selectedIds,
+        selectAll,
+        selectAt,
+        selectRange,
+        toggleSelectionAt,
+        clearSelection,
+    } = useSelectedItems(items, itemKey, rowIndex);
     const hasSelection = selectedItems.length > 0;
     const [rangeSelectionStart, setRangeSelectionStart] = useState(-1);
     const [dragIndex, setDragIndex] = useState(-1);
@@ -198,7 +206,8 @@ export default function ListView<T>({
     const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable || moveable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
     const isThin = clientWidth < fontSize * 20;
-    const hasFocus = containerRef.current && containerRef.current === document.activeElement;
+    const [focused, setFocused] = useState(false);
+    const hasFocus = focused;
     const dropTargetPadding = droppable ? Math.min(2 * fontSize, rowHeight) : 0;
     const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
     const hasScrolled = scrollTop !== 0;
@@ -241,14 +250,15 @@ export default function ListView<T>({
             scrollTo,
             selectAll,
             selectAt,
+            clearSelection,
         };
         if (ref) {
             ref.current = Object.assign(ref.current || {}, internalRef.current);
         }
-    }, [ref, focus, scrollTo, selectAll, selectAt, size]);
+    }, [ref, focus, scrollTo, selectAll, selectAt, clearSelection, size]);
 
     useEffect(() => {
-        if (selectedIndex !== undefined) {
+        if (selectedIndex !== undefined && selectedIndex !== -1) {
             internalRef.current?.scrollIntoView(selectedIndex);
         }
     }, [selectedIndex]);
@@ -456,9 +466,24 @@ export default function ListView<T>({
                 } else if (!isRowSelectedFromMouseEvent(event)) {
                     selectAt(newRowIndex);
                 }
+            } else if (
+                (event.target as HTMLElement).closest('.scrollable-content') &&
+                !(event.target as HTMLElement).closest('.list-view-head')
+            ) {
+                rowIndexRef.current = -1;
+                setRowIndex(-1);
+                clearSelection();
             }
         },
-        [selectAt, toggleSelectionAt, selectRange, rowIndex, rangeSelectionStart, multiple]
+        [
+            selectAt,
+            toggleSelectionAt,
+            selectRange,
+            clearSelection,
+            rowIndex,
+            rangeSelectionStart,
+            multiple,
+        ]
     );
 
     const handleMouseUp = useCallback(
@@ -679,10 +704,17 @@ export default function ListView<T>({
     }, []);
 
     const handleFocus = useCallback(() => {
+        setFocused(true);
         if (!multiple && !hasSelection) {
             selectAt(Math.max(rowIndex, 0));
         }
     }, [hasSelection, rowIndex, multiple, selectAt]);
+
+    const handleBlur = useCallback((event: React.FocusEvent) => {
+        if (!containerRef.current?.contains(event.relatedTarget as Node)) {
+            setFocused(false);
+        }
+    }, []);
 
     return (
         <div
@@ -701,6 +733,7 @@ export default function ListView<T>({
             onDragEnd={handleDragEnd}
             onDrop={handleDrop}
             onFocus={handleFocus}
+            onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             onKeyUp={handleKeyUp}
             onMouseDown={handleMouseDown}
@@ -764,6 +797,7 @@ export default function ListView<T>({
                     style={{
                         width: sizeable ? `${width}px` : undefined,
                         transform: `translateY(${Math.max(rowIndex, 0) * rowHeight}px)`,
+                        visibility: rowIndex === -1 ? 'hidden' : undefined,
                     }}
                     ref={cursorRef}
                 />
