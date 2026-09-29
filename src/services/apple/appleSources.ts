@@ -197,7 +197,6 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
 
 const appleLibrarySongs: MediaSource<MediaItem> = {
     id: `${serviceId}/library-songs`,
-    sourceId: `${serviceId}/songs`,
     title: 'My Songs',
     icon: 'tick',
     itemType: ItemType.Media,
@@ -330,7 +329,6 @@ export const appleEditablePlaylists: MediaSource<MediaPlaylist> = {
 
 const appleLibraryVideos: MediaSource<MediaItem> = {
     id: `${serviceId}/library-videos`,
-    sourceId: `${serviceId}/videos`,
     title: 'My Videos',
     icon: 'tick',
     itemType: ItemType.Media,
@@ -701,7 +699,6 @@ function createSearch<T extends MediaObject>(
     return {
         ...props,
         id: `${serviceId}/search/${type}`,
-        sourceId: type === 'songs' ? undefined : `${serviceId}/${type}`,
         icon: 'search',
 
         search({q = ''}: {q?: string} = {}): Pager<T> {

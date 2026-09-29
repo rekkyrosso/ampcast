@@ -31,9 +31,9 @@
 
     &.album-type,
     &.bit-rate  {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        border-color: var(--text-color);
+        background-color: transparent;
+        color: inherit;
+        border-color: currentColor;
         font-weight: normal;
     }
 

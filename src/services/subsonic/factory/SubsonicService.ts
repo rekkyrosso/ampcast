@@ -169,6 +169,7 @@ export default class SubsonicService implements PersonalMediaService {
 
         const likedAlbums: MediaSource<MediaAlbum> = {
             id: `${id}/liked-albums`,
+            sourceId: `${id}/albums`,
             title: 'My Albums',
             icon: 'heart',
             itemType: ItemType.Album,
@@ -191,6 +192,7 @@ export default class SubsonicService implements PersonalMediaService {
 
         const likedArtists: MediaSource<MediaArtist> = {
             id: `${id}/liked-artists`,
+            sourceId: `${id}/artists`,
             title: 'My Artists',
             icon: 'heart',
             itemType: ItemType.Artist,
@@ -214,6 +216,7 @@ export default class SubsonicService implements PersonalMediaService {
 
         const topAlbums: MediaSource<MediaAlbum> = {
             id: `${id}/top-albums`,
+            sourceId: `${id}/albums`,
             title: 'Top Rated',
             icon: 'star',
             itemType: ItemType.Album,
@@ -352,6 +355,7 @@ export default class SubsonicService implements PersonalMediaService {
 
         const albumsByGenre: MediaSource<MediaAlbum> = {
             id: `${id}/albums-by-genre`,
+            sourceId: `${id}/albums`,
             title: 'Albums by Genre',
             icon: 'genre',
             itemType: ItemType.Album,
@@ -375,6 +379,7 @@ export default class SubsonicService implements PersonalMediaService {
 
         const albumsByDecade: MediaSource<MediaAlbum> = {
             id: `${id}/albums-by-decade`,
+            sourceId: `${id}/albums`,
             title: 'Albums by Decade',
             icon: 'calendar',
             itemType: ItemType.Album,
@@ -413,6 +418,7 @@ export default class SubsonicService implements PersonalMediaService {
 
         const randomAlbums: MediaSource<MediaAlbum> = {
             id: `${id}/random-albums`,
+            sourceId: `${id}/albums`,
             title: 'Random Albums',
             icon: 'shuffle',
             itemType: ItemType.Album,

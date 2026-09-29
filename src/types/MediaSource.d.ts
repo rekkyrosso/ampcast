@@ -69,7 +69,6 @@ export type MediaMultiSource<T extends MediaObject = MediaObject> = Pick<
     | 'searchable'
     | 'defaultHidden'
     | 'disabled'
-    | 'lockActionType'
     | 'Component'
 > & {
     readonly itemType?: never;

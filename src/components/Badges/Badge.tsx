@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -31,7 +32,9 @@ export interface AlbumTypeBadgeProps {
 }
 
 export function AlbumTypeBadge({item}: AlbumTypeBadgeProps) {
-    return item.albumType ? <Badge className="album-type">{item.albumType}</Badge> : null;
+    return item.albumType && item.albumType !== AlbumType.Album ? (
+        <Badge className="album-type">{item.albumType}</Badge>
+    ) : null;
 }
 
 export interface BitRateBadgeProps {

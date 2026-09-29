@@ -119,11 +119,11 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
 ): MediaSource<MediaPlaylist> | undefined {
     switch (item.itemType) {
         case ItemType.Media: {
-            const id = `${item.src}/related-playlists`;
+            const sourceId = `${serviceId}/playlists`;
             const songId = getMediaObjectId(item);
             return {
-                id,
-                sourceId: `${serviceId}/playlists`,
+                id: `${item.src}/related-playlists`,
+                sourceId,
                 title: 'Related Playlists',
                 icon: 'playlist',
                 itemType: ItemType.Playlist,
@@ -139,7 +139,7 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
                         undefined,
                         {
                             childSort: navidromePlaylistItemsSort.defaultSort,
-                            childSortId: `${id}/2`,
+                            childSortId: `${sourceId}/2`,
                         },
                         createPlaylistItemsPager
                     );
@@ -280,6 +280,7 @@ const navidromeLikedSongs: MediaSource<MediaItem> = {
 
 const navidromeLikedAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/liked-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
@@ -314,6 +315,7 @@ const navidromeLikedAlbums: MediaSource<MediaAlbum> = {
 
 const navidromeLikedArtists: MediaSource<MediaArtist> = {
     id: `${serviceId}/liked-artists`,
+    sourceId: `${serviceId}/artists`,
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
@@ -350,7 +352,7 @@ const navidromeLikedArtists: MediaSource<MediaArtist> = {
             },
             {
                 childSort: navidromeArtistAlbumsSort.defaultSort,
-                childSortId: `${navidromeLikedArtists.id}/2`,
+                childSortId: `${navidromeLikedArtists.sourceId}/2`,
             },
             createArtistAlbumsPager
         );
@@ -380,6 +382,7 @@ const navidromeTopTracks: MediaSource<MediaItem> = {
 
 const navidromeTopAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/top-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
@@ -407,6 +410,7 @@ const navidromeTopAlbums: MediaSource<MediaAlbum> = {
 
 const navidromeTopArtists: MediaSource<MediaArtist> = {
     id: `${serviceId}/top-artists`,
+    sourceId: `${serviceId}/artists`,
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
@@ -433,7 +437,7 @@ const navidromeTopArtists: MediaSource<MediaArtist> = {
             (items) => items.filter((item) => !!item.rating),
             {
                 childSort: navidromeArtistAlbumsSort.defaultSort,
-                childSortId: `${navidromeTopArtists.id}/2`,
+                childSortId: `${navidromeTopArtists.sourceId}/2`,
             },
             createArtistAlbumsPager
         );
@@ -570,6 +574,7 @@ const navidromeTracksByGenre: MediaSource<MediaItem> = {
 
 const navidromeAlbumsByGenre: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-genre`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -617,6 +622,7 @@ const navidromeRandomTracks: MediaSource<MediaItem> = {
 
 const navidromeRandomAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/random-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,

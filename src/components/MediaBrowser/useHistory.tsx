@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
-import {BehaviorSubject, fromEvent, map} from 'rxjs';
+import {BehaviorSubject, filter, fromEvent, map} from 'rxjs';
 import {nanoid} from 'nanoid';
 import MediaSource, {AnyMediaSource} from 'types/MediaSource';
 import {Pinnable} from 'types/Pin';
-import {LiteStorage, Logger} from 'utils';
+import {exists, LiteStorage, Logger} from 'utils';
 import {WEB_LINKS} from 'services/features';
 import {getServiceFromPath, isPersonalMediaService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
@@ -37,29 +37,43 @@ const observeState = () => state$;
 if (WEB_LINKS) {
     fromEvent<PopStateEvent>(window, 'popstate')
         .pipe(map((event) => event.state))
-        .subscribe(state$);
-
-    state$.subscribe((state) => {
-        if (state) {
-            const {key, path, index} = state;
+        .subscribe((state) => {
             const stack = stack$.value.slice();
-            let stackChanged = false;
-            let expiredIndex = index - MAX_SIZE;
-            while (expiredIndex >= 0) {
-                delete stack[expiredIndex];
-                stackChanged = true;
-                expiredIndex--;
-            }
-            const historyItem = stack.find((entry) => entry?.key === key);
-            if (!historyItem) {
+            if (state) {
+                state$.next(state);
+                const {key, path, index} = state;
+                const historyItem = stack.find((entry) => entry?.key === key);
+                if (!historyItem) {
+                    const entry = createHistoryEntry(key, path);
+                    stack[index] = entry;
+                    stack$.next(stack);
+                }
+                storage.setNumber('index', index);
+            } else {
+                const key = nanoid();
+                const path = location.hash.slice(1).replace('!/', '');
+                const index = storage.getNumber('index') + 1;
                 const entry = createHistoryEntry(key, path);
                 stack[index] = entry;
-                stackChanged = true;
-            }
-            if (stackChanged) {
+                stack.length = index + 1;
+                state$.next({key, path, index});
                 stack$.next(stack);
+                storage.setNumber('index', index);
+                storage.setNumber('length', index + 1);
             }
-            storage.setNumber('index', index);
+        });
+
+    state$.pipe(filter(exists)).subscribe((state) => {
+        const stack = stack$.value.slice();
+        let stackChanged = false;
+        let expiredIndex = state.index - MAX_SIZE;
+        while (expiredIndex >= 0) {
+            delete stack[expiredIndex];
+            stackChanged = true;
+            expiredIndex--;
+        }
+        if (stackChanged) {
+            stack$.next(stack);
         }
     });
 }
@@ -130,7 +144,9 @@ export default function useHistory() {
         if (!path) {
             return;
         }
-        if (WEB_LINKS && getMediaSource(path)) {
+        const showingWizard = document.body.classList.contains('showing-startup-wizard');
+        const linksEnabled = WEB_LINKS && !showingWizard;
+        if (linksEnabled && getMediaSource(path)) {
             const service = getServiceFromPath(path);
             const libraryId =
                 service && isPersonalMediaService(service) ? service.libraryId : undefined;
@@ -139,14 +155,14 @@ export default function useHistory() {
             }
         }
         const initialized = !!state$.value;
-        if (WEB_LINKS && !initialized) {
-            path = location.hash.slice(3) || path;
+        if (linksEnabled && !initialized) {
+            path = location.hash.slice(1).replace('!/', '') || path;
         }
         if (path !== state$.value?.path) {
             logger.log('navigateTo', path);
             const key = nanoid();
             const index = WEB_LINKS
-                ? initialized
+                ? initialized && !showingWizard
                     ? state$.value.index + 1
                     : storage.getNumber('index')
                 : 0;
@@ -155,12 +171,12 @@ export default function useHistory() {
             const entry = createHistoryEntry(key, path);
             stack[index] = entry;
             stack.length = WEB_LINKS
-                ? initialized
+                ? initialized && !showingWizard
                     ? index + 1
                     : Math.max(stack.length, index + 1)
                 : 1;
             stack$.next(stack);
-            if (WEB_LINKS) {
+            if (linksEnabled) {
                 const hash = `#!/${path}`;
                 if (initialized) {
                     history.pushState(state, '', hash);
@@ -200,11 +216,12 @@ function createHistoryEntry(key: string, path: string): HistoryEntry {
             node: <MediaBrowser service={service} source={source} />,
         };
     } else {
+        const error = Error(`Cannot navigate to: ${path}`);
         return {
             key,
             node: (
                 <div className="media-browser">
-                    <ErrorScreen error={'Internal error'} reportingId={'useHistory'} />
+                    <ErrorScreen error={error} reportingId={'useHistory'} />
                 </div>
             ),
         };

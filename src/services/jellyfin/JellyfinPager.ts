@@ -203,7 +203,7 @@ export class JellyfinPlaylistItemsPager extends JellyfinPager<MediaItem> {
             );
             this.subscribeTo(
                 this.observeComplete().pipe(
-                    switchMap(() => observePlaylistAdditions(this.playlist)),
+                    switchMap(() => observePlaylistAdditions(this.playlist.src)),
                     map((items) => this.filterAdditions(items)),
                     filter((items) => items.length > 0),
                     tap((items) => this._addItems(items))

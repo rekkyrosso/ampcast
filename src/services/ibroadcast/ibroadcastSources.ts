@@ -138,10 +138,10 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
             const trackId = getIdFromSrc(item);
             const playlists = ibroadcastLibrary.getRelatedPlaylistsSync(trackId);
             if (playlists.length > 0) {
-                const id = `${item.src}/playlists`;
+                const sourceId = `${serviceId}/playlists`;
                 return {
-                    id,
-                    sourceId: `${serviceId}/playlists`,
+                    id: `${item.src}/playlists`,
+                    sourceId,
                     title: 'Related Playlists',
                     icon: 'playlist',
                     itemType: ItemType.Playlist,
@@ -156,7 +156,7 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
                             async () => playlists,
                             {
                                 childSort: ibroadcastPlaylistItemsSort.defaultSort,
-                                childSortId: `${id}/2`,
+                                childSortId: `${sourceId}/2`,
                             },
                             createPlaylistItemsPager
                         );
@@ -226,6 +226,7 @@ const ibroadcastTopTracks: MediaSource<MediaItem> = {
 
 const ibroadcastTopAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/top-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
@@ -252,6 +253,7 @@ const ibroadcastTopAlbums: MediaSource<MediaAlbum> = {
 
 const ibroadcastTopArtists: MediaSource<MediaArtist> = {
     id: `${serviceId}/top-artists`,
+    sourceId: `${serviceId}/artists`,
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
@@ -280,7 +282,7 @@ const ibroadcastTopArtists: MediaSource<MediaArtist> = {
                 }),
             {
                 childSort: ibroadcastArtistAlbumsSort.defaultSort,
-                childSortId: `${ibroadcastTopArtists.id}/2`,
+                childSortId: `${ibroadcastTopArtists.sourceId}/2`,
             },
             createArtistAlbumsPager
         );
@@ -344,7 +346,7 @@ export const ibroadcastPlaylists: MediaSource<MediaPlaylist> = {
         sort: {
             sortOptions: {
                 Name: 'Name',
-                '': 'Date Created',
+                AddedAt: 'Date Created',
             },
             defaultSort: {
                 sortBy: '',
@@ -422,6 +424,7 @@ const ibroadcastTracksByGenre: MediaSource<MediaItem> = {
 
 const ibroadcastAlbumsByGenre: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-genre`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -489,6 +492,7 @@ const ibroadcastTracksByDecade: MediaSource<MediaItem> = {
 
 const ibroadcastAlbumsByDecade: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-decade`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
@@ -525,6 +529,7 @@ const ibroadcastRandomTracks: MediaSource<MediaItem> = {
 
 const ibroadcastRandomAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/random-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,

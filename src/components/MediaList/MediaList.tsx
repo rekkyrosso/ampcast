@@ -16,7 +16,7 @@ import {getMediaListId, getMediaSourceItems} from 'services/mediaServices/mediaS
 import {performAction, showActionsMenu} from 'components/Actions';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {Column, ListViewProps} from 'components/ListView';
-import useInCurrentBrowser from 'components/MediaBrowser/useInCurrentBrowser';
+import useIsBrowserActive from 'components/MediaBrowser/useIsBrowserActive';
 import useFirstValue from 'hooks/useFirstValue';
 import usePager from 'hooks/usePager';
 import usePlaybackState from 'hooks/usePlaybackState';
@@ -88,7 +88,7 @@ export default function MediaList<T extends MediaObject>({
     ...props
 }: MediaListProps<T>) {
     const uniqueId = useId();
-    const visible = useInCurrentBrowser();
+    const active = useIsBrowserActive();
     const containerRef = useRef<HTMLDivElement | null>(null);
     const syntheticAlbum = isSyntheticAlbum(parent) ? parent : undefined;
     const singular = level === 1 && source?.singular;
@@ -109,6 +109,7 @@ export default function MediaList<T extends MediaObject>({
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, busy, complete, error, size, maxSize}, fetchAt] = usePager(pager);
     const actionsReady = useActionsStore(level === 1 ? source : undefined, complete);
+    const canFetch = active && actionsReady;
     const empty = items.length === 0;
     const initialError = useFirstValue(empty ? error : null);
     const success = loaded && !initialError;
@@ -146,13 +147,13 @@ export default function MediaList<T extends MediaObject>({
 
     useEffect(() => {
         // Turns autofill on/off.
-        if (visible) {
+        if (active) {
             pager?.activate?.();
             return () => pager?.deactivate?.();
         } else {
             pager?.deactivate?.();
         }
-    }, [pager, visible]);
+    }, [pager, active]);
 
     useEffect(() => {
         if (success && onLoad) {
@@ -167,11 +168,11 @@ export default function MediaList<T extends MediaObject>({
     }, [initialError, onError]);
 
     useEffect(() => {
-        if (actionsReady && scrollIndex >= 0 && pageSize > 0) {
+        if (canFetch && scrollIndex >= 0 && pageSize > 0) {
             fetchAt(scrollIndex, pageSize);
         }
         // Re-fetch if the pager changes.
-    }, [fetchAt, actionsReady, scrollIndex, pageSize, pager]);
+    }, [fetchAt, canFetch, scrollIndex, pageSize, pager]);
 
     const isPlayable = useCallback(
         (item: MediaObject): boolean => {
@@ -298,6 +299,8 @@ export default function MediaList<T extends MediaObject>({
             className={`panel ${className} ${viewClassName} ${level === 3 ? 'tertiary' : level === 2 ? 'secondary' : 'primary'}-items`}
             data-list-id={listId}
             data-view={layout.view}
+            data-sort-by={savedSortParams?.sortBy}
+            data-sort-order={savedSortParams?.sortOrder}
             onDragStart={onDragStart}
             ref={containerRef}
         >
@@ -315,7 +318,7 @@ export default function MediaList<T extends MediaObject>({
                         loaded && empty ? emptyMessage || sourceItems?.emptyMessage : undefined
                     }
                     disabled={singular ? true : disabled}
-                    hidden={!visible}
+                    hidden={!active}
                     draggable={singular ? false : draggable}
                     reorderable={reorderable}
                     sortable={sortable}
@@ -333,7 +336,7 @@ export default function MediaList<T extends MediaObject>({
                     onSelect={handleSelect}
                 />
             )}
-            {visible && statusBar && !singular ? (
+            {active && statusBar && !singular ? (
                 <MediaListStatusBar
                     items={items}
                     error={error}

@@ -43,10 +43,6 @@
 
     .tab-list-tabs {
         flex-wrap: wrap;
-
-        & > li + li {
-            margin-left: 0.25em;
-        }
     }
 
     .tab-list-panels {

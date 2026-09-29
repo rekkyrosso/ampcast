@@ -113,11 +113,11 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
 ): MediaSource<MediaPlaylist> | undefined {
     switch (item.itemType) {
         case ItemType.Media: {
-            const id = `${item.src}/related-playlists`;
+            const sourceId = `${item.src}/related-playlists`;
             const songId = getMediaObjectId(item);
             return {
-                id,
-                sourceId: `${serviceId}/playlists`,
+                sourceId,
+                id: `${item.src}/related-playlists`,
                 title: 'Related Playlists',
                 icon: 'playlist',
                 itemType: ItemType.Playlist,
@@ -136,7 +136,7 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
                         },
                         {
                             childSort: jellyfinPlaylistItemsSort.defaultSort,
-                            childSortId: `${id}/2`,
+                            childSortId: `${sourceId}/2`,
                         },
                         createPlaylistItemsPager
                     );
@@ -204,7 +204,7 @@ export const jellyfinSearch: MediaMultiSource = {
                     sort: {
                         sortOptions: {
                             Name: 'Name',
-                            '': 'Date Added',
+                            'AddedAt': 'Date Added',
                         },
                         defaultSort: {
                             sortBy: 'Name',
@@ -243,6 +243,7 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
 
 const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/liked-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
@@ -264,6 +265,7 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
 
 const jellyfinLikedArtists: MediaSource<MediaArtist> = {
     id: `${serviceId}/liked-artists`,
+    sourceId: `${serviceId}/artists`,
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
@@ -286,7 +288,7 @@ const jellyfinLikedArtists: MediaSource<MediaArtist> = {
             },
             {
                 childSort: jellyfinArtistAlbumsSort.defaultSort,
-                childSortId: `${jellyfinLikedArtists.id}/2`,
+                childSortId: `${jellyfinLikedArtists.sourceId}/2`,
             },
             undefined,
             createArtistAlbumsPager
@@ -356,7 +358,7 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
         sort: {
             sortOptions: {
                 Name: 'Name',
-                '': 'Date Added',
+                'AddedAt': 'Date Added',
             },
             defaultSort: {
                 sortBy: '',
@@ -421,6 +423,7 @@ const jellyfinTracksByGenre: MediaSource<MediaItem> = {
 
 const jellyfinAlbumsByGenre: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-genre`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -443,6 +446,7 @@ const jellyfinAlbumsByGenre: MediaSource<MediaAlbum> = {
 
 const jellyfinArtistsByGenre: MediaSource<MediaArtist> = {
     id: `${serviceId}/artists-by-genre`,
+    sourceId: `${serviceId}/artists`,
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
@@ -461,7 +465,7 @@ const jellyfinArtistsByGenre: MediaSource<MediaArtist> = {
                 },
                 {
                     childSort: jellyfinArtistAlbumsSort.defaultSort,
-                    childSortId: `${jellyfinArtistsByGenre.id}/2`,
+                    childSortId: `${jellyfinArtistsByGenre.sourceId}/2`,
                 },
                 undefined,
                 createArtistAlbumsPager
@@ -498,6 +502,7 @@ const jellyfinTracksByDecade: MediaSource<MediaItem> = {
 
 const jellyfinAlbumsByDecade: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-decade`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
@@ -538,6 +543,7 @@ const jellyfinRandomTracks: MediaSource<MediaItem> = {
 
 const jellyfinRandomAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/random-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,

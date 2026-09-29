@@ -157,9 +157,7 @@ export default function TreeView<T>({
     }, [debouncedValue, onSelect]);
 
     useEffect(() => {
-        if (selectedId) {
-            storeSelectedNodeId(selectedId);
-        }
+        storeSelectedNodeId(selectedId);
     }, [selectedId, storeSelectedNodeId]);
 
     useEffect(() => {

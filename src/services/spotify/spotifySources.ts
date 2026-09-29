@@ -164,36 +164,6 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     },
 };
 
-// TODO: Spotify scope: 'user-top-read'.
-
-// const spotifyTopTracks: MediaSource<MediaItem> = {
-//     id: `${serviceId}/top-tracks`,
-//     title: 'Top Tracks',
-//     icon: 'star',
-//     itemType: ItemType.Media,
-//     primaryItems: spotifyMediaItems,
-//
-//     search(): Pager<MediaItem> {
-//         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-//             return spotifyApi.getMyTopTracks({offset, limit});
-//         });
-//     },
-// };
-//
-// const spotifyTopArtists: MediaSource<MediaArtist> = {
-//     id: `${serviceId}/top-artists`,
-//     title: 'Top Artists',
-//     icon: 'star',
-//     itemType: ItemType.Artist,
-//     defaultHidden: true,
-//
-//     search(): Pager<MediaArtist> {
-//         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-//             return spotifyApi.getMyTopArtists({offset, limit});
-//         });
-//     },
-// };
-
 const spotifyLikedSongs: MediaSource<MediaItem> = {
     id: `${serviceId}/liked-songs`,
     title: 'My Songs',
@@ -216,6 +186,7 @@ const spotifyLikedSongs: MediaSource<MediaItem> = {
 
 const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/liked-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
@@ -235,6 +206,7 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
 
 const spotifyFollowedArtists: MediaSource<MediaArtist> = {
     id: `${serviceId}/followed-artists`,
+    sourceId: `${serviceId}/artists`,
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
@@ -305,6 +277,7 @@ export const spotifyEditablePlaylists: MediaSource<MediaPlaylist> = {
 
 const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     id: `${serviceId}/featured-playlists`,
+    sourceId: `${serviceId}/playlists`,
     title: 'Popular Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
@@ -324,6 +297,7 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
 
 const spotifyNewReleases: MediaSource<MediaAlbum> = {
     id: `${serviceId}/new-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'New Releases',
     icon: 'album',
     itemType: ItemType.Album,
@@ -352,6 +326,7 @@ const spotifyNewReleases: MediaSource<MediaAlbum> = {
 
 const spotifyPlaylistsByCategory: MediaSource<MediaPlaylist> = {
     id: `${serviceId}/playlists-by-category`,
+    sourceId: `${serviceId}/playlists`,
     title: 'Browse Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,

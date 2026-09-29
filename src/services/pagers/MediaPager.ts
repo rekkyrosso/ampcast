@@ -21,9 +21,9 @@ import Pager, {PagerConfig} from 'types/Pager';
 import SortParams from 'types/SortParams';
 import {Logger, clamp, exists, uniq} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
-import {MetadataChange, observeMetadataChanges} from 'services/metadata';
+import {MetadataChange, observeMetadataChanges, observePlaylistEdited} from 'services/metadata';
 import {getServiceFromSrc} from 'services/mediaServices';
-import {observeSourceSorting} from 'services/mediaServices/servicesSettings';
+import {getSourceSorting, observeSourceSorting} from 'services/mediaServices/servicesSettings';
 
 export interface PageFetch {
     readonly index: number;
@@ -268,7 +268,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     protected observeFetches(): Observable<PageFetch> {
-        return this.fetches$.pipe(filter(({length}) => length > 0));
+        return this.fetches$.pipe(filter((fetch) => fetch.length > 0));
     }
 
     protected connect(): void {
@@ -309,7 +309,19 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
             if (this.childSortId && this.createChildPager) {
                 this.subscribeTo(
                     observeSourceSorting(this.childSortId).pipe(
+                        filter(() => this.active),
+                        distinctUntilChanged(),
                         tap((childSort) => this.updateChildSort(this.createChildPager!, childSort))
+                    ),
+                    logger
+                );
+            }
+
+            if (this.createChildPager) {
+                this.subscribeTo(
+                    observePlaylistEdited().pipe(
+                        filter(() => !this.active),
+                        tap((src) => this.expirePlaylist(src, this.createChildPager!))
                     ),
                     logger
                 );
@@ -455,6 +467,26 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     private addUserData(items: readonly T[]): void {
         const service = getServiceFromSrc(items[0]);
         service?.addUserData?.(items);
+    }
+
+    private expirePlaylist(src: string, createChildPager: CreateChildPager<T>): void {
+        if (this.items.length === 0) {
+            return;
+        }
+        let changed = false;
+        const items = this.items.map((item) => {
+            if (item.itemType === ItemType.Playlist && item.src === src) {
+                changed = true;
+                item.pager.disconnect();
+                (item as any).pager = createChildPager(item, getSourceSorting(this.childSortId));
+                return {...item};
+            } else {
+                return item;
+            }
+        });
+        if (changed) {
+            this.items = items;
+        }
     }
 
     private updateChildSort(createChildPager: CreateChildPager<T>, childSort?: SortParams): void {

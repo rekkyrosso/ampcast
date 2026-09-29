@@ -183,7 +183,9 @@ export class MusicKitPlayer implements Player<MediaItem> {
 
     observeCurrentTime(): Observable<number> {
         return this.currentTime$.pipe(
-            filter(() => this.player?.playbackState !== MusicKit.PlaybackStates.seeking)
+            filter(() =>
+                this.player ? this.player.playbackState !== MusicKit.PlaybackStates.seeking : true
+            )
         );
     }
 

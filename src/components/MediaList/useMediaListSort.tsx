@@ -5,6 +5,7 @@ import {MediaSourceItems} from 'types/MediaSource';
 import SortParams from 'types/SortParams';
 import {setSourceSorting} from 'services/mediaServices/servicesSettings';
 import {sorter} from 'services/metadata';
+import useIsBrowserActive from 'components/MediaBrowser/useIsBrowserActive';
 import useSorting from 'hooks/useSorting';
 
 export default function useMediaListSort<T extends MediaObject>(
@@ -15,8 +16,9 @@ export default function useMediaListSort<T extends MediaObject>(
     complete: boolean,
     onInternalSort?: (params: SortParams) => void
 ) {
+    const active = useIsBrowserActive();
     const defaultSort = isSearchResult ? undefined : sourceItems.sort?.defaultSort;
-    const externalSortParams = useSorting(isSearchResult ? '' : listId);
+    const externalSortParams = useSorting(isSearchResult ? '' : listId, !active);
     const [internalSortParams, setInternalSortParams] = useState<SortParams | undefined>();
     const [sortedItems, setSortedItems] = useState<readonly T[]>(items);
     const sortParams = internalSortParams || externalSortParams || defaultSort;

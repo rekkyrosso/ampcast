@@ -1,6 +1,7 @@
 import React from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -15,7 +16,13 @@ import {getElapsedTimeText, srcToPath} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {ColumnSpec} from 'components/ListView';
 import {performAction} from 'components/Actions';
-import {Badge, BitRateBadge, ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
+import {
+    AlbumTypeBadge,
+    Badge,
+    BitRateBadge,
+    ExplicitBadge,
+    LivePlaybackBadge,
+} from 'components/Badges';
 import CoverArt from 'components/CoverArt';
 import Icon, {IconName, Flag} from 'components/Icon';
 import InternalLink from 'components/InternalLink';
@@ -32,7 +39,7 @@ type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
 const Index: RenderField = (_, info) => <Text value={info.rowIndex + 1} />;
 
-const Title: RenderField = (item) => {
+const Title: RenderField = (item, info) => {
     const linkToSelf = item.links?.self;
     return (
         <span className="title-with-badge">
@@ -50,6 +57,14 @@ const Title: RenderField = (item) => {
                 <>
                     {' '}
                     <LivePlaybackBadge item={item} />
+                </>
+            ) : null}
+            {info.view !== 'details' &&
+            item.itemType === ItemType.Album &&
+            item.albumType === AlbumType.Single ? (
+                <>
+                    {' '}
+                    <AlbumTypeBadge item={item} />
                 </>
             ) : null}
             {item.itemType === ItemType.Media || item.itemType === ItemType.Album ? (
@@ -170,7 +185,7 @@ const AlbumArtist: RenderField<MediaItem> = (item) => {
     );
 };
 
-const AlbumType: RenderField<MediaAlbum> = (album) => {
+const AlbumTypeText: RenderField<MediaAlbum> = (album) => {
     return <Text value={album.albumType ? album.albumType : ''} />;
 };
 
@@ -452,7 +467,7 @@ const mediaListFields: Record<Field, FieldSpec> = {
     AlbumType: {
         id: 'AlbumType',
         title: 'Type',
-        render: AlbumType,
+        render: AlbumTypeText,
         className: 'album-type',
     },
     AlbumAndYear: {

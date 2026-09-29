@@ -10,6 +10,5 @@ export default function RelatedItems<T extends MediaObject>({
     ...props
 }: Except<PagedItemsProps<T>, 'pager'>) {
     const pager = useFirstValue(source.search());
-
     return <PagedItems {...props} source={source} pager={pager} emptyMessage={emptyMessage} />;
 }

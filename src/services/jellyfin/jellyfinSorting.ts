@@ -57,7 +57,7 @@ export const jellyfinArtistAlbumsSort: MediaListSort = {
 
 export const jellyfinPlaylistsSortMap: Record<string, string> = {
     Name: 'SortName',
-    '': 'DateCreated,SortName',
+    'AddedAt': 'DateCreated,SortName',
 };
 
 export const jellyfinPlaylistItemsSortMap: Record<string, string> = {

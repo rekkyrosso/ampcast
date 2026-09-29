@@ -1,11 +1,15 @@
 import React, {useCallback, useState} from 'react';
-import {sleep} from 'utils';
+import {exists, sleep} from 'utils';
 import {IconButton, IconButtons} from 'components/Button';
+import useVisibleServices from 'hooks/useVisibleServices';
 import useHistory from './useHistory';
 
 export default function BrowserControls() {
+    const visibleServices = useVisibleServices();
+    const hasServices = visibleServices.length > 0;
     const {stack, currentIndex, back, forward, refresh} = useHistory();
     const [refreshing, setRefreshing] = useState(false);
+    const disabled = !hasServices || !stack.some(exists);
 
     const handleRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -21,21 +25,21 @@ export default function BrowserControls() {
                 icon="back"
                 onClick={back}
                 title="Back"
-                disabled={currentIndex <= 0}
+                disabled={disabled || currentIndex <= 0}
             />
             <IconButton
                 className="forward"
                 icon="forward"
                 title="Forward"
                 onClick={forward}
-                disabled={currentIndex === stack.length - 1}
+                disabled={disabled || currentIndex === stack.length - 1}
             />
             <IconButton
                 className="refresh"
                 icon="refresh"
                 title="Refresh"
                 onClick={handleRefresh}
-                disabled={refreshing || currentIndex === -1}
+                disabled={disabled || refreshing || currentIndex === -1}
             />
         </IconButtons>
     );

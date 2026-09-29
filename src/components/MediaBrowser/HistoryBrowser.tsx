@@ -29,7 +29,6 @@ export default function HistoryBrowser({
     service,
     source,
     minDate = '2010-01-01',
-    ...props
 }: HistoryBrowserProps) {
     const [startAt, setStartAt] = useState(0);
     const pager = useHistoryPager(source, startAt);
@@ -56,7 +55,6 @@ export default function HistoryBrowser({
                 <DatePicker min={minDate} onSelect={handleDateChange} />
             </PageHeader>
             <PagedItems
-                {...props}
                 service={service}
                 source={source}
                 pager={pager}

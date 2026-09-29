@@ -113,11 +113,11 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
 ): MediaSource<MediaPlaylist> | undefined {
     switch (item.itemType) {
         case ItemType.Media: {
-            const id = `${item.src}/related-playlists`;
+            const sourceId = `${item.src}/related-playlists`;
             const songId = getMediaObjectId(item);
             return {
-                id,
-                sourceId: `${serviceId}/playlists`,
+                sourceId,
+                id: `${item.src}/related-playlists`,
                 title: 'Related Playlists',
                 icon: 'playlist',
                 itemType: ItemType.Playlist,
@@ -136,7 +136,7 @@ export function createRelatedPlaylistsSource<T extends MediaObject>(
                         },
                         {
                             childSort: embyPlaylistItemsSort.defaultSort,
-                            childSortId: `${id}/2`,
+                            childSortId: `${sourceId}/2`,
                         },
                         createPlaylistItemsPager
                     );
@@ -243,6 +243,7 @@ const embyLikedSongs: MediaSource<MediaItem> = {
 
 const embyLikedAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/liked-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
@@ -264,6 +265,7 @@ const embyLikedAlbums: MediaSource<MediaAlbum> = {
 
 const embyLikedArtists: MediaSource<MediaArtist> = {
     id: `${serviceId}/liked-artists`,
+    sourceId: `${serviceId}/artists`,
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
@@ -286,7 +288,7 @@ const embyLikedArtists: MediaSource<MediaArtist> = {
             },
             {
                 childSort: embyArtistAlbumsSort.defaultSort,
-                childSortId: `${embyLikedArtists.id}/2`,
+                childSortId: `${embyLikedArtists.sourceId}/2`,
             },
             undefined,
             createArtistAlbumsPager
@@ -425,6 +427,7 @@ const embyTracksByGenre: MediaSource<MediaItem> = {
 
 const embyAlbumsByGenre: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-genre`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -447,6 +450,7 @@ const embyAlbumsByGenre: MediaSource<MediaAlbum> = {
 
 const embyArtistsByGenre: MediaSource<MediaArtist> = {
     id: `${serviceId}/artists-by-genre`,
+    sourceId: `${serviceId}/artists`,
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
@@ -465,7 +469,7 @@ const embyArtistsByGenre: MediaSource<MediaArtist> = {
                 },
                 {
                     childSort: embyArtistAlbumsSort.defaultSort,
-                    childSortId: `${embyArtistsByGenre.id}/2`,
+                    childSortId: `${embyArtistsByGenre.sourceId}/2`,
                 },
                 undefined,
                 createArtistAlbumsPager
@@ -502,6 +506,7 @@ const embyTracksByDecade: MediaSource<MediaItem> = {
 
 const embyAlbumsByDecade: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-decade`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
@@ -542,6 +547,7 @@ const embyRandomTracks: MediaSource<MediaItem> = {
 
 const embyRandomAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/random-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,

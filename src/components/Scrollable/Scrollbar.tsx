@@ -227,7 +227,7 @@ function Scrollbar({
             role="scrollbar"
             aria-controls={scrollableId}
             aria-orientation={orientation}
-            aria-valuenow={Number(((position * 100) / max).toFixed(1))}
+            aria-valuenow={Number(((position * 100) / max).toFixed(1)) || 0}
             aria-valuemin={0}
             aria-valuemax={100}
             onContextMenu={cancelEvent}

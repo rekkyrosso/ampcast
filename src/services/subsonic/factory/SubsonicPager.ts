@@ -130,7 +130,7 @@ export class SubsonicPlaylistItemsPager extends SubsonicPager<MediaItem> {
             );
             this.subscribeTo(
                 this.observeComplete().pipe(
-                    switchMap(() => observePlaylistAdditions(this.playlist)),
+                    switchMap(() => observePlaylistAdditions(this.playlist.src)),
                     tap((items) => this._addItems(items))
                 ),
                 logger

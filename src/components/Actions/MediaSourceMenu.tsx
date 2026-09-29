@@ -2,6 +2,8 @@ import React from 'react';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaSource from 'types/MediaSource';
+import {SortField} from 'types/MediaListSort';
+import SortParams from 'types/SortParams';
 import {getMediaLabel} from 'utils';
 import {getMediaListId, getMediaSourceItems} from 'services/mediaServices/mediaSources';
 import {
@@ -144,8 +146,15 @@ function getMenuItems(
     if (source?.singular && level === 1) {
         return menuItems;
     }
+    const listView = document.querySelector<HTMLElement>(
+        `.history-item:not([hidden]) [data-list-id="${id}"]`
+    );
     if (items.sort && !isSearch) {
-        const sorting = getSourceSorting(id) || items.sort.defaultSort;
+        const sortBy = listView?.dataset.sortBy;
+        const sortOrder = Number(listView?.dataset.sortOrder) || 0;
+        const currentSort = sortBy && sortOrder ? ({sortBy, sortOrder} as SortParams) : undefined;
+        const defaultSort = items.sort.defaultSort;
+        const sorting = currentSort || getSourceSorting(id) || defaultSort;
         const sortOptions = items.sort.sortOptions || {};
         const sortKeys = Object.keys(sortOptions);
         if (sortKeys.length > 1) {
@@ -154,9 +163,14 @@ function getMenuItems(
                     <PopupMenuItemGroup>
                         {sortKeys.map((sortBy) => (
                             <PopupMenuItemRadio
-                                label={`Sort by: ${sortOptions[sortBy]}`}
+                                label={`Sort by: ${sortOptions[sortBy as SortField]}`}
                                 checked={sorting.sortBy === sortBy}
-                                onClick={() => setSourceSorting(id, {...sorting, sortBy})}
+                                onClick={() =>
+                                    setSourceSorting(id, {
+                                        sortBy,
+                                        sortOrder: guessBestSortOrder(sortBy, defaultSort),
+                                    })
+                                }
                                 key={sortBy}
                             />
                         ))}
@@ -181,7 +195,6 @@ function getMenuItems(
         }
     }
     const views = items.layout?.views || ['card', 'card compact', 'card small', 'details'];
-    const listView = document.querySelector<HTMLElement>(`[data-list-id="${id}"]`);
     const currentView = listView?.dataset.view;
     menuItems.view = views.length ? (
         <PopupMenuItemGroup>
@@ -223,4 +236,24 @@ function getViewName(view: string): string {
 function getDefaultLabel(sourceId: string, itemType: ItemType): string {
     const [serviceId] = sourceId.split('/');
     return getMediaLabel(itemType, serviceId);
+}
+
+function guessBestSortOrder(sortBy: string, defaultSort: SortParams): 1 | -1 {
+    if (sortBy === defaultSort.sortBy) {
+        return defaultSort.sortOrder;
+    }
+    switch (sortBy) {
+        case 'Year':
+        case 'AddedAt':
+        case 'ModifiedAt':
+        case 'Released':
+        case 'ListenDate':
+        case 'LastPlayed':
+        case 'Rating':
+        case 'dateAdded':
+        case 'starred_at':
+            return -1;
+        default:
+            return 1;
+    }
 }

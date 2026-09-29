@@ -1,9 +1,9 @@
-import {Subject, debounceTime, filter, mergeMap, switchMap, tap} from 'rxjs';
+import {Subject, debounceTime, mergeMap, switchMap, tap} from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import {PagerConfig} from 'types/Pager';
 import SortParams from 'types/SortParams';
 import {Logger, moveSubset} from 'utils';
-import {observePlaylistItemsChange} from 'services/metadata';
+import {observePlaylistAdditions} from 'services/metadata';
 import IBroadcastPager from './IBroadcastPager';
 import ibroadcastLibrary from './ibroadcastLibrary';
 import {createMediaItem, getIdFromSrc, sortTracks} from './ibroadcastUtils';
@@ -101,12 +101,10 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
             );
             this.subscribeTo(
                 this.observeComplete().pipe(
-                    switchMap(() => observePlaylistItemsChange()),
-                    filter(
-                        ({type, src}) =>
-                            type === 'added' && src === `ibroadcast:playlist:${this.playlistId}`
+                    switchMap(() =>
+                        observePlaylistAdditions(`ibroadcast:playlist:${this.playlistId}`)
                     ),
-                    tap(({items}) => this._addItems(items))
+                    tap((items) => this._addItems(items))
                 ),
                 logger
             );

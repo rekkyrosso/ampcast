@@ -7,11 +7,11 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import SortParams from 'types/SortParams';
-import {exists} from 'utils';
+import {compareArrays, exists} from 'utils';
 import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
-import {dispatchPlaylistItemsChange} from 'services/metadata';
+import {dispatchPlaylistEdited, dispatchPlaylistItemsChange} from 'services/metadata';
 import {performAction} from 'components/Actions';
 import {getPlaylistItemsByService} from 'components/Actions/recentPlaylists';
 import Icon from 'components/Icon';
@@ -30,15 +30,17 @@ export default function PlaylistItemsList({
     source,
     ...props
 }: PlaylistItemsListProps) {
+    const [completeKeys, setCompleteKeys] = useState<readonly string[] | undefined>();
     const [cursor, setCursor] = useState<string | undefined>(undefined);
     const sourceId = `${source.sourceId || source.id}/2`;
     const defaultSort = source.secondaryItems?.sort?.defaultSort;
     const externalSort = getSourceSorting(sourceId) || defaultSort;
     const [internalSort, setInternalSort] = useState<SortParams | undefined>(undefined);
     const sortParams = internalSort || externalSort;
+    const playlistSrc = playlist?.src || '';
     const config = playlist?.items;
     const pager = playlist?.pager || null;
-    const [{busy, complete, error}] = usePager(pager);
+    const [{items, busy, complete, error}] = usePager(pager);
     const unlocked = complete && !error && !busy && config?.droppable;
     const deletable = unlocked && config?.deletable;
     const droppable = unlocked;
@@ -53,6 +55,20 @@ export default function PlaylistItemsList({
     useEffect(() => {
         setCursor(busy && complete ? 'progress' : undefined);
     }, [busy, complete]);
+
+    useEffect(() => {
+        setCompleteKeys((keys) => (complete ? keys || items.map((item) => item.src) : undefined));
+    }, [complete, items]);
+
+    useEffect(() => {
+        if (completeKeys) {
+            const keys = items.map((item) => item.src);
+            if (!compareArrays(keys, completeKeys)) {
+                dispatchPlaylistEdited(playlistSrc);
+                setCompleteKeys(keys);
+            }
+        }
+    }, [playlistSrc, items, completeKeys]);
 
     const injectAt = useCallback(
         async (items: readonly MediaItem[], atIndex: number) => {

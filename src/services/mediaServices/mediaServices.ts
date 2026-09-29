@@ -51,6 +51,10 @@ export function observeIsLoggedIn(service: MediaService | string): Observable<bo
     );
 }
 
+export function getEnableServices(): readonly MediaService[] {
+    return services$.value.filter((service) => !isServiceDisabled(service));
+}
+
 export function getServices(): readonly MediaService[] {
     return services$.value;
 }

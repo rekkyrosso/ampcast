@@ -109,7 +109,7 @@ export class PlexPlaylistItemsPager extends PlexPager<MediaItem> {
             );
             this.subscribeTo(
                 this.observeComplete().pipe(
-                    switchMap(() => observePlaylistAdditions(this.playlist)),
+                    switchMap(() => observePlaylistAdditions(this.playlist.src)),
                     map((items) => uniqBy('src', items).filter((item) => !this.keys.has(item.src))),
                     filter((items) => items.length > 0),
                     tap((items) => this._addItems(items))

@@ -1,12 +1,20 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, map, skipWhile, startWith} from 'rxjs';
+import {
+    BehaviorSubject,
+    combineLatest,
+    distinctUntilChanged,
+    filter,
+    map,
+    skipWhile,
+    startWith,
+} from 'rxjs';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 import SortParams from 'types/SortParams';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import {LiteStorage} from 'utils';
-import {isMediaService} from './mediaServices';
+import {getEnabledServices, isMediaService, observeEnabledServices} from './mediaServices';
 import {isStartupService} from './buildConfig';
 
 type AnyMediaSource = Pick<MediaSource<any>, 'id' | 'defaultHidden'>;
@@ -89,6 +97,25 @@ export function observeSourceVisibility(source: AnyMediaSource): Observable<bool
         map(() => isSourceVisible(source)),
         distinctUntilChanged()
     );
+}
+
+export function observeServiceVisibility(
+    service: MediaService | MediaServiceId
+): Observable<boolean> {
+    return hidden$.pipe(
+        map(() => isServiceVisible(service)),
+        distinctUntilChanged()
+    );
+}
+
+export function observeVisibleServices(): Observable<readonly MediaService[]> {
+    return combineLatest([observeEnabledServices(), hidden$]).pipe(
+        map(([services]) => services.filter((service) => isServiceVisible(service)))
+    );
+}
+
+export function getVisibleServices(): readonly MediaService[] {
+    return getEnabledServices().filter((service) => isServiceVisible(service));
 }
 
 export function isServiceHidden(service: MediaService | MediaServiceId): boolean {

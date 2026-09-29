@@ -286,6 +286,7 @@ const plexTopTracks: MediaSource<MediaItem> = {
 
 const plexTopAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/top-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
@@ -314,6 +315,7 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
 
 const plexTopArtists: MediaSource<MediaArtist> = {
     id: `${serviceId}/top-artists`,
+    sourceId: `${serviceId}/artists`,
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
@@ -344,7 +346,7 @@ const plexTopArtists: MediaSource<MediaArtist> = {
             },
             {
                 childSort: plexArtistAlbumsSort.defaultSort,
-                childSortId: `${plexTopArtists.id}/2`,
+                childSortId: `${plexTopArtists.sourceId}/2`,
             },
             undefined,
             createArtistAlbumsPager
@@ -456,6 +458,7 @@ const plexTracksByMood: MediaSource<MediaItem> = {
 
 const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-genre`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -480,6 +483,7 @@ const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
 
 const plexAlbumsByMood: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-mood`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Mood',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -505,6 +509,7 @@ const plexAlbumsByMood: MediaSource<MediaAlbum> = {
 
 const plexAlbumsByStyle: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-style`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Style',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -530,6 +535,7 @@ const plexAlbumsByStyle: MediaSource<MediaAlbum> = {
 
 const plexArtistsByCountry: MediaSource<MediaArtist> = {
     id: `${serviceId}/artists-by-country`,
+    sourceId: `${serviceId}/artists`,
     title: 'Artists by Country',
     icon: 'country',
     itemType: ItemType.Artist,
@@ -551,7 +557,7 @@ const plexArtistsByCountry: MediaSource<MediaArtist> = {
                 },
                 {
                     childSort: plexArtistAlbumsSort.defaultSort,
-                    childSortId: `${plexArtistsByCountry.id}/2`,
+                    childSortId: `${plexArtistsByCountry.sourceId}/2`,
                 },
                 undefined,
                 createArtistAlbumsPager
@@ -564,6 +570,7 @@ const plexArtistsByCountry: MediaSource<MediaArtist> = {
 
 const plexArtistsByGenre: MediaSource<MediaArtist> = {
     id: `${serviceId}/artists-by-genre`,
+    sourceId: `${serviceId}/artists`,
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
@@ -585,7 +592,7 @@ const plexArtistsByGenre: MediaSource<MediaArtist> = {
                 },
                 {
                     childSort: plexArtistAlbumsSort.defaultSort,
-                    childSortId: `${plexArtistsByGenre.id}/2`,
+                    childSortId: `${plexArtistsByGenre.sourceId}/2`,
                 },
                 undefined,
                 createArtistAlbumsPager
@@ -598,6 +605,7 @@ const plexArtistsByGenre: MediaSource<MediaArtist> = {
 
 const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
     id: `${serviceId}/albums-by-decade`,
+    sourceId: `${serviceId}/albums`,
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
@@ -638,6 +646,7 @@ const plexRandomTracks: MediaSource<MediaItem> = {
 
 const plexRandomAlbums: MediaSource<MediaAlbum> = {
     id: `${serviceId}/random-albums`,
+    sourceId: `${serviceId}/albums`,
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,
