@@ -108,7 +108,7 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     get fallbackProvider(): Extract<VisualizerProviderId, 'none' | 'coverart'> {
-        return storage.getString('fallbackProvider', 'none');
+        return storage.getString('fallbackProvider', 'coverart');
     },
 
     set fallbackProvider(provider: Extract<VisualizerProviderId, 'none' | 'coverart'>) {

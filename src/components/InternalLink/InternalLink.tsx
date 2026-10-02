@@ -1,5 +1,7 @@
 import React, {useCallback} from 'react';
-import {WEB_LINKS} from 'services/features';
+import LinkBehavior from 'types/LinkBehavior';
+import {browser} from 'utils';
+import preferences from 'services/preferences';
 import useHistory from 'components/MediaBrowser/useHistory';
 import './InternalLink.scss';
 
@@ -9,39 +11,35 @@ export interface InternalLinkProps {
     className?: string;
 }
 
-export default function InternalLink({path, className, children}: InternalLinkProps) {
-    const {currentPath} = useHistory();
+export default function InternalLink({path, className = '', children}: InternalLinkProps) {
+    const {currentPath, navigateTo} = useHistory();
 
-    return !WEB_LINKS || isSamePath(path, currentPath) ? (
+    const handleClick = useCallback(
+        (event: React.MouseEvent) => {
+            if (event.button === 0) {
+                event.preventDefault();
+                if (
+                    event[browser.cmdKey] ||
+                    preferences.linkBehavior === LinkBehavior.Always ||
+                    (preferences.linkBehavior === LinkBehavior.CmdKeyDetails &&
+                        !(event.target as HTMLElement).closest('.list-view-details'))
+                ) {
+                    event.stopPropagation();
+                    navigateTo(path);
+                }
+            }
+        },
+        [navigateTo, path]
+    );
+
+    return isSamePath(path, currentPath) ? (
         <span className={className}>{children}</span>
     ) : (
-        <ActiveInternalLink className={className} path={path}>
-            {children}
-        </ActiveInternalLink>
-    );
-}
-
-function ActiveInternalLink({path, className, children}: InternalLinkProps) {
-    const {navigateTo} = useHistory();
-
-    const handleClick = useCallback(() => {
-        navigateTo(path);
-    }, [navigateTo, path]);
-
-    const handleMouseDown = useCallback((event: React.MouseEvent) => {
-        if (event.button === 0) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-    }, []);
-
-    return (
         <a
-            className={`internal-link ${className || ''}`}
+            className={`internal-link ${className}`}
             href={`#!/${path}`}
             tabIndex={-1}
             onClick={handleClick}
-            onMouseDown={handleMouseDown}
         >
             {children}
         </a>

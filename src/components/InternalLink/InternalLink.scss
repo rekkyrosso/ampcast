@@ -10,4 +10,14 @@
     &:active {
         color: inherit;
     }
+
+    .link-behavior-cmd-key:not(.cmd-key) .list-view &,
+    .link-behavior-cmd-key-details:not(.cmd-key) .list-view-details & {
+        text-decoration: none;
+        cursor: default;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
 }

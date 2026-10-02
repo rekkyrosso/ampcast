@@ -2,7 +2,6 @@ import React, {useCallback} from 'react';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import {srcToPath} from 'utils';
-import {WEB_LINKS} from 'services/features';
 import {getServiceFromSrc} from 'services/mediaServices';
 import Button from 'components/Button';
 import useHistory from 'components/MediaBrowser/useHistory';
@@ -21,12 +20,8 @@ export default function NavigationButton({item}: NavigationButtonProps) {
         navigateTo(path);
     }, [navigateTo, path]);
 
-    return WEB_LINKS && canNavigate ? (
-        <Button
-            className="navigation-button"
-            title="Show in media browser"
-            onClick={showInBrowser}
-        >
+    return canNavigate ? (
+        <Button className="navigation-button" title="Show in media browser" onClick={showInBrowser}>
             Go to…
         </Button>
     ) : null;

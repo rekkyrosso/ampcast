@@ -1,5 +1,4 @@
 import ItemType from 'types/ItemType';
-import {WEB_LINKS} from 'services/features';
 import browser from './browser';
 import {getContentType} from './fetch';
 
@@ -129,12 +128,6 @@ export function srcToPath(src: string): string {
     return `${serviceId}/${type}/${rest.join(':')}`;
 }
 
-export function getLibraryIdFromPath(): string | null {
-    if (WEB_LINKS) {
-        const [, search] = location.hash.split('?');
-        const params = new URLSearchParams(search);
-        return params.get('libraryId');
-    } else {
-        return null;
-    }
+export function getLibraryIdFromPath(): string | undefined {
+    return history.state?.libraryId;
 }

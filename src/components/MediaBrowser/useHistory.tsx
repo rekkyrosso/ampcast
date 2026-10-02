@@ -4,7 +4,6 @@ import {nanoid} from 'nanoid';
 import MediaSource, {AnyMediaSource} from 'types/MediaSource';
 import {Pinnable} from 'types/Pin';
 import {exists, LiteStorage, Logger} from 'utils';
-import {WEB_LINKS} from 'services/features';
 import {getServiceFromPath, isPersonalMediaService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import useObservable from 'hooks/useObservable';
@@ -20,6 +19,7 @@ export type HistoryState = {
     readonly key: string;
     readonly path: string;
     readonly index: number;
+    readonly libraryId?: string;
 };
 
 const MAX_SIZE = 50;
@@ -34,49 +34,46 @@ const state$ = new BehaviorSubject<HistoryState | null>(null);
 const observeStack = () => stack$;
 const observeState = () => state$;
 
-if (WEB_LINKS) {
-    fromEvent<PopStateEvent>(window, 'popstate')
-        .pipe(map((event) => event.state))
-        .subscribe((state) => {
-            const stack = stack$.value.slice();
-            if (state) {
-                state$.next(state);
-                const {key, path, index} = state;
-                const historyItem = stack.find((entry) => entry?.key === key);
-                if (!historyItem) {
-                    const entry = createHistoryEntry(key, path);
-                    stack[index] = entry;
-                    stack$.next(stack);
-                }
-                storage.setNumber('index', index);
-            } else {
-                const key = nanoid();
-                const path = location.hash.slice(1).replace('!/', '');
-                const index = storage.getNumber('index') + 1;
+fromEvent<PopStateEvent>(window, 'popstate')
+    .pipe(map((event) => event.state))
+    .subscribe((state) => {
+        const stack = stack$.value.slice();
+        if (state) {
+            const {key, path, index} = state;
+            const historyItem = stack.find((entry) => entry?.key === key);
+            if (!historyItem) {
                 const entry = createHistoryEntry(key, path);
                 stack[index] = entry;
-                stack.length = index + 1;
-                state$.next({key, path, index});
-                stack$.next(stack);
-                storage.setNumber('index', index);
-                storage.setNumber('length', index + 1);
             }
-        });
-
-    state$.pipe(filter(exists)).subscribe((state) => {
-        const stack = stack$.value.slice();
-        let stackChanged = false;
-        let expiredIndex = state.index - MAX_SIZE;
-        while (expiredIndex >= 0) {
-            delete stack[expiredIndex];
-            stackChanged = true;
-            expiredIndex--;
-        }
-        if (stackChanged) {
+            storage.setNumber('index', index);
+            state$.next({...state});
+            stack$.next(stack);
+        } else {
+            const key = nanoid();
+            const path = location.hash.slice(1).replace('!/', '');
+            const index = storage.getNumber('index') + 1;
+            const libraryId = getLibraryId(path);
+            const entry = createHistoryEntry(key, path);
+            stack[index] = entry;
+            stack.length = index + 1;
+            storage.setNumber('index', index);
+            storage.setNumber('length', index + 1);
+            state$.next({key, path, index, libraryId});
             stack$.next(stack);
         }
     });
-}
+
+state$.pipe(filter(exists)).subscribe((state) => {
+    const stack = stack$.value.slice();
+    let expiredIndex = state.index - MAX_SIZE;
+    if (expiredIndex >= 0) {
+        while (expiredIndex >= 0) {
+            delete stack[expiredIndex];
+            expiredIndex--;
+        }
+        stack$.next(stack);
+    }
+});
 
 export default function useHistory() {
     const stack = useObservable(observeStack, stack$.value);
@@ -109,34 +106,25 @@ export default function useHistory() {
             const {path, index} = state;
             const key = nanoid(); // New `key`.
             stack[index] = createHistoryEntry(key, path);
-            stack$.next(stack);
-            if (WEB_LINKS) {
-                history.replaceState({...state, key}, '', `#!/${path}`);
-            }
+            history.replaceState({...state, key}, '', `#!/${path}`);
             state$.next({...state, key});
+            stack$.next(stack);
         }
     }, []);
 
     const switchLibrary = useCallback((libraryId: string) => {
         const state = state$.value;
-        if (state && getMediaSource(state.path)) {
+        if (state) {
             const stack = stack$.value.slice();
             const key = nanoid(); // New `key`.
-            const [pathname, search] = state.path.split('?');
-            let path = pathname;
-            if (search) {
-                const params = new URLSearchParams(search);
-                if (params.has('libraryId')) {
-                    params.set('libraryId', libraryId);
-                }
-                path = `${pathname}?${params}`;
+            let [path] = state.path.split('?');
+            if (libraryId && getMediaSource(state.path)) {
+                path = `${path}?libraryId=${libraryId}`;
             }
             stack[state.index] = createHistoryEntry(key, path);
+            history.replaceState({...state, key, libraryId}, '', `#!/${path}`);
+            state$.next({...state, key, libraryId});
             stack$.next(stack);
-            if (WEB_LINKS) {
-                history.replaceState({...state, key}, '', `#!/${path}`);
-            }
-            state$.next({...state, key});
         }
     }, []);
 
@@ -144,39 +132,27 @@ export default function useHistory() {
         if (!path) {
             return;
         }
-        const showingWizard = document.body.classList.contains('showing-startup-wizard');
-        const linksEnabled = WEB_LINKS && !showingWizard;
-        if (linksEnabled && getMediaSource(path)) {
-            const service = getServiceFromPath(path);
-            const libraryId =
-                service && isPersonalMediaService(service) ? service.libraryId : undefined;
-            if (libraryId !== undefined) {
-                path = `${path}?libraryId=${libraryId}`;
-            }
-        }
         const initialized = !!state$.value;
-        if (linksEnabled && !initialized) {
+        if (!initialized) {
             path = location.hash.slice(1).replace('!/', '') || path;
         }
-        if (path !== state$.value?.path) {
+        const libraryId = getLibraryId(path);
+        if (libraryId && !path.includes('?libraryId=') && getMediaSource(path)) {
+            path = `${path}?libraryId=${libraryId}`;
+        }
+        if (!isSamePath(path, state$.value?.path || '')) {
             logger.log('navigateTo', path);
+            const showingWizard = document.body.classList.contains('showing-startup-wizard');
             const key = nanoid();
-            const index = WEB_LINKS
-                ? initialized && !showingWizard
-                    ? state$.value.index + 1
-                    : storage.getNumber('index')
-                : 0;
+            const index =
+                initialized && !showingWizard ? state$.value.index + 1 : storage.getNumber('index');
             const stack = stack$.value.slice();
-            const state: HistoryState = {key, path, index};
+            const state: HistoryState = {key, path, index, libraryId};
             const entry = createHistoryEntry(key, path);
             stack[index] = entry;
-            stack.length = WEB_LINKS
-                ? initialized && !showingWizard
-                    ? index + 1
-                    : Math.max(stack.length, index + 1)
-                : 1;
-            stack$.next(stack);
-            if (linksEnabled) {
+            stack.length =
+                initialized && !showingWizard ? index + 1 : Math.max(stack.length, index + 1);
+            if (!showingWizard) {
                 const hash = `#!/${path}`;
                 if (initialized) {
                     history.pushState(state, '', hash);
@@ -184,9 +160,10 @@ export default function useHistory() {
                     history.replaceState(state, '', hash);
                 }
             }
-            state$.next(state);
             storage.setNumber('length', stack.length);
             storage.setNumber('index', state.index);
+            state$.next(state);
+            stack$.next(stack);
         }
     }, []);
 
@@ -228,14 +205,6 @@ function createHistoryEntry(key: string, path: string): HistoryEntry {
     }
 }
 
-function getMediaSource(path: string): AnyMediaSource | undefined {
-    path = path.replace(/\?.*$/, '');
-    const service = getServiceFromPath(path);
-    return service?.id === path
-        ? service.root
-        : service?.sources?.find((source) => source.id === path);
-}
-
 function createMediaObjectSource(path: string): MediaSource<any> | undefined {
     const service = getServiceFromPath(path);
     if (service?.createSourceFromObject) {
@@ -249,4 +218,30 @@ function createPin(path: string): MediaSource<Pinnable> | undefined {
     const src = path.slice(5).replaceAll('/', ':');
     const pin = pinStore.getPin(src);
     return pin ? service?.createSourceFromPin?.(pin) : undefined;
+}
+
+function getLibraryId(path: string): string | undefined {
+    const [, search] = path.split('?');
+    const params = new URLSearchParams(search);
+    const libraryId = params.get('libraryId');
+    if (libraryId == null) {
+        const service = getServiceFromPath(path);
+        return service && isPersonalMediaService(service) ? service.libraryId : undefined;
+    } else {
+        return libraryId;
+    }
+}
+
+function getMediaSource(path: string): AnyMediaSource | undefined {
+    path = path.replace(/\?.*$/, '');
+    const service = getServiceFromPath(path);
+    return service?.id === path
+        ? service.root
+        : service?.sources?.find((source) => source.id === path);
+}
+
+function isSamePath(a: string, b: string): boolean {
+    const [pathA] = a.split('?');
+    const [pathB] = b.split('?');
+    return pathA === pathB;
 }

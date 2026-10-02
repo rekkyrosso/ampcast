@@ -58,7 +58,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         protected config: PagerConfig<T>,
         private readonly createChildPager?: CreateChildPager<T>
     ) {
-        if (__dev__ && !config.pageSize) {
+        if (__dev__ && config.pageSize === undefined) {
             logger.warn('`pageSize` not specified');
         }
     }

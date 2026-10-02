@@ -69,6 +69,7 @@ export const musicKitParams: MusicKit.QueryParameters = {
     'include[library-artists]': 'catalog',
     'include[music-videos]': 'artists,albums',
     'include[library-music-videos]': 'catalog,artists,albums',
+    'include[library-playlists]': 'catalog',
     'omit[resource:artists]': 'relationships',
 };
 

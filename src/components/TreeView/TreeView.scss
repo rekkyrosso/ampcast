@@ -12,7 +12,7 @@
 
     &:has([role="tree"]:empty) {
         .scrollbar {
-            display: none;
+            visibility: hidden;
         }
     }
 

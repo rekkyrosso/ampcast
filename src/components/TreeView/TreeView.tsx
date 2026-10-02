@@ -73,7 +73,7 @@ export default function TreeView<T>({
     const [height, setHeight] = useState(0);
     const [rowHeight, setRowHeight] = useState(defaultRowHeight);
     const [scrollTop, setScrollTop] = useState(0);
-    const pageSize = Math.floor(height / rowHeight) - 1;
+    const pageSize = Math.max(Math.floor(height / rowHeight) - 1, 0);
     const size = visibleIds.length;
     const selectedValue = getValue(roots, selectedId);
     const keyboardBusy = useKeyboardBusy(scrollKeys);
@@ -157,7 +157,9 @@ export default function TreeView<T>({
     }, [debouncedValue, onSelect]);
 
     useEffect(() => {
-        storeSelectedNodeId(selectedId);
+        if (selectedId) {
+            storeSelectedNodeId(selectedId);
+        }
     }, [selectedId, storeSelectedNodeId]);
 
     useEffect(() => {

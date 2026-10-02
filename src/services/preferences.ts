@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs';
 import Action from 'types/Action';
+import LinkBehavior from 'types/LinkBehavior';
 import Preferences from 'types/Preferences';
 import {LiteStorage} from 'utils';
 
@@ -29,6 +30,14 @@ const preferences: Preferences = {
 
     set doubleClickBehavior(behavior: Preferences['doubleClickBehavior']) {
         storage.setString('doubleClickBehavior', behavior);
+    },
+
+    get linkBehavior(): Preferences['linkBehavior'] {
+        return storage.getNumber('linkBehavior', LinkBehavior.CmdKeyDetails);
+    },
+
+    set linkBehavior(behavior: Preferences['linkBehavior']) {
+        storage.setNumber('linkBehavior', behavior);
     },
 
     get markExplicitContent(): boolean {

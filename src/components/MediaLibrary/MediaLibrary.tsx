@@ -1,6 +1,5 @@
 import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {skip} from 'rxjs';
-import {WEB_LINKS} from 'services/features';
 import {getServiceFromPath, isPersonalMediaService} from 'services/mediaServices';
 import AppTitle from 'components/App/AppTitle';
 import AppDragRegion from 'components/App/AppDragRegion';
@@ -46,7 +45,7 @@ export default memo(function MediaLibrary() {
             <header className="media-library-head">
                 <AppTitle />
                 <AppDragRegion />
-                {WEB_LINKS ? <BrowserControls /> : null}
+                <BrowserControls />
                 <SettingsButton />
             </header>
             <div className="media-library-body">

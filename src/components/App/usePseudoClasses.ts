@@ -1,6 +1,8 @@
 import {useEffect} from 'react';
-import {fromEvent, Subscription} from 'rxjs';
-import {stopPropagation} from 'utils';
+import {filter, fromEvent, Subscription} from 'rxjs';
+import LinkBehavior from 'types/LinkBehavior';
+import {browser, stopPropagation} from 'utils';
+import {observePreferences} from 'services/preferences';
 
 export default function usePseudoClasses(): void {
     useEffect(() => {
@@ -16,10 +18,24 @@ export default function usePseudoClasses(): void {
                     document.activeElement?.classList.toggle('focus', true);
                 }
             });
-        document.activeElement!.classList.toggle('focus', true);
+        document.activeElement?.classList.toggle('focus', true);
         subscription.add(
-            fromEvent<MouseEvent>(document, 'keydown', {capture: true}).subscribe(() => {
-                isFocusVisible = true;
+            fromEvent<KeyboardEvent>(document, 'keydown', {capture: true})
+                .pipe(filter((event) => !event.repeat))
+                .subscribe((event) => {
+                    isFocusVisible = true;
+                    document.body.classList.toggle('cmd-key', event[browser.cmdKey]);
+                })
+        );
+        subscription.add(
+            fromEvent<KeyboardEvent>(document, 'keyup', {capture: true}).subscribe(() => {
+                document.body.classList.toggle('cmd-key', false);
+            })
+        );
+        subscription.add(
+            fromEvent<FocusEvent>(window, 'blur').subscribe(() => {
+                isFocusVisible = false;
+                document.body.classList.toggle('cmd-key', false);
             })
         );
         subscription.add(
@@ -58,6 +74,19 @@ export default function usePseudoClasses(): void {
         subscription.add(fromEvent(system, 'mousedown').subscribe(stopPropagation));
         subscription.add(subscribeToFocusIn(app));
         subscription.add(subscribeToFocusIn(system));
+        subscription.add(
+            observePreferences().subscribe((preferences) => {
+                const classList = document.body.classList;
+                classList.toggle(
+                    'link-behavior-cmd-key',
+                    preferences.linkBehavior === LinkBehavior.CmdKey
+                );
+                classList.toggle(
+                    'link-behavior-cmd-key-details',
+                    preferences.linkBehavior === LinkBehavior.CmdKeyDetails
+                );
+            })
+        );
         return () => subscription.unsubscribe();
     }, []);
 }

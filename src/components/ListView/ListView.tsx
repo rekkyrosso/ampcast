@@ -495,7 +495,6 @@ export default function ListView<T>({
         (event: React.MouseEvent) => {
             const rowIndex = getRowIndexFromMouseEvent(event);
             if (rowIndex !== -1) {
-                event.preventDefault();
                 onClick?.(items[rowIndex], rowIndex);
             }
         },
