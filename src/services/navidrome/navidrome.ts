@@ -251,19 +251,7 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
         return item;
     }
     const id = getIdFromSrc(item);
-    if (itemType === ItemType.Album) {
-        if (item.synthetic) {
-            return item;
-        }
-        if (item.description === undefined) {
-            const info = await subsonicApi.getAlbumInfo(id, false);
-            item = {
-                ...item,
-                description: getTextFromHtml(info.notes),
-                release_mbid: info.musicBrainzId,
-            };
-        }
-    } else if (itemType === ItemType.Artist && item.description === undefined) {
+    if (itemType === ItemType.Artist && item.description === undefined) {
         const info = await subsonicApi.getArtistInfo(id);
         item = {
             ...item,

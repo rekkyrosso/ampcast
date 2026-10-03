@@ -1,3 +1,4 @@
+import ampcastElectron from 'services/ampcastElectron';
 import SubsonicSettings from 'services/subsonic/factory/SubsonicSettings';
 
 export class NavidromeSettings extends SubsonicSettings {
@@ -23,6 +24,20 @@ export class NavidromeSettings extends SubsonicSettings {
 
     set userId(userId: string) {
         this.storage.setString('userId', userId);
+    }
+
+    async getPassword(): Promise<string> {
+        if (ampcastElectron) {
+            return ampcastElectron.getCredential('navidrome/password');
+        } else {
+            return '';
+        }
+    }
+
+    async savePassword(password: string): Promise<void> {
+        if (ampcastElectron) {
+            await ampcastElectron.setCredential('navidrome/password', password);
+        }
     }
 
     clear(): void {

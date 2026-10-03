@@ -93,13 +93,13 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         playbackType: PlaybackType.Direct,
         src: `${serviceId}:song:${id}`,
         externalUrl: getExternalUrl(`album/${song.albumId}`),
-        title: song.title,
+        title: (song.title || '').trim(),
         addedAt: parseDate(song.createdAt),
         artists: hasArtist ? artists?.map((artist) => artist.name) || [song.artist] : undefined,
         albumArtists: hasAlbumArtist
-            ? albumArtists?.map((artist) => artist.name) || [song.albumArtist]
+            ? albumArtists?.map((artist) => artist.name) || [song.albumArtist.trim()]
             : undefined,
-        album: song.album === '[Unknown Album]' ? undefined : song.album,
+        album: song.album === '[Unknown Album]' ? undefined : song.album?.trim(),
         duration: song.duration,
         track: song.trackNumber,
         nanoId: nanoid(), // For playlists
@@ -175,10 +175,10 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
         itemType: ItemType.Album,
         src: `${serviceId}:album:${album_id}`,
         externalUrl: getExternalUrl(`album/${album_id}`),
-        title: album.name,
+        title: (album.name || '').trim(),
         addedAt: parseDate(album.createdAt),
         artists: hasArtist
-            ? artists?.map((artist) => artist.name) || [album.albumArtist]
+            ? artists?.map((artist) => artist.name) || [album.albumArtist.trim()]
             : undefined,
         inLibrary: !!album.starred,
         rating: album.rating || 0,
@@ -209,7 +209,7 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
         itemType: ItemType.Artist,
         src: `${serviceId}:artist:${artist_id}`,
         externalUrl: getExternalUrl(`artist/${artist_id}`),
-        title: artist.name,
+        title: (artist.name || '').trim(),
         description: getTextFromHtml(artist.biography, 1) || undefined,
         inLibrary: !!artist.starred,
         rating: artist.rating || 0,

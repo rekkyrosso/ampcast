@@ -7,7 +7,6 @@ export default interface Preferences {
     doubleClickBehavior: PlayAction;
     linkBehavior: LinkBehavior;
     markExplicitContent: boolean;
-    mediaInfoTabs: boolean;
     miniPlayer: boolean;
     spacebarTogglePlay: boolean;
 }

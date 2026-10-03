@@ -10,4 +10,6 @@ export default interface PersonalMediaServerSettings {
     observeLibraryId: () => Observable<string>;
     useManualLogin?: boolean;
     userName?: string;
+    getPassword?(): Promise<string>;
+    savePassword?(password: string): Promise<void>
 }

@@ -8,4 +8,14 @@
         font-size: 0.75em;
         min-height: 1.5em;
     }
+
+    .save-password {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: right;
+        font-style: italic;
+        font-size: 0.75em;
+        line-height: normal;
+    }
 }

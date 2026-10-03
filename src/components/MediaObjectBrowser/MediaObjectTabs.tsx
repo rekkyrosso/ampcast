@@ -47,6 +47,7 @@ export default function MediaObjectTabs<T extends MediaObject>({
                   ...source,
                   singular: false,
                   id: `${source.id}/related`,
+                  sourceId: `${source.sourceId || source.id}/related`,
                   search() {
                       return pager;
                   },

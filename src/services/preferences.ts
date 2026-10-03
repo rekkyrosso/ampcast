@@ -48,14 +48,6 @@ const preferences: Preferences = {
         storage.setBoolean('markExplicitContent', enabled);
     },
 
-    get mediaInfoTabs(): boolean {
-        return storage.getBoolean('mediaInfoTabs');
-    },
-
-    set mediaInfoTabs(enabled: boolean) {
-        storage.setBoolean('mediaInfoTabs', enabled);
-    },
-
     get miniPlayer(): boolean {
         return storage.getBoolean('miniPlayer');
     },

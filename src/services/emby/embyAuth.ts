@@ -53,7 +53,9 @@ export async function login(mode?: 'silent'): Promise<void> {
                     throw Error('No credentials');
                 }
             } else {
-                returnValue = await showEmbyLoginDialog(emby, embySettings);
+                returnValue = await showEmbyLoginDialog(emby, embySettings, () =>
+                    connecting$.next(true)
+                );
             }
             if (returnValue) {
                 const {serverId, userId, token} = JSON.parse(returnValue);
@@ -61,12 +63,14 @@ export async function login(mode?: 'silent'): Promise<void> {
                 embySettings.userId = userId;
                 setAccessToken(token);
                 embySettings.connectedAt = Date.now();
+            } else {
+                throw Error('Cancelled');
             }
         } catch (err) {
             logger.error(err);
             connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
+            connecting$.next(false);
         }
-        connecting$.next(false);
     }
 }
 
@@ -80,12 +84,14 @@ export async function logout(): Promise<void> {
 }
 
 export async function reconnect(): Promise<void> {
-    const token = embySettings.token;
-    if (token) {
-        connecting$.next(true);
-        accessToken$.next(token);
-    } else if (hasProxyLogin(emby)) {
+    if (hasProxyLogin(emby)) {
         await login('silent');
+    } else {
+        const token = embySettings.token;
+        if (token) {
+            connecting$.next(true);
+            accessToken$.next(token);
+        }
     }
 }
 

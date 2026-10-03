@@ -33,7 +33,9 @@ import chromaticWaveInterference from './chromaticWaveInterference.frag';
 import circuits from './circuits.frag';
 import cityAtNight from './cityAtNight.frag';
 import clairDeLune from './clairDeLune.frag';
+import colorShiftingSoundwave from './colorShiftingSoundwave.frag';
 import convertedPlasma from './convertedPlasma.frag';
+import cosmicDogV2 from './cosmicDogV2.frag';
 import creation from './creation.frag';
 import cylonsJam from './cylonsJam.frag';
 import dancingDots from './dancingDots.frag';
@@ -87,6 +89,7 @@ import particlesDance from './particlesDance.frag';
 import plasmaGlobe from './plasmaGlobe.frag';
 import playingAroundWithSpirals from './playingAroundWithSpirals.frag';
 import popShift from './popShift.frag';
+import prismSingularity from './prismSingularity.frag';
 import psychedelicEye from './psychedelicEye.frag';
 import psychedelicLines from './psychedelicLines.frag';
 import purpleSpaghetti from './purpleSpaghetti.frag';
@@ -120,8 +123,29 @@ import voyager from './voyager.frag';
 import vt220DancingAtNight from './vt220DancingAtNight.frag';
 import wavesRemix from './wavesRemix.frag';
 import yearOfTruchets018 from './yearOfTruchets018.frag';
+import zylsAudioViz from './zylsAudioViz.frag';
 
 const presets: AmpShaderVisualizer[] = [
+    {
+        id: '7X2XRG',
+        name: "Cosmic Dog v 2.0 by enbe",
+        shader: cosmicDogV2,
+    },
+    {
+        id: 'sfdSDS',
+        name: "COLOR SHIFTING SOUNDWAVE by CMC",
+        shader: colorShiftingSoundwave,
+    },
+    {
+        id: 'fcyGRV',
+        name: "zyl's audio viz by veik",
+        shader: zylsAudioViz,
+    },
+    {
+        id: 'fXV3zd',
+        name: 'Prism Singularity by OneHung',
+        shader: prismSingularity,
+    },
     {
         id: 'f3jSDV',
         name: 'NEON RING SPECTRUM by nolascoin',

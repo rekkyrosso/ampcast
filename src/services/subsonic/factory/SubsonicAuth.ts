@@ -60,21 +60,25 @@ export default class SubsonicAuth implements Auth {
                         throw Error('No credentials');
                     }
                 } else {
-                    returnValue = await showSubsonicLoginDialog(this.service);
+                    returnValue = await showSubsonicLoginDialog(this.service, () =>
+                        this.connecting$.next(true)
+                    );
                 }
                 if (returnValue) {
                     const {userName, credentials} = JSON.parse(returnValue);
                     this.settings.userName = userName;
                     this.setCredentials(credentials);
                     this.settings.connectedAt = Date.now();
+                } else {
+                    throw Error('Cancelled');
                 }
             } catch (err) {
+                this.connecting$.next(false);
                 this.logger.error(err);
                 this.connectionLogging$.next(
                     `Failed to connect: '${getReadableErrorMessage(err)}'`
                 );
             }
-            this.connecting$.next(false);
         }
     }
 
@@ -88,12 +92,14 @@ export default class SubsonicAuth implements Auth {
     }
 
     async reconnect(): Promise<void> {
-        const credentials = this.settings.credentials;
-        if (credentials) {
-            this.connecting$.next(true);
-            this.credentials$.next(credentials);
-        } else if (hasProxyLogin(this.service)) {
+        if (hasProxyLogin(this.service)) {
             await this.login('silent');
+        } else {
+            const credentials = this.settings.credentials;
+            if (credentials) {
+                this.connecting$.next(true);
+                this.credentials$.next(credentials);
+            }
         }
     }
 

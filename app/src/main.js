@@ -180,19 +180,31 @@ function createBridge() {
         name: 'ampcast-credentials',
     });
     ipcMain.handle('getCredential', (_, key) => {
-        const value = credentials.get(key);
-        if (value) {
-            const buffer = Buffer.from(value, 'latin1');
-            return safeStorage.decryptString(buffer);
+        try {
+            const value = credentials.get(key);
+            if (value) {
+                const buffer = Buffer.from(value, 'latin1');
+                return safeStorage.decryptString(buffer);
+            }
+        } catch (err) {
+            console.error(err);
         }
         return '';
     });
     ipcMain.handle('setCredential', (_, key, value) => {
-        const buffer = safeStorage.encryptString(value);
-        credentials.set(key, buffer.toString('latin1'));
+        try {
+            const buffer = safeStorage.encryptString(value);
+            credentials.set(key, buffer.toString('latin1'));
+        } catch (err) {
+            console.error(err);
+        }
     });
     ipcMain.handle('clearCredentials', () => {
-        credentials.clear();
+        try {
+            credentials.clear();
+        } catch (err) {
+            console.error(err);
+        }
     });
 
     // System audio.

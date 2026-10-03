@@ -15,7 +15,7 @@ import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
-import {exists, getItemTypeFromSrc} from 'utils';
+import {getItemTypeFromSrc} from 'utils';
 import {NoFavoritesPlaylistError} from 'services/errors';
 import {createSingularMediaSource} from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
@@ -394,7 +394,7 @@ const appleFavoriteSongs: MediaSource<MediaItem> = {
 
 const appleSongCharts: MediaSource<MediaItem> = {
     id: `${serviceId}/top-songs`,
-    title: 'Top Songs',
+    title: 'Song Charts',
     icon: 'chart',
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
@@ -430,7 +430,7 @@ const appleSongCharts: MediaSource<MediaItem> = {
 
 const appleAlbumCharts: MediaSource<MediaAlbum> = {
     id: `${serviceId}/top-albums`,
-    title: 'Top Albums',
+    title: 'Album Charts',
     icon: 'chart',
     itemType: ItemType.Album,
     filterType: FilterType.ByGenre,
@@ -664,24 +664,17 @@ function createRecommendations<T extends MediaObject>(
         search(): Pager<T> {
             return new MusicKitPager(
                 '/v1/me/recommendations',
-                {
-                    'format[resources]': 'map',
-                    'omit[resource]': 'autos',
-                },
+                {'include[albums]': 'artists'},
                 {pageSize: 30},
                 undefined,
-                ({data = [], resources = {}}: any): MusicKitPage => {
+                ({data = []}: any): MusicKitPage => {
                     const items = data
-                        .map((data: any) => resources['personal-recommendation'][data.id])
-                        .filter(exists)
-                        .map((recommendation: MusicKit.Resource) =>
-                            recommendation.relationships.contents.data.filter(
-                                (data: any) => data.type === type
-                            )
+                        .map(
+                            (recommendation: MusicKit.Resource) =>
+                                recommendation.relationships?.contents?.data || []
                         )
                         .flat()
-                        .map((data: any) => resources[type][data.id])
-                        .filter(exists);
+                        .filter((data: MusicKit.Resource) => data.type === type);
                     const total = items.length;
                     return {items, total, atEnd: true};
                 }

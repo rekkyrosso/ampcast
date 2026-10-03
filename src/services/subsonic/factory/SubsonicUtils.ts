@@ -76,7 +76,7 @@ export default class SubsonicUtils {
         return {
             itemType: ItemType.Album,
             src: `${this.serviceId}:album:${album.id}`,
-            title: album.name,
+            title: (album.name || '').trim(),
             addedAt: this.parseDate(album.created),
             artists:
                 album.artists?.map((artist) => artist.name) ||
@@ -170,11 +170,11 @@ export default class SubsonicUtils {
             playbackType: PlaybackType.Direct,
             src: `${serviceId}:song:${song.id}`,
             fileName: this.getFileName(song.path || '') || '[unknown]',
-            title: song.title,
+            title: (song.title || '').trim(),
             artists:
                 song.artists?.map((artist) => artist.name) ||
                 (song.artist ? [song.artist] : undefined),
-            album: song.album,
+            album: song.album?.trim(),
             duration: song.duration,
             track: song.track,
             disc: song.discNumber,
@@ -231,7 +231,7 @@ export default class SubsonicUtils {
                 : PlaybackType.HLS,
             src: `${this.serviceId}:video:${video.id}`,
             fileName: this.getFileName(video.path || '') || '[unknown]',
-            title: video.title,
+            title: (video.title || '').trim(),
             duration: video.duration,
             playedAt: 0,
             playCount: video.playCount,

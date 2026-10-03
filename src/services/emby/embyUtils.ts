@@ -82,7 +82,7 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
         itemType: ItemType.Artist,
         src: `${serviceId}:artist:${artist.Id}`,
         externalUrl: getExternalUrl(artist),
-        title: artist.Name || '',
+        title: (artist.Name || '').trim(),
         description: getTextFromHtml(artist.Overview || '', 1) || undefined,
         playCount: artist.UserData?.PlayCount || undefined,
         genres: artist.Genres || undefined,
@@ -99,11 +99,12 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
 
 function createMediaAlbum(album: BaseItemDto): MediaAlbum {
     const artists = getNamedArtists(album.AlbumArtists);
+    const albumArtist = album.AlbumArtist?.trim();
     return {
         itemType: ItemType.Album,
         src: `${serviceId}:album:${album.Id}`,
         externalUrl: getExternalUrl(album),
-        title: album.Name || '',
+        title: (album.Name || '').trim(),
         description: getTextFromHtml(album.Overview || '', 1) || undefined,
         duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
         addedAt: parseDate(album.DateCreated),
@@ -113,9 +114,7 @@ function createMediaAlbum(album: BaseItemDto): MediaAlbum {
         inLibrary: album.UserData?.IsFavorite,
         thumbnails: createThumbnails(album),
         trackCount: album.ChildCount || undefined,
-        artists:
-            artists?.map((artist) => artist.Name) ||
-            (album.AlbumArtist ? [album.AlbumArtist] : undefined),
+        artists: artists?.map((artist) => artist.Name) || (albumArtist ? [albumArtist] : undefined),
         year: album.ProductionYear || undefined,
         release_mbid: album.ProviderIds?.MusicBrainzAlbum ?? undefined,
         pager: createAlbumTracksPager(album),
@@ -173,6 +172,7 @@ function createMediaFolder(folder: BaseItemDto, parent?: MediaFolder): MediaFold
 function createMediaItem(track: BaseItemDto): MediaItem {
     const artists = getNamedArtists(track.ArtistItems);
     const albumArtists = getNamedArtists(track.AlbumArtists);
+    const albumArtist = track.AlbumArtist?.trim();
     const isVideo = track.MediaType === 'Video';
     const [source] = track.MediaSources || [];
     const artist_mbid = track.ProviderIds?.MusicBrainzArtist;
@@ -184,7 +184,7 @@ function createMediaItem(track: BaseItemDto): MediaItem {
         }`,
         externalUrl: getExternalUrl(track),
         fileName: getFileName(track.Path || '') || track.Name || '[unknown]',
-        title: track.Name || '',
+        title: (track.Name || '').trim(),
         duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
         year: track.ProductionYear || undefined,
         addedAt: parseDate(track.DateCreated),
@@ -195,9 +195,8 @@ function createMediaItem(track: BaseItemDto): MediaItem {
         inLibrary: track.UserData?.IsFavorite,
         artists: artists?.map((artist) => artist.Name) || track.Artists || undefined,
         albumArtists:
-            albumArtists?.map((artist) => artist.Name) ||
-            (track.AlbumArtist ? [track.AlbumArtist] : undefined),
-        album: track.Album || undefined,
+            albumArtists?.map((artist) => artist.Name) || (albumArtist ? [albumArtist] : undefined),
+        album: (track.Album || undefined)?.trim(),
         disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
         track: track.Album ? track.IndexNumber || 0 : 0,
         track_mbid: track.ProviderIds?.MusicBrainzTrack ?? undefined,

@@ -22,7 +22,7 @@ export type HistoryState = {
     readonly libraryId?: string;
 };
 
-const MAX_SIZE = 50;
+const MAX_SIZE = 20;
 
 const logger = new Logger('history');
 

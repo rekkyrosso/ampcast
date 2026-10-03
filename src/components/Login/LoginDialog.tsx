@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import {Logger} from 'utils';
+import ampcastElectron from 'services/ampcastElectron';
 import {hasProxyLogin, isServerLocked} from 'services/mediaServices/buildConfig';
 import Dialog, {DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -15,6 +16,7 @@ export interface LoginDialogProps extends DialogProps {
         host: string;
         userName?: string;
         useManualLogin?: boolean;
+        savePassword?(password: string): Promise<void>;
     };
     login: (
         host: string,
@@ -22,9 +24,18 @@ export interface LoginDialogProps extends DialogProps {
         password: string,
         useProxy?: boolean
     ) => Promise<string>;
+    password?: string;
+    onBeforeLogin?: () => void;
 }
 
-export default function LoginDialog({service, settings, login, ...props}: LoginDialogProps) {
+export default function LoginDialog({
+    service,
+    settings,
+    login,
+    password,
+    onBeforeLogin,
+    ...props
+}: LoginDialogProps) {
     const serviceId = service.id;
     const [connecting, setConnecting] = useState(false);
     const [message, setMessage] = useState('');
@@ -32,6 +43,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
     const hostRef = useRef<HTMLInputElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
+    const savePasswordRef = useRef<HTMLInputElement>(null);
     const useProxyRef = useRef<HTMLInputElement>(null);
     const canUseProxy = hasProxyLogin(serviceId);
     const locked = isServerLocked(serviceId);
@@ -47,13 +59,17 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
 
             // Save for auto-completion.
             settings.host = host;
-            if ('userName' in settings) {
-                settings.userName = userName;
-            }
             if ('useManualLogin' in settings) {
                 settings.useManualLogin = !useProxy;
             }
+            if ('userName' in settings) {
+                settings.userName = userName;
+            }
+            if (ampcastElectron && settings.savePassword) {
+                await settings.savePassword(savePasswordRef.current?.checked ? password : '');
+            }
 
+            onBeforeLogin?.();
             setConnecting(true);
             setMessage('Connecting...');
 
@@ -73,7 +89,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                 );
             }
         }
-    }, [settings, login, useProxy]);
+    }, [settings, onBeforeLogin, login, useProxy]);
 
     const handleSubmit = useCallback(
         (event: React.SubmitEvent) => {
@@ -173,6 +189,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                             type="password"
                             id={`${serviceId}-password`}
                             name={`${serviceId}-password`}
+                            defaultValue={password}
                             disabled={useProxy}
                             ref={passwordRef}
                             autoComplete={
@@ -182,6 +199,17 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                         />
                     </p>
                 </div>
+                {ampcastElectron && settings.savePassword ? (
+                    <p className="save-password">
+                        <label htmlFor={`${serviceId}-save-password`}>save password</label>
+                        <input
+                            id={`${serviceId}-save-password`}
+                            type="checkbox"
+                            defaultChecked={!!password}
+                            ref={savePasswordRef}
+                        />
+                    </p>
+                ) : null}
                 <p className={`message ${connecting ? '' : 'error'}`}>{message}</p>
                 <DialogButtons submitText="Connect" />
             </form>

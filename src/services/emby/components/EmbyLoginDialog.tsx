@@ -7,16 +7,23 @@ import embyApi from '../embyApi';
 
 export async function showEmbyLoginDialog(
     service: MediaService,
-    settings: EmbySettings
+    settings: EmbySettings,
+    onBeforeLogin?: () => void
 ): Promise<string> {
     return showDialog((props: DialogProps) => (
-        <EmbyLoginDialog {...props} service={service} settings={settings} />
+        <EmbyLoginDialog
+            {...props}
+            service={service}
+            settings={settings}
+            onBeforeLogin={onBeforeLogin}
+        />
     ));
 }
 
 export interface EmbyLoginDialogProps extends DialogProps {
     service: MediaService;
     settings: EmbySettings;
+    onBeforeLogin?: () => void;
 }
 
 export default function EmbyLoginDialog({service, settings, ...props}: EmbyLoginDialogProps) {

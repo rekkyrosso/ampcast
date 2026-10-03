@@ -4,12 +4,18 @@ import LoginDialog from 'components/Login/LoginDialog';
 import SubsonicService from '../SubsonicService';
 import './SubsonicLoginDialog.scss';
 
-export async function showSubsonicLoginDialog(service: SubsonicService): Promise<string> {
-    return showDialog((props: DialogProps) => <SubsonicLoginDialog {...props} service={service} />);
+export async function showSubsonicLoginDialog(
+    service: SubsonicService,
+    onBeforeLogin?: () => void
+): Promise<string> {
+    return showDialog((props: DialogProps) => (
+        <SubsonicLoginDialog {...props} service={service} onBeforeLogin={onBeforeLogin} />
+    ));
 }
 
 export type SubsonicLoginDialogProps = DialogProps & {
     service: SubsonicService;
+    onBeforeLogin?: () => void;
 };
 
 export default function SubsonicLoginDialog({service, ...props}: SubsonicLoginDialogProps) {

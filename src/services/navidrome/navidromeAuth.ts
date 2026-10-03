@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {Logger} from 'utils';
+import ampcastElectron from 'services/ampcastElectron';
 import {getReadableErrorMessage} from 'services/errors';
 import {getServerHost, hasProxyLogin} from 'services/mediaServices/buildConfig';
 import {showNavidromeLoginDialog} from './components/NavidromeLoginDialog';
@@ -40,7 +41,7 @@ export function observeIsLoggedIn(): Observable<boolean> {
     return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
-export async function login(mode?: 'silent'): Promise<void> {
+export async function login(mode?: 'silent', userName = '', password = ''): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
@@ -48,14 +49,20 @@ export async function login(mode?: 'silent'): Promise<void> {
             let returnValue = '';
             if (mode === 'silent') {
                 connecting$.next(true);
-                if (hasProxyLogin(navidrome)) {
+                if (userName && password) {
+                    returnValue = await navidromeApi.login(
+                        navidromeSettings.host,
+                        userName,
+                        password
+                    );
+                } else if (hasProxyLogin(navidrome)) {
                     const host = getServerHost(navidrome);
                     returnValue = await navidromeApi.login(host, '', '', true);
                 } else {
                     throw Error('No credentials');
                 }
             } else {
-                returnValue = await showNavidromeLoginDialog();
+                returnValue = await showNavidromeLoginDialog(() => connecting$.next(true));
             }
             if (returnValue) {
                 const {userId, token, credentials} = JSON.parse(returnValue);
@@ -63,17 +70,20 @@ export async function login(mode?: 'silent'): Promise<void> {
                 navidromeSettings.credentials = credentials;
                 setAccessToken(token);
                 navidromeSettings.connectedAt = Date.now();
+            } else {
+                throw Error('Cancelled');
             }
         } catch (err) {
+            connecting$.next(false);
             logger.error(err);
             connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
         }
-        connecting$.next(false);
     }
 }
 
 export async function logout(): Promise<void> {
     logger.log('disconnect');
+    await navidromeSettings.savePassword('');
     navidromeSettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
@@ -82,12 +92,22 @@ export async function logout(): Promise<void> {
 }
 
 export async function reconnect(): Promise<void> {
-    const token = navidromeSettings.token;
-    if (token) {
-        connecting$.next(true);
-        accessToken$.next(token);
-    } else if (hasProxyLogin(navidrome)) {
+    const userName = navidromeSettings.userName;
+    if (ampcastElectron && userName) {
+        const password = await navidromeSettings.getPassword();
+        if (password) {
+            await login('silent', userName, password);
+            return;
+        }
+    }
+    if (hasProxyLogin(navidrome)) {
         await login('silent');
+    } else {
+        const token = navidromeSettings.token;
+        if (token) {
+            connecting$.next(true);
+            accessToken$.next(token);
+        }
     }
 }
 

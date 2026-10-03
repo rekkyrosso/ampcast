@@ -111,10 +111,14 @@
     }
 
     .media-details {
-        height: calc(100% - max(var(--gutter-width), 1em));
+        height: calc(100% - var(--gutter-width));
 
-        .list-view {
+        .details-box {
             border-top-left-radius: 0;
+        
+            & + p {
+                margin-top: var(--gutter-width);
+            }
         }
 
         .copy-button {

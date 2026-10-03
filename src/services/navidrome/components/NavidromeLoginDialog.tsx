@@ -5,11 +5,19 @@ import navidromeSettings from '../navidromeSettings';
 import navidrome from '../navidrome';
 import navidromeApi from '../navidromeApi';
 
-export async function showNavidromeLoginDialog(): Promise<string> {
-    return showDialog(NavidromeLoginDialog);
+export async function showNavidromeLoginDialog(onBeforeLogin?: () => void): Promise<string> {
+    const password = await navidromeSettings.getPassword();
+    return showDialog((props: DialogProps) => (
+        <NavidromeLoginDialog {...props} password={password} onBeforeLogin={onBeforeLogin} />
+    ));
 }
 
-export default function NavidromeLoginDialog(props: DialogProps) {
+export interface NavidromeLoginDialogProps extends DialogProps {
+    password?: string;
+    onBeforeLogin?: () => void;
+}
+
+export default function NavidromeLoginDialog(props: NavidromeLoginDialogProps) {
     const login = useCallback(
         (host: string, userName: string, password: string, useProxy?: boolean) => {
             return navidromeApi.login(host, userName, password, useProxy);

@@ -1,11 +1,9 @@
 import React, {useRef} from 'react';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
-import preferences from 'services/preferences';
 import Button from 'components/Button';
 import Dialog, {DialogProps, showDialog} from 'components/Dialog';
 import useFirstValue from 'hooks/useFirstValue';
-import MediaInfo from './MediaInfo';
 import MediaInfoTabs from './MediaInfoTabs';
 import NavigationButton from './NavigationButton';
 import useMediaInfoDialog from './useMediaInfoDialog';
@@ -43,11 +41,7 @@ export default function MediaInfoDialog<T extends MediaObject>({
     return (
         <Dialog {...props} className="media-info-dialog" icon="info" title={title} ref={ref}>
             <form method="dialog">
-                {preferences.mediaInfoTabs ? (
-                    <MediaInfoTabs item={initialItem} scrobblingOptions={scrobblingOptions} />
-                ) : (
-                    <MediaInfo item={initialItem} scrobblingOptions={scrobblingOptions} />
-                )}
+                <MediaInfoTabs item={initialItem} scrobblingOptions={scrobblingOptions} />
                 <footer className="dialog-buttons">
                     {allowNavigation ? <NavigationButton item={initialItem} /> : null}
                     <Button>Close</Button>

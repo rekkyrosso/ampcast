@@ -35,9 +35,8 @@ export function createSingularMediaSource<T extends MediaObject>({
     if (isPin && itemType !== ItemType.Playlist) {
         throw Error('Unsupported Pin type.');
     }
-    const [serviceId, type] = src.split(':');
-    const sourceType = (type.endsWith('s') ? type : type + 's').replace('library-', '');
-    const sourceId = `${serviceId}/${isPin ? 'pinned-' : ''}${sourceType}`;
+    const [serviceId] = src.split(':');
+    const sourceId = `${serviceId}/${isPin ? 'pinned-' : ''}${itemType}`;
     return {
         id: src,
         itemType,
