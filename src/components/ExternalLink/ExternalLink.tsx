@@ -1,4 +1,5 @@
 import React from 'react';
+import {browser, preventDefault} from 'utils';
 import Icon, {IconName} from 'components/Icon';
 import './ExternalLink.scss';
 
@@ -21,6 +22,7 @@ export default function ExternalLink({
             className={`external-link ${className}`}
             href={href}
             target="_blank"
+            onAuxClick={browser.isElectron ? preventDefault : undefined}
             rel={rel}
         >
             <span className="external-link-content">

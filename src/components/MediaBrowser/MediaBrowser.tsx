@@ -50,7 +50,7 @@ export default function MediaBrowser({service, source}: MediaBrowserProps) {
     return (
         <div className={`media-browser ${service.id}-browser`}>
             {!isServiceVisible ? (
-                <ServiceHidden service={service} />
+                <ServiceHidden service={service} source={source} />
             ) : noInternetError ? (
                 <ErrorScreen error={noInternetError} reportingId={service?.id} service={service} />
             ) : isLoggedIn ? (

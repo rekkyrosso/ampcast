@@ -33,7 +33,7 @@ const preferences: Preferences = {
     },
 
     get linkBehavior(): Preferences['linkBehavior'] {
-        return storage.getNumber('linkBehavior', LinkBehavior.CmdKeyDetails);
+        return storage.getNumber('linkBehavior', LinkBehavior.Always);
     },
 
     set linkBehavior(behavior: Preferences['linkBehavior']) {

@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import LinkBehavior from 'types/LinkBehavior';
-import {browser} from 'utils';
+import {browser, preventDefault} from 'utils';
 import preferences from 'services/preferences';
 import useHistory from 'components/MediaBrowser/useHistory';
 import './InternalLink.scss';
@@ -40,6 +40,7 @@ export default function InternalLink({path, className = '', children}: InternalL
             href={`#!/${path}`}
             tabIndex={-1}
             onClick={handleClick}
+            onAuxClick={preventDefault}
         >
             {children}
         </a>

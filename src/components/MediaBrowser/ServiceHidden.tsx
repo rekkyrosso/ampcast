@@ -1,15 +1,11 @@
 import React from 'react';
-import MediaService from 'types/MediaService';
 import {isServiceDisabled} from 'services/mediaServices/buildConfig';
-import MediaServiceLabel from 'components/MediaSources/MediaServiceLabel';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import useVisibleServices from 'hooks/useVisibleServices';
+import {MediaBrowserProps} from './MediaBrowser';
 import './ServiceHidden.scss';
 
-export interface ServiceHiddenProps {
-    service: MediaService;
-}
-
-export default function ServiceHidden({service}: ServiceHiddenProps) {
+export default function ServiceHidden({service, source}: MediaBrowserProps) {
     const visibleServices = useVisibleServices();
     const hasServices = visibleServices.length > 0;
 
@@ -18,7 +14,14 @@ export default function ServiceHidden({service}: ServiceHiddenProps) {
             {hasServices ? (
                 <div className="page service-hidden">
                     <h2>
-                        <MediaServiceLabel service={service} />
+                        <MediaSourceLabel
+                            icon={service.icon}
+                            text={
+                                source === service.root
+                                    ? service.name
+                                    : `${service.name}: ${source.title}`
+                            }
+                        />
                     </h2>
                     <div className="note">
                         <p>
