@@ -1,7 +1,7 @@
 const {resolve} = require('path');
 const webpack = require('webpack');
 const dotenv = require('dotenv');
-const ESLintPlugin = require('eslint-webpack-plugin');
+const DiagnosticsPlugin = require('diagnostics-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const packageJson = require('./package.json');
@@ -152,8 +152,8 @@ module.exports = (args) => {
             ],
         },
         plugins: [
-            new ESLintPlugin({
-                extensions: ['.tsx', '.ts'],
+            new DiagnosticsPlugin({
+                checks: [{use: 'eslint', extensions: ['tsx', 'ts'], threads: false}],
             }),
             new MiniCssExtractPlugin({
                 filename: 'bundle.css',

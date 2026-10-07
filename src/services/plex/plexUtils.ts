@@ -232,7 +232,7 @@ function createMediaArtist(
         artist_mbid: getMbid(artist),
         synthetic: artist.ratingKey ? undefined : true,
         links: {
-            self: artist.title !== 'Various Artists',
+            self: !!artist.ratingKey && artist.title !== 'Various Artists',
         },
     };
     if (!noPager) {
@@ -530,7 +530,7 @@ function createArtistOtherTracks(artist: MediaArtist): MediaAlbum {
         trackCount: undefined,
         synthetic: true,
         links: {
-            artists: [artist.src],
+            artists: artist.synthetic ? undefined : [artist.src],
         },
     };
 }
