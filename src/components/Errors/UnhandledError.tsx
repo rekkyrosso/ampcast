@@ -3,18 +3,24 @@ import Button from 'components/Button';
 import {ErrorBoxProps} from './ErrorBox';
 import ErrorReport from './ErrorReport';
 
-export default function UnhandledError({error, children, reportedBy='MediaBrowser', reportingId, service}: ErrorBoxProps) {
+export default function UnhandledError({
+    error,
+    children,
+    reportedBy = 'MediaBrowser',
+    reportingId,
+    service,
+}: ErrorBoxProps) {
     return (
         <div className="unhandled-error">
             <h2>Error</h2>
             <ErrorReport error={error} reportedBy={reportedBy} reportingId={reportingId} />
-            {service && (
+            {service && !service.noAuth ? (
                 <p className="buttons">
                     <Button className="disconnect" onClick={service.logout}>
                         Reconnect to {service.name}...
                     </Button>
                 </p>
-            )}
+            ) : null}
             {children}
         </div>
     );

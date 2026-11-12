@@ -4,13 +4,13 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource, {MediaSourceItems} from 'types/MediaSource';
+import MediaSource, {AnyMediaSource, MediaSourceItems} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
 import {MAX_DURATION} from 'services/constants';
 import {CreateChildPager} from 'services/pagers/MediaPager';
-import {getService} from 'services/mediaServices';
+import {getService, getServiceFromPath} from 'services/mediaServices';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import stationStore from 'services/internetRadio/stationStore';
 import {otherTracksLayout, radiosLayout, videosLayout} from 'components/MediaList/layouts';
@@ -100,6 +100,14 @@ export function getMediaListId(
     syntheticAlbumType = syntheticAlbumType.replace(/^\w+-/, ''); // Remove prefix (e.g. 'top-tracks' => 'tracks).
     const singular = source?.singular && level === 1;
     return `${source.sourceId || source.id}/${singular ? 0 : syntheticAlbumType || level}`;
+}
+
+export function getMediaSource(path: string): AnyMediaSource | undefined {
+    path = path.replace(/\?.*$/, '');
+    const service = getServiceFromPath(path);
+    return service?.id === path
+        ? service.root
+        : service?.sources?.find((source) => source.id === path);
 }
 
 export function getMediaSourceItems<T extends MediaObject>(

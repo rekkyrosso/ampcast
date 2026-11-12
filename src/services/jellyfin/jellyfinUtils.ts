@@ -18,6 +18,7 @@ import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
 import {exists, getMediaObjectId, getTextFromHtml, Logger, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
+import {isBookmarked} from 'services/localdb/bookmarks';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -96,9 +97,10 @@ export async function getAlbums(items: readonly BaseItemDto[]): Promise<readonly
 }
 
 function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaArtist {
+    const src = `${serviceId}:artist:${artist.Id}`;
     const mediaArtist: Writable<SetOptional<MediaArtist, 'pager'>> = {
+        src,
         itemType: ItemType.Artist,
-        src: `${serviceId}:artist:${artist.Id}`,
         externalUrl: getExternalUrl(artist),
         title: (artist.Name || '').trim(),
         description: getTextFromHtml(artist.Overview || '', 1) || undefined,
@@ -106,6 +108,7 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
         genres: artist.Genres || undefined,
         thumbnails: createThumbnails(artist),
         inLibrary: artist.UserData?.IsFavorite,
+        isBookmarked: isBookmarked(src),
         artist_mbid: artist.ProviderIds?.MusicBrainzArtist ?? undefined,
         links: {
             self: artist.Name !== 'Various Artists',
@@ -118,9 +121,10 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
 function createMediaAlbum(album: BaseItemDto): MediaAlbum {
     const artists = getNamedArtists(album.AlbumArtists);
     const albumArtist = album.AlbumArtist?.trim();
+    const src = `${serviceId}:album:${album.Id}`;
     return {
+        src,
         itemType: ItemType.Album,
-        src: `${serviceId}:album:${album.Id}`,
         externalUrl: getExternalUrl(album),
         title: (album.Name || '').trim(),
         description: getTextFromHtml(album.Overview || '', 1) || undefined,
@@ -131,6 +135,7 @@ function createMediaAlbum(album: BaseItemDto): MediaAlbum {
         genres: album.Genres || undefined,
         thumbnails: createThumbnails(album),
         inLibrary: album.UserData?.IsFavorite,
+        isBookmarked: isBookmarked(src),
         trackCount: album.ChildCount || undefined,
         pager: createAlbumTracksPager(album),
         artists: artists?.map((artist) => artist.Name) || (albumArtist ? [albumArtist] : undefined),
@@ -158,6 +163,7 @@ function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): Medi
         genres: playlist.Genres || undefined,
         thumbnails: createThumbnails(playlist),
         inLibrary: playlist.UserData?.IsFavorite,
+        isBookmarked: isBookmarked(src),
         trackCount: playlist.ChildCount || undefined,
         isPinned: pinStore.isPinned(src),
         owned: true,
@@ -196,13 +202,14 @@ function createMediaItem(track: LegacyBaseItemDto): MediaItem {
     const isVideo = track.MediaType === 'Video';
     const [source] = track.MediaSources || [];
     const artist_mbid = track.ProviderIds?.MusicBrainzArtist;
+    const src = `${serviceId}:${isVideo ? 'video' : 'song'}:${track.Id}`;
     const getGain = (item: LegacyBaseItemDto | undefined): number | undefined => {
         return item?.NormalizationGain ?? (item?.LUFS == null ? undefined : -18 - item.LUFS);
     };
     return {
+        src,
         itemType: ItemType.Media,
         mediaType: isVideo ? MediaType.Video : MediaType.Audio,
-        src: `${serviceId}:${isVideo ? 'video' : 'song'}:${track.Id}`,
         externalUrl: getExternalUrl(track),
         fileName: getFileName(track.Path || '') || track.Name || '[unknown]',
         title: (track.Name || '').trim(),
@@ -214,6 +221,7 @@ function createMediaItem(track: LegacyBaseItemDto): MediaItem {
         genres: track.Genres || undefined,
         thumbnails: createThumbnails(track),
         inLibrary: track.UserData?.IsFavorite,
+        isBookmarked: isBookmarked(src),
         artists: artists?.map((artist) => artist.Name) || track.Artists || undefined,
         albumArtists:
             albumArtists?.map((artist) => artist.Name) || (albumArtist ? [albumArtist] : undefined),

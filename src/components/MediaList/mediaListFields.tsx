@@ -575,14 +575,14 @@ const mediaListFields: Record<Field, FieldSpec> = {
     },
     LastPlayed: {
         id: 'LastPlayed',
-        title: 'Last played',
+        title: 'Last Played',
         render: LastPlayed,
         align: 'right',
         className: 'played-at date',
     },
     ListenDate: {
         id: 'ListenDate',
-        title: 'Played On',
+        title: 'Played',
         render: ListenDate,
         align: 'right',
         className: 'listen-date date',

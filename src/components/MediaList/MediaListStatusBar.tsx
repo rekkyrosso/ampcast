@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import MediaObject from 'types/MediaObject';
 import {clamp} from 'utils';
 import {getReadableErrorMessage, MediaSourceError} from 'services/errors';
 import StatusBar from 'components/StatusBar';
@@ -7,7 +6,7 @@ import ProgressRing from './ProgressRing';
 import './MediaListStatusBar.scss';
 
 export interface MediaListStatusBarProps {
-    items: readonly MediaObject[];
+    items: readonly any[];
     size?: number;
     maxSize?: number;
     busy?: boolean;

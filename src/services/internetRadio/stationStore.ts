@@ -1,6 +1,8 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, filter} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
+import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {Logger} from 'utils';
@@ -69,6 +71,10 @@ class StationStore extends Dexie {
         } catch (err) {
             logger.error(err);
         }
+    }
+
+    canFavorite(item: MediaObject): item is MediaItem {
+        return item.itemType === ItemType.Media && item.linearType === LinearType.Station;
     }
 
     async removeFavorite(station: MediaItem): Promise<void>;

@@ -249,7 +249,7 @@ export default class HTML5Player implements Player<MediaItem> {
     }
 
     load(item: MediaItem): void {
-        this.logger.log('load', item.src, item.startTime || 0);
+        this.logger.log('load', item.src);
         if (this.autoplay) {
             this.stopped = false;
         }

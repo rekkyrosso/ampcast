@@ -6,6 +6,7 @@ import LinearType from 'types/LinearType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
+import {canBookmark} from 'services/localdb/bookmarks';
 import {isListen} from 'services/localdb/listens';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
 import {isServiceVisible} from 'services/mediaServices/servicesSettings';
@@ -40,6 +41,14 @@ export default function Actions({item, location = 'list', parentPlaylist}: Actio
     const internetRadio = getService('internet-radio');
     const inListView = location === 'list';
     const tabIndex = inListView ? -1 : undefined;
+
+    const toggleBookmark = useCallback(() => {
+        if (item.isBookmarked) {
+            performAction(Action.RemoveBookmark, [item]);
+        } else {
+            performAction(Action.AddBookmark, [item]);
+        }
+    }, [item]);
 
     const togglePin = useCallback(() => {
         if (item.isPinned) {
@@ -112,7 +121,19 @@ export default function Actions({item, location = 'list', parentPlaylist}: Actio
                 <AddToPlaylistButton item={item} />
             ) : null}
 
-            {location === 'info' && item.rating !== undefined && service?.canRate?.(item, inListView) ? (
+            {location === 'info' && canBookmark(item) ? (
+                <IconButton
+                    icon={item.isBookmarked ? 'bookmark-fill' : 'bookmark'}
+                    title={item.isBookmarked ? 'Remove from Bookmarks' : 'Add to Bookmarks'}
+                    tabIndex={tabIndex}
+                    onClick={toggleBookmark}
+                    key="bookmark"
+                />
+            ) : null}
+
+            {location === 'info' &&
+            item.rating !== undefined &&
+            service?.canRate?.(item, inListView) ? (
                 <StarRating
                     value={item.rating}
                     increment={service.starRatingIncrement}

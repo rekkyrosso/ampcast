@@ -9,6 +9,7 @@ import {
     takeUntil,
     throttleTime,
 } from 'rxjs';
+import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import PlaybackState from 'types/PlaybackState';
@@ -25,7 +26,8 @@ export function scrobble(service: MediaService, api: SubsonicApi): void {
     const logger = new Logger(`${service.id}Scrobbler`);
 
     const isValidItem = ({currentItem}: PlaybackState): boolean =>
-        !!currentItem?.src.startsWith(`${service.id}:`) && !currentItem.linearType;
+        !!currentItem?.src.startsWith(`${service.id}:`) &&
+        currentItem.linearType !== LinearType.Station;
 
     const reportStart = async (item: MediaItem): Promise<void> => {
         try {

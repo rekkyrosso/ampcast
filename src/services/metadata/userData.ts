@@ -1,11 +1,11 @@
 import {ListenData} from 'types/Listen';
-import MediaItem from 'types/MediaItem';
+import MediaObject from 'types/MediaObject';
 import PlaylistItem from 'types/PlaylistItem';
 import UserData from 'types/UserData';
 
 type TransientData = Pick<
     PlaylistItem,
-    'lookupStatus' | 'startTime' | 'playlistItemId' | 'isFavoriteStation' | 'nanoId' | 'links'
+    'lookupStatus' | 'startTime' | 'playlistItemId' | 'isFavoriteStation' | 'nanoId'
 >;
 
 export const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientData)[] = [
@@ -15,6 +15,7 @@ export const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientD
     'playCount',
     'globalPlayCount',
     'inLibrary',
+    'isBookmarked',
     'isPinned',
     'lastfmScrobbledAt',
     'listenbrainzScrobbledAt',
@@ -25,10 +26,9 @@ export const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientD
     'playlistItemId',
     'isFavoriteStation',
     'nanoId',
-    'links',
 ];
 
-export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<T, UserData> {
+export function removeUserData<T extends Partial<MediaObject>>(item: T): Subtract<T, UserData> {
     const keys = Object.keys(item) as (keyof T)[];
     const result = keys.reduce(
         (result, key) => {
@@ -39,8 +39,8 @@ export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<
         },
         {} as unknown as Subtract<T, UserData>
     );
-    if (result.plex) {
-        delete (result.plex as any).playQueueItemID;
+    if ((result as any).plex) {
+        delete (result as any).plex.playQueueItemID;
     }
     return result;
 }

@@ -15,6 +15,7 @@ import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
 import {checkVersion, getMediaObjectId, getTextFromHtml} from 'utils';
 import {MAX_DURATION} from 'services/constants';
+import {isBookmarked} from 'services/localdb/bookmarks';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
@@ -87,11 +88,12 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
     const hasAlbumArtist = song.albumArtist && song.albumArtist !== '[Unknown Artist]';
     const artists = song.participants?.artist;
     const albumArtists = song.participants?.albumartist;
+    const src = `${serviceId}:song:${id}`;
     return {
+        src,
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
         playbackType: PlaybackType.Direct,
-        src: `${serviceId}:song:${id}`,
         externalUrl: getExternalUrl(`album/${song.albumId}`),
         title: (song.title || '').trim(),
         addedAt: parseDate(song.createdAt),
@@ -108,6 +110,7 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         disc: song.discNumber,
         rating: song.rating || 0,
         inLibrary: !!song.starred,
+        isBookmarked: isBookmarked(src),
         year: song.year || undefined,
         playedAt: parseDate(song.playDate),
         playCount: song.playCount,
@@ -162,6 +165,7 @@ function createRadioStation(radio: Navidrome.Radio): MediaItem {
         addedAt: parseDate(radio.createdAt),
         duration: MAX_DURATION,
         playedAt: 0,
+        isBookmarked: isBookmarked(src),
         isExternalMedia: true,
         isFavoriteStation: stationStore.isFavorite({src}),
     };
@@ -171,9 +175,10 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
     const album_id = album.id;
     const hasArtist = album.albumArtist && album.albumArtist !== '[Unknown Artist]';
     const artists = album.participants?.albumartist;
+    const src = `${serviceId}:album:${album_id}`;
     return {
+        src,
         itemType: ItemType.Album,
-        src: `${serviceId}:album:${album_id}`,
         externalUrl: getExternalUrl(`album/${album_id}`),
         title: (album.name || '').trim(),
         addedAt: parseDate(album.createdAt),
@@ -181,6 +186,7 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
             ? artists?.map((artist) => artist.name) || [album.albumArtist.trim()]
             : undefined,
         inLibrary: !!album.starred,
+        isBookmarked: isBookmarked(src),
         rating: album.rating || 0,
         year: album.minYear || album.maxYear || undefined,
         playedAt: parseDate(album.playDate),
@@ -205,13 +211,15 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
 
 function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): MediaArtist {
     const artist_id = artist.id;
+    const src = `${serviceId}:artist:${artist_id}`;
     const mediaArtist: Writable<SetOptional<MediaArtist, 'pager'>> = {
+        src,
         itemType: ItemType.Artist,
-        src: `${serviceId}:artist:${artist_id}`,
         externalUrl: getExternalUrl(`artist/${artist_id}`),
         title: (artist.name || '').trim(),
         description: getTextFromHtml(artist.biography, 1) || undefined,
         inLibrary: !!artist.starred,
+        isBookmarked: isBookmarked(src),
         rating: artist.rating || 0,
         genres: artist.genres?.map((genre) => genre.name),
         thumbnails: createThumbnails(artist_id),
@@ -241,6 +249,7 @@ function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams
         duration: playlist.duration,
         trackCount: playlist.songCount,
         thumbnails: createThumbnails(playlist_id),
+        isBookmarked: isBookmarked(src),
         isPinned: pinStore.isPinned(src),
         public: playlist.public,
         owned,

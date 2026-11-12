@@ -11,6 +11,7 @@ import Pager from 'types/Pager';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
 import {exists, filterNotEmpty, shuffle, uniq, uniqSortedByFrequency} from 'utils';
+import {isBookmarked} from 'services/localdb/bookmarks';
 import {localeCompare, sorter} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
@@ -262,13 +263,15 @@ function createMediaArtist(
     const artist = library.artists[id];
     const map = library.artists.map;
     const trackIds: number[] | undefined = artist[map.tracks];
+    const src = `${serviceId}:artist:${id}`;
     const mediaArtist: Writable<SetOptional<MediaArtist, 'pager'>> = {
+        src,
         itemType: ItemType.Artist,
-        src: `${serviceId}:artist:${id}`,
         externalUrl: trackIds ? getExternalUrl(id, 'artists') : undefined,
         title: artist[map.name],
         rating: artist[map.rating],
         genres: getGenres('artists', artist, library, true),
+        isBookmarked: isBookmarked(src),
         thumbnails: createThumbnails(artist[map.artwork_id]),
         links: {
             self: artist[map.name] !== 'Various Artists',
@@ -288,9 +291,10 @@ function createMediaAlbum(id: number, library: iBroadcast.Library): MediaAlbum {
     const artist = artists[artistId];
     const trackIds = ibroadcastLibrary.getAlbumTracks(library, id);
     const firstTrack = tracks[trackIds[0]];
+    const src = `${serviceId}:album:${id}`;
     return {
+        src,
         itemType: ItemType.Album,
-        src: `${serviceId}:album:${id}`,
         externalUrl: getExternalUrl(id, 'albums'),
         title: album[map.name],
         thumbnails: createThumbnails(firstTrack?.[tracks.map.artwork_id]),
@@ -301,6 +305,7 @@ function createMediaAlbum(id: number, library: iBroadcast.Library): MediaAlbum {
         rating: album[map.rating],
         genres: getGenres('albums', album, library, true),
         multiDisc: ibroadcastLibrary.isAlbumMultiDisc(library, id),
+        isBookmarked: isBookmarked(src),
         pager: new SimpleMediaPager(async () => {
             return trackIds.map((id) => createMediaItem(id, library));
         }),
@@ -330,6 +335,7 @@ export function createMediaPlaylist(
         description: playlist[map.description] || undefined,
         thumbnails: createThumbnails(playlist[map.artwork_id]),
         trackCount: trackIds?.length,
+        isBookmarked: isBookmarked(src),
         isPinned: pinStore.isPinned(src),
         owned,
         public: owned && !!playlist[map.public_id],
@@ -375,10 +381,11 @@ export function createMediaItem(
     const albumArtist = artists[albumArtistId];
     const replayGain = Number(track[map.replay_gain]);
     const container = track[map.type]?.replace(/^(audio|video)\//, '');
+    const src = `${serviceId}:track:${id}`;
     return {
+        src,
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
-        src: `${serviceId}:track:${id}`,
         // externalUrl: getExternalUrl(id, 'tracks'), // Doesn't work.
         title: track[map.title],
         fileName: track[map.file],
@@ -401,6 +408,7 @@ export function createMediaItem(
         track: track[map.track],
         disc: albums[track[map.album_id]]?.[albums.map.disc], // Original disc.
         rating: track[map.rating],
+        isBookmarked: isBookmarked(src),
         trackGain: isNaN(replayGain) ? undefined : replayGain,
         container,
         badge: container,

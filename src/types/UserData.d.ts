@@ -5,5 +5,6 @@ export default interface UserData {
     readonly playCount?: number;
     readonly globalPlayCount?: number;
     readonly inLibrary?: boolean;
+    readonly isBookmarked?: boolean;
     readonly isPinned?: boolean;
 }

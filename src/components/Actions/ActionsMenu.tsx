@@ -6,6 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {browser} from 'utils';
+import {canBookmark} from 'services/localdb/bookmarks';
 import {isListen} from 'services/localdb/listens';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
 import {isServiceVisible} from 'services/mediaServices/servicesSettings';
@@ -99,6 +100,16 @@ export function ActionsMenuItems<T extends MediaObject>({
             {canAddToPlaylist ? (
                 <>
                     <AddToPlaylistMenuItem items={items as readonly MediaItem[]} />
+                    <PopupMenuSeparator />
+                </>
+            ) : null}
+            {isSingleItem && canBookmark(item) ? (
+                <>
+                    <PopupMenuItem
+                        label={item.isBookmarked ? 'Remove from Bookmarks' : 'Add to Bookmarks'}
+                        value={item.isBookmarked ? Action.RemoveBookmark : Action.AddBookmark}
+                        key={'bookmark'}
+                    />
                     <PopupMenuSeparator />
                 </>
             ) : null}

@@ -128,7 +128,14 @@ export default class YouTubePlayer implements Player<MediaItem> {
         this.observeState()
             .pipe(
                 filter((state) => state === YT.PlayerState.PLAYING),
-                tap(() => (this.element.style.visibility = ''))
+                tap(() => (this.element.style.visibility = '')),
+                tap(() => {
+                    try {
+                        (this.player as any)?.unloadModule('captions');
+                    } catch (err) {
+                        this.logger.warn(err);
+                    }
+                })
             )
             .subscribe(logger);
 

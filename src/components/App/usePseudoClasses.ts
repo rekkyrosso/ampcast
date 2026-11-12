@@ -34,7 +34,6 @@ export default function usePseudoClasses(): void {
         );
         subscription.add(
             fromEvent<FocusEvent>(window, 'blur').subscribe(() => {
-                isFocusVisible = false;
                 document.body.classList.toggle('cmd-key', false);
             })
         );

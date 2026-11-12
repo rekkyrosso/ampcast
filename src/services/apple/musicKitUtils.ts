@@ -18,6 +18,7 @@ import Thumbnail from 'types/Thumbnail';
 import {getTextFromHtml, uniqBy} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {bestOf} from 'services/metadata';
+import {isBookmarked} from 'services/localdb/bookmarks';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -243,6 +244,7 @@ function createMediaPlaylist(
         owner: item.curatorName ? {name: item.curatorName} : undefined,
         modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
         unplayable: !item.playParams || undefined,
+        isBookmarked: isBookmarked(src),
         isChart: item.isChart,
         isPinned: pinStore.isPinned(src),
         inLibrary: playlist.type.startsWith('library-') || undefined,
@@ -265,15 +267,17 @@ function createMediaArtist(
     const item = createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
     const description = item.editorialNotes?.standard || item.editorialNotes?.short;
     const catalogId = getCatalogId(artist);
+    const src = `${serviceId}:${artist.type}:${artist.id}`;
 
     return {
+        src,
         itemType: ItemType.Artist,
-        src: `${serviceId}:${artist.type}:${artist.id}`,
         externalUrl: item.url,
         title: item.name,
         description: getTextFromHtml(description, 1) || undefined,
         thumbnails: createThumbnails(item as any),
         genres: getGenres(item),
+        isBookmarked: isBookmarked(src),
         pager: createArtistAlbumsPager(artist),
         apple: {catalogId},
         links: {
@@ -316,6 +320,7 @@ function createMediaAlbum(
         year: releaseDate.getFullYear() || undefined,
         unplayable: !item.playParams || undefined,
         inLibrary: isLibraryAlbum || undefined,
+        isBookmarked: isBookmarked(src),
         copyright: item?.copyright,
         explicit: item?.contentRating === 'explicit',
         shareLink: createShareLink('album', item.name, catalogId),
@@ -388,6 +393,7 @@ function createMediaItem(
         unplayable: !item.playParams || undefined,
         playedAt: 0,
         inLibrary: (isLibraryItem && !isPlaylistItem) || undefined,
+        isBookmarked: isBookmarked(src),
         apple: {catalogId},
         explicit: item?.contentRating === 'explicit',
         shareLink: createShareLink(
@@ -412,6 +418,7 @@ function createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaIt
     const type = catalogId ? 'songs' : data.album ? 'track' : 'shows';
     const artist = data.performer || '';
     const id = catalogId || `${artist}-${data.title}`;
+    const src = `${serviceId}:${type}:${id}`;
     // `links` should contain artwork URLs.
     // Sometimes they contain artwork from the previous track.
     // The new thumbnails are at the end.
@@ -422,7 +429,7 @@ function createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaIt
             return {url, width: size, height: size};
         });
     return {
-        src: `${serviceId}:${type}:${id}`,
+        src,
         linearType: type === 'shows' ? LinearType.Show : LinearType.MusicTrack,
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
@@ -435,6 +442,7 @@ function createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaIt
         stationSrc: station?.src,
         duration: 0,
         playedAt: 0,
+        isBookmarked: isBookmarked(src),
         unplayable: !catalogId || undefined,
         shareLink: type === 'shows' ? undefined : createShareLink('song', data.title, catalogId),
         apple: {catalogId},
@@ -462,6 +470,7 @@ function createRadioItem(station: Station): SetRequired<MediaItem, 'apple'> {
         apple: {catalogId},
         shareLink: createShareLink('station', attributes.name, catalogId),
         skippable: !attributes.isLive,
+        isBookmarked: isBookmarked(src),
         isFavoriteStation: stationStore.isFavorite({src}),
     };
 }

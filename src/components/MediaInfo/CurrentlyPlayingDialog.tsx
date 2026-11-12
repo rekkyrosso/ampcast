@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import {isMiniPlayer} from 'utils';
 import Button from 'components/Button';
 import Dialog, {DialogProps} from 'components/Dialog';
 import useCurrentTrack from 'hooks/useCurrentTrack';
@@ -34,7 +35,7 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
                     <p>No media loaded.</p>
                 )}
                 <footer className="dialog-buttons">
-                    {thisTrack ? <NavigationButton item={thisTrack} /> : null}
+                    {!isMiniPlayer && thisTrack ? <NavigationButton item={thisTrack} /> : null}
                     <Button>Close</Button>
                 </footer>
             </form>

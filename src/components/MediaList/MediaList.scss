@@ -246,7 +246,7 @@
         .h2,
         .h3 {
             left: 6.375em;
-            right: 0.375em;
+            right: 0.5em;
 
             .indexed & {
                 left: 8.375em;
@@ -545,7 +545,7 @@
             .h1 {
                 top: 0.25em;
                 left: 2em;
-                right: 0.25em;
+                right: 0.375em;
 
                 .text {
                     font-size: 1em;
@@ -563,7 +563,7 @@
         &.thin {
             .h1,
             .h2 {
-                right: 0.25em;
+                right: 0.375em;
             }
 
             .h3 {

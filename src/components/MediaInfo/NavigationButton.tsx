@@ -1,6 +1,8 @@
 import React, {useCallback} from 'react';
 import ItemType from 'types/ItemType';
+import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
+import MediaType from 'types/MediaType';
 import {srcToPath} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import Button from 'components/Button';
@@ -14,7 +16,11 @@ export default function NavigationButton({item}: NavigationButtonProps) {
     const {navigateTo} = useHistory();
     const path = srcToPath(item.src);
     const service = getServiceFromSrc(item);
-    const canNavigate = service?.browsable && item.itemType !== ItemType.Folder;
+    const canNavigate =
+        service?.browsable &&
+        item.itemType !== ItemType.Folder &&
+        (item as MediaItem).mediaType !== MediaType.Video &&
+        !(item as MediaItem).linearType;
 
     const showInBrowser = useCallback(() => {
         navigateTo(path);

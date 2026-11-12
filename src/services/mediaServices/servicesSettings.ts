@@ -16,6 +16,7 @@ import MediaSource from 'types/MediaSource';
 import {LiteStorage} from 'utils';
 import {getEnabledServices, isMediaService, observeEnabledServices} from './mediaServices';
 import {isStartupService} from './buildConfig';
+import {getMediaSource} from './mediaSources';
 
 type AnyMediaSource = Pick<MediaSource<any>, 'id' | 'defaultHidden'>;
 type FieldsSettings = Record<string, readonly Field[] | undefined>;
@@ -128,15 +129,21 @@ export function isServiceVisible(service: MediaService | MediaServiceId): boolea
     return !isServiceHidden(service);
 }
 
-export function isSourceHidden(source: AnyMediaSource): boolean {
-    const settings = hidden$.value;
-    const defaultHidden = isMediaService(source)
-        ? !isStartupService(source.id)
-        : !!source.defaultHidden;
-    return settings[source.id] ?? defaultHidden;
+export function isSourceHidden(source: AnyMediaSource | string): boolean {
+    if (typeof source === 'string') {
+        source = getMediaSource(source);
+    }
+    if (typeof source === 'object') {
+        const settings = hidden$.value;
+        const defaultHidden = isMediaService(source)
+            ? !isStartupService(source.id)
+            : !!source.defaultHidden;
+        return settings[source.id] ?? defaultHidden;
+    }
+    return true;
 }
 
-export function isSourceVisible(source: AnyMediaSource): boolean {
+export function isSourceVisible(source: AnyMediaSource | string): boolean {
     return !isSourceHidden(source);
 }
 

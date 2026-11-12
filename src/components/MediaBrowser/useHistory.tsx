@@ -1,10 +1,11 @@
 import React, {useCallback} from 'react';
 import {BehaviorSubject, filter, fromEvent, map} from 'rxjs';
 import {nanoid} from 'nanoid';
-import MediaSource, {AnyMediaSource} from 'types/MediaSource';
+import MediaSource from 'types/MediaSource';
 import {Pinnable} from 'types/Pin';
 import {exists, LiteStorage, Logger} from 'utils';
 import {getServiceFromPath, isPersonalMediaService} from 'services/mediaServices';
+import {getMediaSource} from 'services/mediaServices/mediaSources';
 import pinStore from 'services/pins/pinStore';
 import useObservable from 'hooks/useObservable';
 import ErrorScreen from './ErrorScreen';
@@ -230,14 +231,6 @@ function getLibraryId(path: string): string | undefined {
     } else {
         return libraryId;
     }
-}
-
-function getMediaSource(path: string): AnyMediaSource | undefined {
-    path = path.replace(/\?.*$/, '');
-    const service = getServiceFromPath(path);
-    return service?.id === path
-        ? service.root
-        : service?.sources?.find((source) => source.id === path);
 }
 
 function isSamePath(a: string, b: string): boolean {

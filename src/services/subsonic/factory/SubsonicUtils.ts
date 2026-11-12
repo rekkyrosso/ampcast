@@ -17,6 +17,7 @@ import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import {canPlayType} from 'utils';
 import {MAX_DURATION} from 'services/constants';
+import {isBookmarked} from 'services/localdb/bookmarks';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
@@ -73,9 +74,10 @@ export default class SubsonicUtils {
     };
 
     createMediaAlbum(album: Subsonic.Album): MediaAlbum {
+        const src = `${this.serviceId}:album:${album.id}`;
         return {
+            src,
             itemType: ItemType.Album,
-            src: `${this.serviceId}:album:${album.id}`,
             title: (album.name || '').trim(),
             addedAt: this.parseDate(album.created),
             artists:
@@ -85,6 +87,7 @@ export default class SubsonicUtils {
             playCount: album.playCount,
             trackCount: album.songCount,
             inLibrary: !!album.starred,
+            isBookmarked: isBookmarked(src),
             rating: album.userRating || 0,
             genres:
                 album.genres?.map((genre) => genre.name) ||
@@ -113,13 +116,15 @@ export default class SubsonicUtils {
     }
 
     createMediaArtist(artist: Subsonic.Artist): MediaArtist {
+        const src = `${this.serviceId}:artist:${artist.id}`;
         return {
+            src,
             itemType: ItemType.Artist,
-            src: `${this.serviceId}:artist:${artist.id}`,
             title: artist.name,
             pager: this.createArtistAlbumsPager(artist),
             thumbnails: this.createThumbnails(artist.coverArt),
             inLibrary: !!artist.starred,
+            isBookmarked: isBookmarked(src),
             rating: artist.userRating || 0,
             links: {
                 self: artist.name !== 'Various Artists',
@@ -164,11 +169,12 @@ export default class SubsonicUtils {
         position?: number
     ): SetRequired<MediaItem, 'fileName'> {
         const serviceId = this.serviceId;
+        const src = `${serviceId}:song:${song.id}`;
         return {
+            src,
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             playbackType: PlaybackType.Direct,
-            src: `${serviceId}:song:${song.id}`,
             fileName: this.getFileName(song.path || '') || '[unknown]',
             title: (song.title || '').trim(),
             artists:
@@ -185,6 +191,7 @@ export default class SubsonicUtils {
             playlistItemId: position == null ? undefined : String(position - 1),
             nanoId: position == null ? undefined : nanoid(),
             inLibrary: !!song.starred,
+            isBookmarked: isBookmarked(src),
             rating: song.userRating || 0,
             genres:
                 song.genres?.map((genre) => genre.name) || (song.genre ? [song.genre] : undefined),
@@ -223,13 +230,14 @@ export default class SubsonicUtils {
         position?: number
     ): SetRequired<MediaItem, 'fileName'> {
         const height = video.originalHeight || 0;
+        const src = `${this.serviceId}:video:${video.id}`;
         return {
+            src,
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
             playbackType: canPlayType('video', video.contentType)
                 ? PlaybackType.Direct
                 : PlaybackType.HLS,
-            src: `${this.serviceId}:video:${video.id}`,
             fileName: this.getFileName(video.path || '') || '[unknown]',
             title: (video.title || '').trim(),
             duration: video.duration,
@@ -239,6 +247,7 @@ export default class SubsonicUtils {
             playlistItemId: position == null ? undefined : String(position - 1),
             nanoId: position == null ? undefined : nanoid(),
             inLibrary: !!video.starred,
+            isBookmarked: isBookmarked(src),
             thumbnails: this.createThumbnails(video.id),
             bitRate: video.bitRate,
             badge: height > 1080 ? 'UHD' : height >= 720 ? 'HD' : height > 0 ? 'SD' : undefined,
@@ -259,6 +268,7 @@ export default class SubsonicUtils {
             duration: playlist.duration,
             trackCount: playlist.songCount,
             thumbnails: this.createThumbnails(playlist.coverArt),
+            isBookmarked: isBookmarked(src),
             isPinned: pinStore.isPinned(src),
             owned,
             owner: playlist.owner ? {name: playlist.owner} : undefined,
@@ -302,6 +312,7 @@ export default class SubsonicUtils {
             externalUrl: radio.homePageUrl || radio.homepageUrl || undefined,
             duration: MAX_DURATION,
             playedAt: 0,
+            isBookmarked: isBookmarked(src),
             isExternalMedia: true,
             isFavoriteStation: stationStore.isFavorite({src}),
         };

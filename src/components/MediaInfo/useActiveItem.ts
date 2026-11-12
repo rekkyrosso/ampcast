@@ -1,7 +1,6 @@
 import {useEffect, useState} from 'react';
 import {defer, filter, mergeMap, tap} from 'rxjs';
 import ItemType from 'types/ItemType';
-import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {getTextFromHtml, Logger} from 'utils';
@@ -9,6 +8,7 @@ import lastfmApi from 'services/lastfm/lastfmApi';
 import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
 import {dispatchMetadataChanges, observeMetadataChange} from 'services/metadata';
 import {getServiceFromSrc, isPersonalMedia} from 'services/mediaServices';
+import {canBookmark, isBookmarked} from 'services/localdb/bookmarks';
 import stationStore from 'services/internetRadio/stationStore';
 
 const logger = new Logger('useActiveItem');
@@ -61,12 +61,11 @@ async function addServiceMetadata<T extends MediaObject>(item: T): Promise<T> {
         if (service?.addMetadata) {
             item = await service.addMetadata?.(item);
         }
-        if (
-            item.itemType === ItemType.Media &&
-            item.linearType === LinearType.Station &&
-            item.isFavoriteStation === undefined
-        ) {
+        if (stationStore.canFavorite(item) && item.isFavoriteStation === undefined) {
             item = {...item, isFavoriteStation: stationStore.isFavorite(item)};
+        }
+        if (canBookmark(item) && item.isBookmarked === undefined) {
+            item = {...item, isBookmarked: isBookmarked(item)};
         }
         let changed = false;
         const values: Partial<T> = {};
@@ -108,7 +107,7 @@ async function addDescription<T extends MediaObject>(item: T): Promise<T> {
             return item;
         }
         if (description) {
-            [description]= description.split(/\s+Full Wikipedia article:/);
+            [description] = description.split(/\s+Full Wikipedia article:/);
             description += '\n\ncredit:lastfm';
         }
         item = {...item, description};

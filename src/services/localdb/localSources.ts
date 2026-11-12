@@ -6,7 +6,12 @@ import MediaItem from 'types/MediaItem';
 import MediaListLayout from 'types/MediaListLayout';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId, {ScrobblerId} from 'types/MediaServiceId';
-import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
+import MediaSource, {
+    AnyMediaSource,
+    MediaComponent,
+    MediaMultiSource,
+    MediaSourceItems,
+} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import {observePlaybackState} from 'services/mediaPlayback/playback';
@@ -18,6 +23,7 @@ import {recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
 import {localPlaylistItemsSort, localPlaylistsSort} from './localSorting';
 import {isRecentListen, observeListens} from './listens';
 import playlists, {LocalPlaylistItem} from './playlists';
+import Bookmarks from './components/Bookmarks';
 import UnscrobbledBrowser from './components/UnscrobbledBrowser';
 
 const serviceId: MediaServiceId = 'localdb';
@@ -175,6 +181,13 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const bookmarks: MediaComponent = {
+    id: `${serviceId}/bookmarks`,
+    title: 'Bookmarks',
+    icon: 'bookmark',
+    Component: Bookmarks,
+};
+
 const unscrobbled: MediaMultiSource = {
     id: `${serviceId}/unscrobbled`,
     title: 'Unscrobbled',
@@ -187,7 +200,7 @@ const unscrobbled: MediaMultiSource = {
     ],
 };
 
-const localSources: readonly AnyMediaSource[] = [localPlaylists, unscrobbled];
+const localSources: readonly AnyMediaSource[] = [localPlaylists, bookmarks, unscrobbled];
 
 export default localSources;
 

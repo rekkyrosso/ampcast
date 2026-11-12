@@ -54,6 +54,19 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
     const currentId = useCurrentlyPlayingId();
     const {repeatMode} = usePlaybackSettings();
 
+    const selectAll = (
+        <PopupMenuItem
+            label="Select all"
+            value="select-all"
+            acceleratorKey={`${browser.cmdKeyStr}+A`}
+            key="select-all"
+        />
+    );
+
+    if (!selectedCount) {
+        return <PopupMenu {...props}>{selectAll}</PopupMenu>;
+    }
+
     return (
         <PopupMenu {...props}>
             {rowIndex === -1 ? null : (
@@ -75,14 +88,7 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                 </>
             )}
             <PopupMenuSeparator />
-            {allSelected ? null : (
-                <PopupMenuItem
-                    label="Select all"
-                    value="select-all"
-                    acceleratorKey={`${browser.cmdKeyStr}+A`}
-                    key="select-all"
-                />
-            )}
+            {allSelected ? null : selectAll}
             {!isSingleSelection && isContiguousSelection(items, selectedItems) ? (
                 <PopupMenuItem
                     label="Reverse selection"

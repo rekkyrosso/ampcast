@@ -30,6 +30,7 @@ import carelsAudioVisualizer from './carelsAudioVisualizer.frag';
 import cavitation from './cavitation.frag';
 import chromaticResonance from './chromaticResonance.frag';
 import chromaticWaveInterference from './chromaticWaveInterference.frag';
+import circleOfFifths from './circleOfFifths.frag';
 import circuits from './circuits.frag';
 import cityAtNight from './cityAtNight.frag';
 import clairDeLune from './clairDeLune.frag';
@@ -38,6 +39,7 @@ import convertedPlasma from './convertedPlasma.frag';
 import cosmicDogV2 from './cosmicDogV2.frag';
 import creation from './creation.frag';
 import cylonsJam from './cylonsJam.frag';
+import dancefloor from './dancefloor.frag';
 import dancingDots from './dancingDots.frag';
 import dancingGlowLights from './dancingGlowLights.frag';
 import dancingJellyfish from './dancingJellyfish.frag';
@@ -127,13 +129,23 @@ import zylsAudioViz from './zylsAudioViz.frag';
 
 const presets: AmpShaderVisualizer[] = [
     {
+        id: 's3yGDd',
+        name: 'Circle of fifths by JJCreate',
+        shader: circleOfFifths,
+    },
+    {
+        id: 'sXG3Wd',
+        name: 'Dancefloor by JJCreate',
+        shader: dancefloor,
+    },
+    {
         id: '7X2XRG',
-        name: "Cosmic Dog v 2.0 by enbe",
+        name: 'Cosmic Dog v 2.0 by enbe',
         shader: cosmicDogV2,
     },
     {
         id: 'sfdSDS',
-        name: "COLOR SHIFTING SOUNDWAVE by CMC",
+        name: 'COLOR SHIFTING SOUNDWAVE by CMC',
         shader: colorShiftingSoundwave,
     },
     {

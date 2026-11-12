@@ -19,6 +19,7 @@ import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
 import {Logger, exists, getMediaObjectId, getTextFromHtml, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
+import {isBookmarked} from 'services/localdb/bookmarks';
 import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -111,9 +112,10 @@ export function createMediaItemFromTrack(
     album = album || (parent?.itemType === ItemType.Album ? parent : undefined);
     const isVariousArtists = album?.artists?.[0] === 'Various Artists'; // TODO: Language specific?
     const artistLinks = album?.links?.artists;
+    const src = getSrc('track', track);
 
     return {
-        src: getSrc('track', track),
+        src,
         srcs: track.Media?.map(({Part: [part]}) => part.key),
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
@@ -135,6 +137,7 @@ export function createMediaItemFromTrack(
         disc: track.parentIndex,
         rating: getRating(track.userRating),
         globalRating: getRating(track.rating),
+        isBookmarked: isBookmarked(src),
         year: track.year || track.parentYear,
         playedAt: track.lastViewedAt || 0,
         playCount: track.viewCount,
@@ -165,8 +168,9 @@ export function createMediaItemFromTrack(
 
 function createMediaAlbum(album: plex.Album, noPager?: boolean): MediaAlbum {
     const {Format: [format] = [], Subformat: [subformat] = []} = album;
+    const src = getSrc('album', album);
     const mediaAlbum = {
-        src: getSrc('album', album),
+        src,
         itemType: ItemType.Album,
         albumType:
             format?.tag === 'EP'
@@ -185,6 +189,7 @@ function createMediaAlbum(album: plex.Album, noPager?: boolean): MediaAlbum {
         artists: album.parentTitle ? [album.parentTitle] : undefined,
         rating: getRating(album.userRating),
         globalRating: getRating(album.rating),
+        isBookmarked: isBookmarked(src),
         year: album.year,
         playedAt: album.lastViewedAt,
         playCount: album.viewCount,
@@ -217,8 +222,9 @@ function createMediaArtist(
     noPager?: boolean,
     albumSort?: SortParams
 ): MediaArtist {
+    const src = getSrc('artist', artist);
     const mediaArtist = {
-        src: getSrc('artist', artist),
+        src,
         itemType: ItemType.Artist,
         externalUrl: getExternalUrl(artist),
         title: artist.title,
@@ -227,6 +233,7 @@ function createMediaArtist(
         addedAt: artist.addedAt,
         rating: getRating(artist.userRating),
         globalRating: getRating(artist.rating),
+        isBookmarked: isBookmarked(src),
         genres: getGenres(artist),
         thumbnails: createThumbnails(artist.thumb),
         artist_mbid: getMbid(artist),
@@ -244,9 +251,10 @@ function createMediaArtist(
 function createMediaItemFromVideo(video: plex.MusicVideo): MediaItem {
     const media = video.Media?.[0];
     const part = media?.Part?.[0];
+    const src = getSrc('video', video);
 
     return {
-        src: getSrc('video', video),
+        src,
         srcs: video.Media?.map(({Part: [part]}) => part.key),
         itemType: ItemType.Media,
         mediaType: MediaType.Video,
@@ -259,6 +267,7 @@ function createMediaItemFromVideo(video: plex.MusicVideo): MediaItem {
         duration: video.duration / 1000,
         playedAt: video.lastViewedAt || 0,
         playCount: video.viewCount,
+        isBookmarked: isBookmarked(src),
         genres: getGenres(video),
         thumbnails: createThumbnails(video.thumb),
         unplayable: part ? undefined : true,
@@ -283,6 +292,7 @@ function createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaP
         duration: playlist.duration / 1000,
         playedAt: playlist.lastViewedAt,
         playCount: playlist.viewCount,
+        isBookmarked: isBookmarked(src),
         trackCount: playlist.leafCount,
         thumbnails: createThumbnails(playlist.thumb || playlist.composite),
         isPinned: pinStore.isPinned(src),
@@ -319,6 +329,7 @@ function createRadioStation(radio: plex.Radio): MediaItem {
         duration: MAX_DURATION,
         playedAt: 0,
         skippable: true,
+        isBookmarked: isBookmarked(src),
         isFavoriteStation: stationStore.isFavorite({src}),
     };
 }

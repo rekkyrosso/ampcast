@@ -11,15 +11,15 @@ import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
+import {Logger, getTextFromHtml} from 'utils';
+import {isBookmarked} from 'services/localdb/bookmarks';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import {Logger, getTextFromHtml} from 'utils';
 import spotifyApi, {
     SpotifyAlbum,
     SpotifyArtist,
-    SpotifyEpisode,
     SpotifyItem,
     SpotifyPlaylist,
     SpotifyTrack,
@@ -35,9 +35,6 @@ export function createMediaObject<T extends MediaObject>(
     position?: number
 ): T {
     switch (item.type) {
-        case 'episode':
-            return createMediaItemFromEpisode(item) as T;
-
         case 'artist':
             return createMediaArtist(item, inLibrary) as T;
 
@@ -47,27 +44,9 @@ export function createMediaObject<T extends MediaObject>(
         case 'playlist':
             return createMediaPlaylist(item, inLibrary) as T;
 
-        case 'track':
-            return createMediaItemFromTrack(item, inLibrary, position) as T;
+        default:
+            return createMediaItemFromTrack(item as SpotifyTrack, inLibrary, position) as T;
     }
-}
-
-function createMediaItemFromEpisode(episode: SpotifyEpisode): MediaItem {
-    return {
-        itemType: ItemType.Media,
-        mediaType: MediaType.Audio,
-        playbackType: PlaybackType.IFrame,
-        src: episode.uri,
-        externalUrl: episode.external_urls.spotify,
-        title: episode.name,
-        duration: episode.duration_ms / 1000,
-        thumbnails: episode.images as Thumbnail[],
-        unplayable: episode.is_playable === false ? true : undefined,
-        playedAt: episode.played_at
-            ? Math.floor((new Date(episode.played_at).getTime() || 0) / 1000)
-            : 0,
-        explicit: episode.explicit,
-    };
 }
 
 function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined): MediaAlbum {
@@ -94,6 +73,7 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
         trackCount: album.total_tracks,
         pager: createAlbumTracksPager(album),
         inLibrary,
+        isBookmarked: isBookmarked(album.uri),
         copyright: album.copyrights
             ?.map((copyright) => copyright.text)
             .filter((text) => !!text)
@@ -115,6 +95,7 @@ function createMediaArtist(artist: SpotifyArtist, inLibrary?: boolean | undefine
         thumbnails: artist.images as Thumbnail[],
         pager: createArtistAlbumsPager(artist),
         inLibrary,
+        isBookmarked: isBookmarked(artist.uri),
         links: {
             self: true,
         },
@@ -140,6 +121,7 @@ function createMediaPlaylist(
             name: playlist.owner.display_name || '',
             url: playlist.owner.external_urls.spotify,
         },
+        isBookmarked: isBookmarked(playlist.uri),
         isChart: playlist.isChart,
         isPinned: pinStore.isPinned(playlist.uri),
         owned,
@@ -195,6 +177,7 @@ export function createMediaItemFromTrack(
         unplayable: track.is_playable === false ? true : undefined,
         explicit: track.explicit,
         inLibrary,
+        isBookmarked: isBookmarked(track.uri),
         links: {
             self: true,
             album: album?.uri,

@@ -9,6 +9,7 @@ import {Pinnable} from 'types/Pin';
 import PlayAction from 'types/PlayAction';
 import {Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import {addBookmark, removeBookmark} from 'services/localdb/bookmarks';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
@@ -59,6 +60,14 @@ export default async function performAction<T extends MediaObject>(
 
         case Action.Unpin:
             await pinStore.unpin(items as readonly Pinnable[]);
+            break;
+
+        case Action.AddBookmark:
+            await addBookmark(item);
+            break;
+
+        case Action.RemoveBookmark:
+            await removeBookmark(item);
             break;
 
         case Action.Info:

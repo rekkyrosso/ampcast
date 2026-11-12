@@ -61,19 +61,27 @@ export default interface MediaSource<T extends MediaObject = MediaObject> {
     ): Pager<T>;
 }
 
+export type MediaComponent = Pick<
+    MediaSource<any>,
+    'id' | 'title' | 'icon' | 'defaultHidden' | 'disabled'
+> & {
+    readonly Component: React.FC<{
+        service: MediaService;
+        source: MediaComponent;
+    }>;
+    readonly itemType?: never;
+    readonly isPin?: never;
+    readonly singular?: never;
+    readonly searchable?: never;
+};
+
 export type MediaMultiSource<T extends MediaObject = MediaObject> = Pick<
     MediaSource<T>,
-    | 'id'
-    | 'title'
-    | 'icon'
-    | 'searchable'
-    | 'defaultHidden'
-    | 'disabled'
-    | 'Component'
+    'id' | 'title' | 'icon' | 'searchable' | 'defaultHidden' | 'disabled' | 'Component'
 > & {
     readonly itemType?: never;
-    readonly isPin?: false;
-    readonly singular?: false;
+    readonly isPin?: never;
+    readonly singular?: never;
     readonly sources: readonly MediaSource<T>[];
 };
 
@@ -84,4 +92,5 @@ export type AnyMediaSource =
     | MediaSource<MediaFolderItem>
     | MediaSource<MediaPlaylist>
     | MediaSource<Pinnable>
+    | MediaComponent<any>
     | MediaMultiSource;

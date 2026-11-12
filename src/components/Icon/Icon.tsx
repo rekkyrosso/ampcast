@@ -75,6 +75,8 @@ export type IconName =
     | 'clipboard-checked'
     | 'link'
     | 'link-back'
+    | 'bookmark'
+    | 'bookmark-fill'
     | 'search'
     | 'swap'
     | 'genre'
@@ -366,6 +368,20 @@ export default function Icon({name, className = ''}: IconProps) {
                         fillRule="evenodd"
                         d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"
                     />
+                </svg>
+            );
+
+        case 'bookmark':
+            return (
+                <svg className={className} viewBox="0 0 384 512" transform="scale(0.85)">
+                    <path d="M0 64C0 28.7 28.7 0 64 0L320 0c35.3 0 64 28.7 64 64l0 417.1c0 25.6-28.5 40.8-49.8 26.6L192 412.8 49.8 507.7C28.5 521.9 0 506.6 0 481.1L0 64zM64 48c-8.8 0-16 7.2-16 16l0 387.2 117.4-78.2c16.1-10.7 37.1-10.7 53.2 0L336 451.2 336 64c0-8.8-7.2-16-16-16L64 48z" />
+                </svg>
+            );
+
+        case 'bookmark-fill':
+            return (
+                <svg className={className} viewBox="0 0 384 512" transform="scale(0.85)">
+                    <path d="M64 0C28.7 0 0 28.7 0 64L0 480c0 11.5 6.2 22.2 16.2 27.8s22.3 5.5 32.2-.4L192 421.3 335.5 507.4c9.9 5.9 22.2 6.1 32.2 .4S384 491.5 384 480l0-416c0-35.3-28.7-64-64-64L64 0z" />
                 </svg>
             );
 
