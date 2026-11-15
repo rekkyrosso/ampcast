@@ -149,6 +149,13 @@
         }
     }
 
+    &-bandcamp {
+        .bandcamp-connected &,
+        &:not(.show-connectivity) {
+            fill: #0cacd7;
+        }
+    }
+
     &-emby {
         &-inner {
             fill: var(--background-color);

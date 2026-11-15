@@ -53,6 +53,16 @@ import subsonicScrobbler from './subsonicScrobbler';
 import SubsonicSettings from './SubsonicSettings';
 import SubsonicUtils from './SubsonicUtils';
 
+const subsonicPlaylistsLayout: Partial<MediaListLayout> = {
+    card: {
+        h1: 'Name',
+        h2: 'Description',
+        h3: 'Progress',
+        data: 'TrackCount',
+    },
+    details: ['Name', 'Description', 'TrackCount', 'Progress'],
+};
+
 const subsonicPlaylistItemsLayout: Partial<MediaListLayout> = {
     view: 'details',
     card: defaultMediaItemCard,
@@ -91,6 +101,9 @@ export default class SubsonicService implements PersonalMediaService {
     readonly login: (this: unknown) => Promise<void>;
     readonly logout: (this: unknown) => Promise<void>;
     readonly reconnect: (this: unknown) => Promise<void>;
+    disableRadios = false;
+    disableTopTracks = false;
+    loginHelpUrl = '';
 
     constructor(
         {
@@ -312,6 +325,9 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Playlists',
             icon: 'playlist',
             itemType: ItemType.Playlist,
+            primaryItems: {
+                layout: subsonicPlaylistsLayout,
+            },
             secondaryItems: subsonicPlaylistItems,
 
             search(): Pager<MediaPlaylist> {
@@ -737,7 +753,7 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     createSongsPager(item: MediaItem): Pager<MediaItem> {
-        if (item.mediaType === MediaType.Video) {
+        if (this.disableRadios || item.mediaType === MediaType.Video) {
             return new SimpleMediaPager(async () => [item]);
         } else {
             return new SimpleMediaPager(async () => {
@@ -759,6 +775,9 @@ export default class SubsonicService implements PersonalMediaService {
                 return createSingularMediaSource<MediaPlaylist>({
                     src,
                     itemType,
+                    primaryItems: {
+                        layout: subsonicPlaylistsLayout,
+                    },
                     secondaryItems: subsonicPlaylistItems,
                 }) as MediaSource<T>;
 
@@ -775,6 +794,9 @@ export default class SubsonicService implements PersonalMediaService {
             src: pin.src,
             itemType: ItemType.Playlist,
             isPin: true,
+            primaryItems: {
+                layout: subsonicPlaylistsLayout,
+            },
             secondaryItems: subsonicPlaylistItems,
         }) as MediaSource<T>;
     }
@@ -934,7 +956,7 @@ export default class SubsonicService implements PersonalMediaService {
         if (!this.canStore(item)) {
             return;
         }
-        const method = inLibrary ? 'star' : 'unstar';
+        const method = inLibrary ? 'star.view' : 'unstar.view';
         const id = this.getIdFromSrc(item);
         switch (item.itemType) {
             case ItemType.Media:
@@ -977,6 +999,9 @@ export default class SubsonicService implements PersonalMediaService {
 
             search({q = ''}: {q?: string} = {}): Pager<T> {
                 q = q.trim();
+                if (!q && !api.openSubsonic) {
+                    return new SimplePager();
+                }
                 return new SubsonicPager(
                     service,
                     itemType,

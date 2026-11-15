@@ -46,8 +46,8 @@ export async function login(): Promise<void> {
             connectionLogging$.next('');
             const returnValue = await showListenBrainzLoginDialog();
             if (returnValue) {
-                const {userId, token} = JSON.parse(returnValue);
-                listenbrainzSettings.userId = userId;
+                const {userName, token} = JSON.parse(returnValue);
+                listenbrainzSettings.userName = userName;
                 listenbrainzSettings.token = token;
                 accessToken$.next(token);
             }

@@ -191,6 +191,7 @@ const playabilityByServiceId: Record<
     airsonic: Playability.LoggedIn,
     ampache: Playability.LoggedIn,
     apple: Playability.LoggedIn,
+    bandcamp: Playability.LoggedIn,
     emby: Playability.LoggedIn,
     gonic: Playability.LoggedIn,
     ibroadcast: Playability.LoggedIn,

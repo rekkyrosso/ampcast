@@ -284,7 +284,7 @@ function createThumbnails(id: string): Thumbnail[] | undefined {
 
 function createThumbnail(id: string, width: number, height = width): Thumbnail {
     const {host} = navidromeSettings;
-    const url = `${host}/rest/getCoverArt?id=${id}&size=${width}&{navidrome-credentials}`; // not a typo
+    const url = `${host}/rest/getCoverArt.view?id=${id}&size=${width}&{navidrome-credentials}`;
     return {url, width, height};
 }
 

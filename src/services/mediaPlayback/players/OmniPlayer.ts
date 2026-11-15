@@ -229,7 +229,9 @@ export default class OmniPlayer<T> implements Player<T> {
                 }
             }
         } catch {
-            // Ignore.
+            for (const player of this.players) {
+                player.loadNext?.(null);
+            }
         }
     }
 

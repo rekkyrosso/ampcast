@@ -179,18 +179,18 @@ export class ListenBrainzApi {
         name: string,
         {description = '', isPublic, items = []}: CreatePlaylistOptions<T> = {}
     ): Promise<{playlist_mbid: string}> {
-        const userId = listenbrainzSettings.userId;
+        const userName = listenbrainzSettings.userName;
         items = await this.addMetadata(items);
         items = items.filter((item) => item.recording_mbid);
         return this.post('playlist/create', {
             playlist: {
                 extension: {
                     'https://musicbrainz.org/doc/jspf#playlist': {
-                        creator: userId,
+                        creator: userName,
                         public: isPublic,
                     },
                 },
-                creator: userId,
+                creator: userName,
                 title: name,
                 annotation: description,
                 track: items.map((item) => this.createPlaylistTrack(item)),
@@ -199,17 +199,17 @@ export class ListenBrainzApi {
     }
 
     async editPlaylist(playlist: MediaPlaylist): Promise<void> {
-        const userId = listenbrainzSettings.userId;
+        const userName = listenbrainzSettings.userName;
         const playlist_mbid = getMediaObjectId(playlist);
         await this.post(`playlist/edit/${playlist_mbid}`, {
             playlist: {
                 extension: {
                     'https://musicbrainz.org/doc/jspf#playlist': {
-                        creator: userId,
+                        creator: userName,
                         public: !!playlist.public,
                     },
                 },
-                creator: userId,
+                creator: userName,
                 title: playlist.title,
                 annotation: playlist.description || '',
             },
@@ -230,7 +230,7 @@ export class ListenBrainzApi {
                 params.recording_msids = recording_msids;
             }
             const {feedback} = await this.post<ListenBrainz.User.UserRecordingsFeedbackResponse>(
-                `feedback/user/${listenbrainzSettings.userId}/get-feedback-for-recordings`,
+                `feedback/user/${listenbrainzSettings.userName}/get-feedback-for-recordings`,
                 params
             );
             return items.map(
@@ -255,7 +255,7 @@ export class ListenBrainzApi {
         const {
             payload: {listening_activity},
         } = await this.get<ListenBrainz.Stats.ListeningActivityResponse>(
-            `stats/user/${listenbrainzSettings.userId}/listening-activity`,
+            `stats/user/${listenbrainzSettings.userName}/listening-activity`,
             {range}
         );
         return listening_activity;
@@ -265,14 +265,14 @@ export class ListenBrainzApi {
         const {
             payload: {count},
         } = await this.get<ListenBrainz.User.ListenCount>(
-            `user/${listenbrainzSettings.userId}/listen-count`
+            `user/${listenbrainzSettings.userName}/listen-count`
         );
         return count;
     }
 
     async getListens(params?: ListenBrainz.User.ListensParams): Promise<ListenBrainz.User.Listens> {
         const result = await this.get<ListenBrainz.User.Listens>(
-            `user/${listenbrainzSettings.userId}/listens`,
+            `user/${listenbrainzSettings.userName}/listens`,
             params
         );
         return result;

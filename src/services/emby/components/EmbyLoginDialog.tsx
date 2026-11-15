@@ -34,5 +34,7 @@ export default function EmbyLoginDialog({service, settings, ...props}: EmbyLogin
         [settings]
     );
 
-    return <LoginDialog {...props} service={service} settings={settings} login={login} />;
+    return (
+        <LoginDialog {...props} service={service} settings={settings} login={login} hostRequired />
+    );
 }

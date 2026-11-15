@@ -20,7 +20,7 @@ export default class ListenBrainzLikesPager extends SequentialPager<MediaItem> {
                 try {
                     const response =
                         await listenbrainzApi.get<ListenBrainz.User.UserFeedbackResponse>(
-                            `feedback/user/${listenbrainzSettings.userId}/get-feedback`,
+                            `feedback/user/${listenbrainzSettings.userName}/get-feedback`,
                             {score, metadata, offset, count}
                         );
                     offset += count;

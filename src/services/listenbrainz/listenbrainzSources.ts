@@ -89,7 +89,7 @@ export const listenbrainzPlaylists: MediaSource<MediaPlaylist> = {
     defaultHidden: true,
 
     search(): Pager<MediaPlaylist> {
-        return new ListenBrainzPlaylistsPager(`user/${listenbrainzSettings.userId}/playlists`);
+        return new ListenBrainzPlaylistsPager(`user/${listenbrainzSettings.userName}/playlists`);
     },
 };
 
@@ -102,7 +102,7 @@ const listenbrainzRecommendations: MediaSource<MediaPlaylist> = {
 
     search(): Pager<MediaPlaylist> {
         return new ListenBrainzPlaylistsPager(
-            `user/${listenbrainzSettings.userId}/playlists/createdfor`
+            `user/${listenbrainzSettings.userName}/playlists/createdfor`
         );
     },
 };
@@ -267,7 +267,7 @@ function createTopSource<T extends MediaObject>(
 
         search(): Pager<T> {
             return new ListenBrainzStatsPager(
-                isChart ? `stats/${path}` : `stats/user/${listenbrainzSettings.userId}/${path}`,
+                isChart ? `stats/${path}` : `stats/user/${listenbrainzSettings.userName}/${path}`,
                 {range},
                 {maxSize: 1000}
             );

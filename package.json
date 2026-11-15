@@ -84,6 +84,7 @@
         "eslint-plugin-react-hooks": "^7.0.0",
         "flag-icons": "^7.5.0",
         "globals": "^17.0.0",
+        "http-proxy": "^1.18.1",
         "icecast-metadata-player": "1.17.13",
         "mini-css-extract-plugin": "^2.6.1",
         "minimist": "^1.2.8",

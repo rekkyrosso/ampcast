@@ -2,6 +2,8 @@ const path = require('path');
 const fs = require('fs');
 const fsp = require('fs/promises');
 const http = require('http');
+const httpProxy = require('http-proxy');
+const proxy = httpProxy.createProxyServer({});
 const argv = require('minimist')(process.argv.slice(2));
 const dotenv = require('dotenv');
 const handleProxyLogin = require('./proxy-login');
@@ -23,20 +25,33 @@ const mimeTypes = {
 
 const server = http.createServer(async (req, res) => {
     try {
-        switch (req.method) {
-            case 'GET': {
-                await handleGET(req, res);
-                return;
-            }
-            case 'POST': {
-                await handlePOST(req, res);
-                return;
-            }
+        if (req.url.startsWith('/bandcamp/api')) {
+            proxy.web(
+                req,
+                res,
+                {
+                    target: `https://bandcamp.com/api/subsonic${req.url.replace('/bandcamp/api', '')}`,
+                    changeOrigin: true,
+                    followRedirects: true,
+                },
+                (err) => handleError(req, res, err)
+            );
+        } else {
+            switch (req.method) {
+                case 'GET': {
+                    await handleGET(req, res);
+                    return;
+                }
+                case 'POST': {
+                    await handlePOST(req, res);
+                    return;
+                }
 
-            default: {
-                console.warn(`${req.method} ${req.url} FORBIDDEN`);
-                res.writeHead(403, {'Content-Type': mimeTypes.text});
-                res.end('Forbidden');
+                default: {
+                    console.warn(`${req.method} ${req.url} FORBIDDEN`);
+                    res.writeHead(403, {'Content-Type': mimeTypes.text});
+                    res.end('Forbidden');
+                }
             }
         }
     } catch (err) {

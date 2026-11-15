@@ -66,7 +66,7 @@ export class SubsonicPlaylistItemsPager extends SubsonicPager<MediaItem> {
         playlist: MediaPlaylist,
         items?: readonly Subsonic.MediaItem[]
     ) {
-        const [, , playlistId] = playlist.src.split(':');
+        const playlistId = getMediaObjectId(playlist);
         super(
             service,
             ItemType.Media,

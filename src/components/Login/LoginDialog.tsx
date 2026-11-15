@@ -5,6 +5,7 @@ import ampcastElectron from 'services/ampcastElectron';
 import {hasProxyLogin, isServerLocked} from 'services/mediaServices/buildConfig';
 import Dialog, {DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import ExternalLink from 'components/ExternalLink';
 import useFirstValue from 'hooks/useFirstValue';
 import './LoginDialog.scss';
 
@@ -13,26 +14,34 @@ const logger = new Logger('LoginDialog');
 export interface LoginDialogProps extends DialogProps {
     service: MediaService;
     settings: {
-        host: string;
+        host?: string;
         userName?: string;
         useManualLogin?: boolean;
         savePassword?(password: string): Promise<void>;
     };
+    password?: string;
+    helpUrl?: string;
+    hostRequired?: boolean;
+    userLabel?: string;
+    passwordLabel?: string;
     login: (
         host: string,
         userName: string,
         password: string,
         useProxy?: boolean
     ) => Promise<string>;
-    password?: string;
     onBeforeLogin?: () => void;
 }
 
 export default function LoginDialog({
     service,
     settings,
-    login,
     password,
+    helpUrl,
+    hostRequired,
+    userLabel = 'User',
+    passwordLabel = 'Password',
+    login,
     onBeforeLogin,
     ...props
 }: LoginDialogProps) {
@@ -53,12 +62,14 @@ export default function LoginDialog({
 
     const submit = useCallback(async () => {
         try {
-            const host = hostRef.current!.value.trim().replace(/\/+$/, '');
+            const host = hostRef.current?.value.trim().replace(/\/+$/, '') || '';
             const userName = useProxy ? '' : userNameRef.current!.value.trim();
             const password = useProxy ? '' : passwordRef.current!.value.trim();
 
             // Save for auto-completion.
-            settings.host = host;
+            if (hostRequired && 'host' in settings) {
+                settings.host = host;
+            }
             if ('useManualLogin' in settings) {
                 settings.useManualLogin = !useProxy;
             }
@@ -89,7 +100,7 @@ export default function LoginDialog({
                 );
             }
         }
-    }, [settings, onBeforeLogin, login, useProxy]);
+    }, [settings, onBeforeLogin, login, useProxy, hostRequired]);
 
     const handleSubmit = useCallback(
         (event: React.SubmitEvent) => {
@@ -105,7 +116,7 @@ export default function LoginDialog({
 
     useEffect(() => {
         if (!initialUseProxy) {
-            if (settings.host) {
+            if (!hostRequired || settings.host) {
                 if (settings.userName) {
                     passwordRef.current?.focus();
                 } else {
@@ -115,7 +126,7 @@ export default function LoginDialog({
                 hostRef.current?.focus();
             }
         }
-    }, [settings, initialUseProxy]);
+    }, [settings, initialUseProxy, hostRequired]);
 
     return (
         <Dialog
@@ -126,6 +137,11 @@ export default function LoginDialog({
             ref={dialogRef}
         >
             <form id={`${serviceId}-login`} method="dialog" onSubmit={handleSubmit}>
+                {helpUrl ? (
+                    <p className="login-dialog-help-url">
+                        <ExternalLink icon={serviceId} href={helpUrl} />
+                    </p>
+                ) : null}
                 {canUseProxy ? (
                     <>
                         <p>
@@ -153,23 +169,25 @@ export default function LoginDialog({
                     </>
                 ) : null}
                 <div className="table-layout">
+                    {hostRequired ? (
+                        <p>
+                            <label htmlFor={`${serviceId}-host`}>Host:</label>
+                            <input
+                                type="url"
+                                id={`${serviceId}-host`}
+                                name={`${serviceId}-host`}
+                                defaultValue={settings.host}
+                                disabled={useProxy}
+                                placeholder="http://"
+                                autoComplete={useProxy ? 'off' : `section-${serviceId} url`}
+                                readOnly={locked}
+                                required
+                                ref={hostRef}
+                            />
+                        </p>
+                    ) : null}
                     <p>
-                        <label htmlFor={`${serviceId}-host`}>Host:</label>
-                        <input
-                            type="url"
-                            id={`${serviceId}-host`}
-                            name={`${serviceId}-host`}
-                            defaultValue={settings.host}
-                            disabled={useProxy}
-                            placeholder="http://"
-                            autoComplete={useProxy ? 'off' : `section-${serviceId} url`}
-                            readOnly={locked}
-                            required
-                            ref={hostRef}
-                        />
-                    </p>
-                    <p>
-                        <label htmlFor={`${serviceId}-username`}>User:</label>
+                        <label htmlFor={`${serviceId}-username`}>{userLabel}:</label>
                         <input
                             type="text"
                             id={`${serviceId}-username`}
@@ -184,7 +202,7 @@ export default function LoginDialog({
                         />
                     </p>
                     <p>
-                        <label htmlFor={`${serviceId}-password`}>Password:</label>
+                        <label htmlFor={`${serviceId}-password`}>{passwordLabel}:</label>
                         <input
                             type="password"
                             id={`${serviceId}-password`}

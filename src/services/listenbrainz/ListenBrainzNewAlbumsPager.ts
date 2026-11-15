@@ -15,7 +15,7 @@ export default class ListenBrainzNewAlbumsPager extends SimpleMediaPager<MediaAl
             const {
                 payload: {releases = []},
             } = await listenbrainzApi.get<ListenBrainz.User.FreshReleases>(
-                `user/${listenbrainzSettings.userId}/fresh_releases`,
+                `user/${listenbrainzSettings.userName}/fresh_releases`,
                 {future: false}
             );
             return (releases as ListenBrainz.User.FreshRelease[])

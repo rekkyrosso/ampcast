@@ -275,7 +275,7 @@ export default class SubsonicUtils {
             editable: owned,
             public: playlist.public,
             items:
-                owned && !playlist.readonly
+                owned && !playlist.readonly && this.service.editablePlaylists
                     ? {
                           deletable: true,
                           droppable: true,
@@ -395,8 +395,8 @@ export default class SubsonicUtils {
 
     private createThumbnail(id: string, width: number, height = width): Thumbnail {
         const service = this.service;
-        const host = service.settings.host;
-        const url = `${host}/rest/getCoverArt?id=${id}&size=${width}&{${service.id}-credentials}`;
+        const host = service.api.host;
+        const url = `${host}/rest/getCoverArt.view?id=${id}&size=${width}&{${service.id}-credentials}`;
         return {url, width, height};
     }
 

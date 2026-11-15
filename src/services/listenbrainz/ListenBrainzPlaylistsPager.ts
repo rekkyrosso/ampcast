@@ -48,7 +48,7 @@ export default class ListenBrainzPlaylistsPager extends SequentialPager<MediaPla
     private createItem(playlist: ListenBrainz.Playlist): MediaPlaylist {
         const playlist_mbid = playlist.identifier.split('/').pop()!;
         const src = `listenbrainz:playlist:${playlist_mbid}`;
-        const owned = playlist.creator === listenbrainzSettings.userId;
+        const owned = playlist.creator === listenbrainzSettings.userName;
         const extension = playlist.extension?.['https://musicbrainz.org/doc/jspf#playlist'];
         const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
             itemType: ItemType.Playlist,

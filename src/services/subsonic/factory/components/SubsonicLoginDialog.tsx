@@ -28,5 +28,14 @@ export default function SubsonicLoginDialog({service, ...props}: SubsonicLoginDi
         [service]
     );
 
-    return <LoginDialog {...props} service={service} settings={settings} login={login} />;
+    return (
+        <LoginDialog
+            {...props}
+            service={service}
+            settings={settings}
+            login={login}
+            helpUrl={service.loginHelpUrl}
+            hostRequired={!service.api.proxy}
+        />
+    );
 }

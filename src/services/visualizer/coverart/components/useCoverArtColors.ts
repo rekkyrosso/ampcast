@@ -279,13 +279,21 @@ function tweakUrl(src: string): string {
     // Re-arrange the search params to create a new URL.
     // This will bust the cache and return the same resource.
     // This fixes Plex errors re-fetching an image.
-    const url = new URL(src);
-    const [[key, value = ''] = []] = [...url.searchParams];
-    if (key) {
-        url.searchParams.delete(key);
-        url.searchParams.append(key, value);
+    try {
+        if (src.startsWith('/')) {
+            src = `${location.origin}${src}`;
+        }
+        const url = new URL(src);
+        const [[key, value = ''] = []] = [...url.searchParams];
+        if (key) {
+            url.searchParams.delete(key);
+            url.searchParams.append(key, value);
+        }
+        return String(url);
+    } catch (err) {
+        console.error(err);
+        return src;
     }
-    return String(url);
 }
 
 // function logColors(palette: readonly ColorThiefColor[], swatches: SwatchMap | null) {

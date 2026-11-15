@@ -3,6 +3,7 @@ import {exists} from 'utils';
 import airsonic from 'services/subsonic/airsonic';
 import ampache from 'services/subsonic/ampache';
 import apple from 'services/apple';
+import bandcamp from 'services/bandcamp';
 import emby from 'services/emby';
 import gonic from 'services/subsonic/gonic';
 import jellyfin from 'services/jellyfin';
@@ -23,6 +24,7 @@ import buildConfig from './buildConfig';
 const allServices: readonly MediaService[] = [
     apple,
     spotify,
+    bandcamp,
     airsonic,
     ampache,
     emby,

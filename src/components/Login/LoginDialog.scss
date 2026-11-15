@@ -1,5 +1,13 @@
 .login-dialog {
-    input[type=url] {
+    &-help-url {
+        text-align: center;
+        margin-bottom: 1em;
+        font-size: 0.875em;
+    }
+
+    input[type=url],
+    input[type=text],
+    input[type=password] {
         min-width: 20em;
     }
 

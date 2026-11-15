@@ -7,6 +7,7 @@ import {srcToPath} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import Button from 'components/Button';
 import useHistory from 'components/MediaBrowser/useHistory';
+import LinearType from 'types/LinearType';
 
 export interface NavigationButtonProps {
     item: MediaObject;
@@ -20,7 +21,8 @@ export default function NavigationButton({item}: NavigationButtonProps) {
         service?.browsable &&
         item.itemType !== ItemType.Folder &&
         (item as MediaItem).mediaType !== MediaType.Video &&
-        !(item as MediaItem).linearType;
+        (!(item as MediaItem).linearType ||
+            (item as MediaItem).linearType === LinearType.MusicTrack);
 
     const showInBrowser = useCallback(() => {
         navigateTo(path);

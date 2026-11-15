@@ -30,7 +30,7 @@ export default class ListenBrainzHistoryPager extends SequentialPager<MediaItem>
             async (count: number): Promise<Page<MediaItem>> => {
                 try {
                     const {payload} = await listenbrainzApi.get<ListenBrainz.User.Listens>(
-                        `user/${listenbrainzSettings.userId}/${type}`,
+                        `user/${listenbrainzSettings.userName}/${type}`,
                         {
                             ...params,
                             count,

@@ -17,8 +17,9 @@ export default class SubsonicArtistAlbumsPager extends SimpleMediaPager<MediaAlb
     ) {
         super(async () => {
             const topTracks = this.createTopTracks(artist);
-            const radios = this.createRadios(artist);
-            this.items = [topTracks];
+            if (!this.service.disableTopTracks) {
+                this.items = [topTracks];
+            }
             let albums: Subsonic.Album[] | undefined = artist.album;
             if (!albums) {
                 albums = await this.api.getArtistAlbums(artist.id);
@@ -45,8 +46,12 @@ export default class SubsonicArtistAlbumsPager extends SimpleMediaPager<MediaAlb
                         }
                     }
                 }
-                // Keep refreshing the stream after each fetch.
-                let items = [topTracks, radios, ...mediaAlbums];
+                let items = this.items;
+                if (!this.service.disableRadios) {
+                    const radios = this.createRadios(artist);
+                    items = items.concat([radios]);
+                }
+                items = items.concat(mediaAlbums);
                 if (otherTracks.length > 0 && !compareArrays(otherTracks, allTracks)) {
                     items = items.concat(this.createOtherTracks(artist, otherTracks));
                 }

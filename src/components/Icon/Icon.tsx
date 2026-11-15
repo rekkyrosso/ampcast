@@ -930,6 +930,13 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
+        case 'bandcamp':
+            return (
+                <svg className={className} viewBox="0 0 167.06 98.17">
+                    <path d="M113.88 98.17H0L53.18 0h113.88z" />
+                </svg>
+            );
+
         case 'emby':
             return (
                 <svg className={className} viewBox="0 0 48 48">

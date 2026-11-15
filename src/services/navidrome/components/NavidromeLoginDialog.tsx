@@ -26,6 +26,12 @@ export default function NavidromeLoginDialog(props: NavidromeLoginDialogProps) {
     );
 
     return (
-        <LoginDialog {...props} service={navidrome} settings={navidromeSettings} login={login} />
+        <LoginDialog
+            {...props}
+            service={navidrome}
+            settings={navidromeSettings}
+            login={login}
+            hostRequired
+        />
     );
 }

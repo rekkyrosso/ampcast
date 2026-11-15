@@ -11,11 +11,11 @@ export default {
         storage.setString('token', token);
     },
 
-    get userId(): string {
+    get userName(): string {
         return storage.getString('userId');
     },
 
-    set userId(userId: string) {
+    set userName(userId: string) {
         storage.setString('userId', userId);
     },
 

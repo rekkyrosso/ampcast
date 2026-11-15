@@ -26,11 +26,16 @@ export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings
 export default class SubsonicApi {
     private genres: readonly MediaFilter[] | undefined;
     #openSubsonic: Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined> | undefined;
+    proxy = '';
 
     constructor(
         private readonly serviceId: MediaServiceId,
         private readonly settings: SubsonicApiSettings
     ) {}
+
+    get host(): string {
+        return this.proxy || this.settings.host;
+    }
 
     get openSubsonic():
         | Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined>
@@ -51,7 +56,7 @@ export default class SubsonicApi {
             path = path.slice(1);
         }
         const response = await fetch(
-            `${host}/rest/${path}${path.includes('?') ? '&' : '?'}${credentials}`,
+            `${this.proxy || host}/rest/${path}${path.includes('?') ? '&' : '?'}${credentials}`,
             {
                 method: 'GET',
                 headers: {Accept: 'application/json'},
@@ -60,7 +65,14 @@ export default class SubsonicApi {
         if (!response.ok) {
             throw response;
         }
-        const {['subsonic-response']: data} = await response.json();
+        const result = await response.json();
+        if (!result) {
+            throw Error('Empty response');
+        }
+        const data = result['subsonic-response'];
+        if (!data) {
+            throw Error(result.error_message || 'Empty response');
+        }
         if (data.error) {
             throw data.error;
         }
@@ -72,7 +84,7 @@ export default class SubsonicApi {
         for (const chunk of chunks) {
             const params = new URLSearchParams({playlistId});
             chunk.forEach((id) => params.append('songIdToAdd', id));
-            await this.get(`updatePlaylist?${params}`);
+            await this.get(`updatePlaylist.view?${params}`);
         }
     }
 
@@ -82,7 +94,7 @@ export default class SubsonicApi {
         isPublic: boolean,
         ids: readonly string[]
     ): Promise<Subsonic.Playlist> {
-        let {playlist} = await this.get<Subsonic.CreatePlaylistResponse>('createPlaylist', {
+        let {playlist} = await this.get<Subsonic.CreatePlaylistResponse>('createPlaylist.view', {
             name,
         });
         if (!playlist) {
@@ -100,7 +112,7 @@ export default class SubsonicApi {
                 public: String(isPublic),
             });
             chunk.forEach((id) => params.append('songIdToAdd', id));
-            await this.get(`updatePlaylist?${params}`);
+            await this.get(`updatePlaylist.view?${params}`);
         }
         return playlist;
     }
@@ -113,34 +125,34 @@ export default class SubsonicApi {
         for (const chunk of chunks) {
             const params = new URLSearchParams({playlistId});
             chunk.forEach((index) => params.append('songIndexToRemove', String(index)));
-            await this.get(`updatePlaylist?${params}`);
+            await this.get(`updatePlaylist.view?${params}`);
         }
     }
 
     async createShare(id: string): Promise<string> {
-        const data = await this.get<{shares: Subsonic.Shares}>('createShare', {id});
+        const data = await this.get<{shares: Subsonic.Shares}>('createShare.view', {id});
         return data.shares.share[0].url;
     }
 
     async editPlaylist(playlist: MediaPlaylist): Promise<void> {
-        const [, , playlistId] = playlist.src.split(':');
+        const playlistId = getMediaObjectId(playlist);
         const params = new URLSearchParams({
             playlistId,
             name: playlist.title,
             comment: playlist.description || '',
             public: String(!!playlist.public),
         });
-        await this.get(`updatePlaylist?${params}`);
+        await this.get(`updatePlaylist.view?${params}`);
     }
 
     async getAlbum(id: string): Promise<Subsonic.Album> {
-        const data = await this.get<{album: Subsonic.Album}>('getAlbum', {id});
+        const data = await this.get<{album: Subsonic.Album}>('getAlbum.view', {id});
         return data.album;
     }
 
     async getAlbumInfo(id: string, isDir?: boolean): Promise<Subsonic.AlbumInfo> {
         const data = await this.get<{albumInfo: Subsonic.AlbumInfo}>(
-            `getAlbumInfo${isDir ? '' : '2'}`,
+            `getAlbumInfo${isDir ? '' : '2'}.view`,
             {id}
         );
         return data.albumInfo;
@@ -184,14 +196,14 @@ export default class SubsonicApi {
     }
 
     async getArtist(id: string): Promise<Subsonic.Artist> {
-        const data = await this.get<{artist: Subsonic.Artist}>('getArtist', {id});
+        const data = await this.get<{artist: Subsonic.Artist}>('getArtist.view', {id});
         return data.artist;
     }
 
     async getArtists(): Promise<Subsonic.Artist[]> {
         const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{artists: {index: [{artist: Subsonic.Artist[]}]}}>(
-            'getArtists',
+            'getArtists.view',
             musicFolderId ? {musicFolderId} : undefined
         );
         return data.artists.index.map((index) => index.artist).flat();
@@ -203,7 +215,9 @@ export default class SubsonicApi {
     }
 
     async getArtistInfo(id: string): Promise<Subsonic.ArtistInfo> {
-        const data = await this.get<{artistInfo2: Subsonic.ArtistInfo}>('getArtistInfo2', {id});
+        const data = await this.get<{artistInfo2: Subsonic.ArtistInfo}>('getArtistInfo2.view', {
+            id,
+        });
         return data.artistInfo2;
     }
 
@@ -213,18 +227,24 @@ export default class SubsonicApi {
     }
 
     async getSimilarSongs(id: string, count = 200): Promise<Subsonic.Song[]> {
-        const data = await this.get<{similarSongs: {song: Subsonic.Song[]}}>('getSimilarSongs', {
-            id,
-            count,
-        });
+        const data = await this.get<{similarSongs: {song: Subsonic.Song[]}}>(
+            'getSimilarSongs.view',
+            {
+                id,
+                count,
+            }
+        );
         return data.similarSongs.song || [];
     }
 
     async getSimilarSongs2(artistId: string, count = 200): Promise<Subsonic.Song[]> {
-        const data = await this.get<{similarSongs2: {song: Subsonic.Song[]}}>('getSimilarSongs2', {
-            id: artistId,
-            count,
-        });
+        const data = await this.get<{similarSongs2: {song: Subsonic.Song[]}}>(
+            'getSimilarSongs2.view',
+            {
+                id: artistId,
+                count,
+            }
+        );
         return data.similarSongs2.song || [];
     }
 
@@ -233,7 +253,10 @@ export default class SubsonicApi {
         if (this.openSubsonic?.topSongsByArtistId) {
             params.id = id;
         }
-        const data = await this.get<{topSongs: {song: Subsonic.Song[]}}>('getTopSongs', params);
+        const data = await this.get<{topSongs: {song: Subsonic.Song[]}}>(
+            'getTopSongs.view',
+            params
+        );
         return data.topSongs.song || [];
     }
 
@@ -266,7 +289,7 @@ export default class SubsonicApi {
     async getGenres(itemType: ItemType): Promise<readonly MediaFilter[]> {
         if (!this.genres) {
             const data = await this.get<{genres: {genre: Subsonic.Genre[]}}>(
-                'getGenres',
+                'getGenres.view',
                 undefined
             );
             this.genres =
@@ -289,23 +312,24 @@ export default class SubsonicApi {
     }
 
     async getIndexes(musicFolderId: string): Promise<Subsonic.Index[]> {
-        const data = await this.get<{indexes: {index: Subsonic.Index[]}}>('getIndexes', {
+        const data = await this.get<{indexes: {index: Subsonic.Index[]}}>('getIndexes.view', {
             musicFolderId,
         });
-        return data.indexes.index || [];
+        // The Bandcamp API is currently returning `data.index` instead of `data.indexes`.
+        return data.indexes?.index || (data as any).index?.index || [];
     }
 
     async getInternetRadioStations(): Promise<Subsonic.Radio[]> {
         const data = await this.get<{
             internetRadioStations: {internetRadioStation: Subsonic.Radio[]};
-        }>('getInternetRadioStations');
+        }>('getInternetRadioStations.view');
         return data.internetRadioStations.internetRadioStation || [];
     }
 
     async getLikedAlbums(): Promise<Subsonic.Album[]> {
         const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{starred2: {album: Subsonic.Album[]}}>(
-            'getStarred2',
+            'getStarred2.view',
             musicFolderId ? {musicFolderId} : undefined
         );
         return data.starred2.album || [];
@@ -314,7 +338,7 @@ export default class SubsonicApi {
     async getLikedArtists(): Promise<Subsonic.Artist[]> {
         const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{starred2: {artist: Subsonic.Artist[]}}>(
-            'getStarred2',
+            'getStarred2.view',
             musicFolderId ? {musicFolderId} : undefined
         );
         return data.starred2.artist || [];
@@ -323,7 +347,7 @@ export default class SubsonicApi {
     async getLikedSongs(): Promise<Subsonic.Song[]> {
         const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{starred2: {song: Subsonic.Song[]}}>(
-            'getStarred2',
+            'getStarred2.view',
             musicFolderId ? {musicFolderId} : undefined
         );
         return data.starred2.song || [];
@@ -348,7 +372,9 @@ export default class SubsonicApi {
     }
 
     async getMusicDirectory(id: string): Promise<Subsonic.Directory> {
-        const data = await this.get<{directory: Subsonic.Directory}>('getMusicDirectory', {id});
+        const data = await this.get<{directory: Subsonic.Directory}>('getMusicDirectory.view', {
+            id,
+        });
         return data.directory;
     }
 
@@ -371,7 +397,7 @@ export default class SubsonicApi {
 
     async getMusicLibraries(): Promise<PersonalMediaLibrary[]> {
         const data = await this.get<{musicFolders: {musicFolder: Subsonic.MusicFolder[]}}>(
-            'getMusicFolders',
+            'getMusicFolders.view',
             undefined
         );
         return (
@@ -386,8 +412,8 @@ export default class SubsonicApi {
     }
 
     getPlayableUrl(item: MediaItem): string {
-        const {host, credentials} = this.settings;
-        if (host && credentials) {
+        const {credentials} = this.settings;
+        if (this.host && credentials) {
             if (item.linearType === LinearType.Station) {
                 const url = item.srcs?.[0];
                 if (!url) {
@@ -398,9 +424,9 @@ export default class SubsonicApi {
                 const [, type, ...rest] = item.src.split(':');
                 const id = rest.join(':');
                 if (item.playbackType === PlaybackType.HLS) {
-                    return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
+                    return `${this.host}/rest/hls.m3u8?id=${id}&${credentials}`;
                 } else {
-                    let url = `${host}/rest/stream?id=${id}&${credentials}`;
+                    let url = `${this.host}/rest/stream.view?id=${id}&${credentials}`;
                     if (type === 'video' && this.serviceId === 'airsonic') {
                         url += '&format=raw';
                     }
@@ -428,20 +454,22 @@ export default class SubsonicApi {
     }
 
     async getPlaylist(id: string): Promise<Subsonic.Playlist> {
-        const data = await this.get<{playlist: Subsonic.Playlist}>('getPlaylist', {id});
+        const data = await this.get<{playlist: Subsonic.Playlist}>('getPlaylist.view', {id});
         return data.playlist;
     }
 
     async getPlaylists(): Promise<Subsonic.Playlist[]> {
         const data = await this.get<{playlists: {playlist: Subsonic.Playlist[]}}>(
-            'getPlaylists',
+            'getPlaylists.view',
             undefined
         );
         return data.playlists.playlist || [];
     }
 
     async getPlaylistItems(id: string): Promise<Subsonic.MediaItem[]> {
-        const data = await this.get<{playlist: {entry: Subsonic.MediaItem[]}}>('getPlaylist', {id});
+        const data = await this.get<{playlist: {entry: Subsonic.MediaItem[]}}>('getPlaylist.view', {
+            id,
+        });
         return data.playlist.entry || [];
     }
 
@@ -457,7 +485,7 @@ export default class SubsonicApi {
     async getRandomSongs(size = 100): Promise<Subsonic.Song[]> {
         const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{randomSongs: {song: Subsonic.Song[]}}>(
-            'getRandomSongs',
+            'getRandomSongs.view',
             musicFolderId ? {musicFolderId, size} : {size}
         );
         return data.randomSongs.song || [];
@@ -485,7 +513,7 @@ export default class SubsonicApi {
     }
 
     async getSong(id: string): Promise<Subsonic.Song> {
-        const data = await this.get<{song: Subsonic.Song}>('getSong', {id});
+        const data = await this.get<{song: Subsonic.Song}>('getSong.view', {id});
         return data.song;
     }
 
@@ -493,7 +521,7 @@ export default class SubsonicApi {
         const musicFolderId = this.getMusicLibraryId();
         const params = {genre, offset, count};
         const data = await this.get<{songsByGenre: {song: Subsonic.Song[]}}>(
-            'getSongsByGenre',
+            'getSongsByGenre.view',
             musicFolderId ? {...params, musicFolderId} : params
         );
         return data.songsByGenre.song || [];
@@ -505,7 +533,7 @@ export default class SubsonicApi {
     }
 
     async getVideos(): Promise<Subsonic.Video[]> {
-        const data = await this.get<{videos: {video: Subsonic.Video[]}}>('getVideos');
+        const data = await this.get<{videos: {video: Subsonic.Video[]}}>('getVideos.view');
         return data.videos.video || [];
     }
 
@@ -516,7 +544,7 @@ export default class SubsonicApi {
         useProxy?: boolean
     ): Promise<string> {
         if (useProxy) {
-            const authUrl = `${host}/rest/ping`;
+            const authUrl = `${host}/rest/ping.view`;
             const response = await fetch(
                 `/proxy-login?server=${this.serviceId}&url=${encodeURIComponent(authUrl)}`,
                 {
@@ -578,18 +606,18 @@ export default class SubsonicApi {
         host = this.settings.host,
         credentials = this.settings.credentials
     ): Promise<Subsonic.Ping> {
-        return this.get<Subsonic.Ping>('ping', undefined, {host, credentials});
+        return this.get<Subsonic.Ping>('ping.view', undefined, {host, credentials});
     }
 
     async reportPlayback(params: Subsonic.ReportPlaybackParams): Promise<void> {
         if (!this.openSubsonic?.playbackReport) {
             throw Error('Not supported');
         }
-        await this.get('reportPlayback', params as any);
+        await this.get('reportPlayback.view', params as any);
     }
 
     async scrobble(params: Subsonic.ScrobbleParams): Promise<void> {
-        await this.get('scrobble', params as any);
+        await this.get('scrobble.view', params as any);
     }
 
     async searchSongs(
@@ -601,7 +629,7 @@ export default class SubsonicApi {
         const musicFolderId = this.getMusicLibraryId();
         const params = {query, songOffset, songCount, albumCount: 0, artistCount: 0};
         const data = await this.get<{searchResult3: {song?: Subsonic.Song[]}}>(
-            'search3',
+            'search3.view',
             musicFolderId ? {...params, musicFolderId} : params
         );
         return data.searchResult3.song || [];
@@ -612,14 +640,18 @@ export default class SubsonicApi {
         albumOffset: number,
         albumCount: number
     ): Promise<Subsonic.Album[]> {
-        query = removeSymbols(query);
-        const musicFolderId = this.getMusicLibraryId();
-        const params = {query, albumCount, albumOffset, songCount: 0, artistCount: 0};
-        const data = await this.get<{searchResult3: {album?: Subsonic.Album[]}}>(
-            'search3',
-            musicFolderId ? {...params, musicFolderId} : params
-        );
-        return data.searchResult3.album || [];
+        if (query) {
+            query = removeSymbols(query);
+            const musicFolderId = this.getMusicLibraryId();
+            const params = {query, albumCount, albumOffset, songCount: 0, artistCount: 0};
+            const data = await this.get<{searchResult3: {album?: Subsonic.Album[]}}>(
+                'search3.view',
+                musicFolderId ? {...params, musicFolderId} : params
+            );
+            return data.searchResult3.album || [];
+        } else {
+            return this.getAlbumList({size: albumCount, offset: albumOffset, type: 'alphabeticalByArtist'})
+        }
     }
 
     async searchAlbums2(query: string, albumOffset = 0, albumCount = 5): Promise<Subsonic.Album[]> {
@@ -627,7 +659,7 @@ export default class SubsonicApi {
         const musicFolderId = this.getMusicLibraryId();
         const params = {query, albumCount, albumOffset, songCount: 0, artistCount: 0};
         const data = await this.get<{searchResult2: {album?: Subsonic.Album[]}}>(
-            'search2',
+            'search2.view',
             musicFolderId ? {...params, musicFolderId} : params
         );
         return data.searchResult2.album || [];
@@ -642,7 +674,7 @@ export default class SubsonicApi {
         const musicFolderId = this.getMusicLibraryId();
         const params = {query, artistOffset, artistCount, songCount: 0, albumCount: 0};
         const data = await this.get<{searchResult3: {artist?: Subsonic.Artist[]}}>(
-            'search3',
+            'search3.view',
             musicFolderId ? {...params, musicFolderId} : params
         );
         return data.searchResult3.artist || [];
@@ -650,13 +682,13 @@ export default class SubsonicApi {
 
     async setRating(id: string, rating: number): Promise<void> {
         const params = new URLSearchParams({id, rating: String(rating)});
-        await this.get(`setRating?${params}`);
+        await this.get(`setRating.view?${params}`);
     }
 
     private async getAlbumList(params: Record<string, Primitive>): Promise<Subsonic.Album[]> {
         const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{albumList2: {album: Subsonic.Album[]}}>(
-            'getAlbumList2',
+            'getAlbumList2.view',
             musicFolderId ? {...params, musicFolderId} : params
         );
         return data.albumList2.album || [];
@@ -665,7 +697,10 @@ export default class SubsonicApi {
     private async getLyricsByArtistAndTitle(item: MediaItem): Promise<Lyrics | null> {
         const {artists: [artist = ''] = [], title} = item;
         if (artist && title) {
-            const data = await this.get<{lyrics?: Subsonic.Lyrics}>('getLyrics', {artist, title});
+            const data = await this.get<{lyrics?: Subsonic.Lyrics}>('getLyrics.view', {
+                artist,
+                title,
+            });
             const text = data.lyrics?.value;
             if (text) {
                 return {plain: text.split(/\n/)};
@@ -679,7 +714,9 @@ export default class SubsonicApi {
             throw Error('Not supported');
         }
         const id = getMediaObjectId(item);
-        const data = await this.get<{lyricsList: Subsonic.LyricsList}>('getLyricsBySongId', {id});
+        const data = await this.get<{lyricsList: Subsonic.LyricsList}>('getLyricsBySongId.view', {
+            id,
+        });
         const lyrics = data.lyricsList.structuredLyrics?.filter((lyrics) => lyrics.synced)[0];
         if (lyrics) {
             const lines = lyrics.line;
@@ -705,7 +742,7 @@ export default class SubsonicApi {
         try {
             const data = await this.get<{
                 openSubsonicExtensions: Subsonic.OpenSubsonicExtension[];
-            }>('getOpenSubsonicExtensions');
+            }>('getOpenSubsonicExtensions.view');
             const extensions: Record<string, boolean | undefined> = {};
             data.openSubsonicExtensions.forEach((extension) => (extensions[extension.name] = true));
             return extensions;
