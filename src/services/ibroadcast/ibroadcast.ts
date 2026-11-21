@@ -9,6 +9,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
+import PlaybackData from 'types/PlaybackData';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -79,7 +80,7 @@ const ibroadcast: PersonalMediaService = {
     getFilters,
     getMediaObject,
     getPlayableUrl,
-    getPlaybackType,
+    getPlaybackData,
     getPlaylistByName,
     loadLibrary,
     lookup,
@@ -195,13 +196,16 @@ function getPlayableUrl(item: MediaItem): string {
     }
 }
 
-async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+async function getPlaybackData(item: MediaItem): Promise<PlaybackData> {
+    let playbackType = PlaybackType.Direct;
     try {
-        const url = getPlayableUrl(item);
-        return url.includes('/hls') ? PlaybackType.HLS : PlaybackType.Direct;
+        if (getPlayableUrl(item).includes('/hls')) {
+            playbackType = PlaybackType.HLS;
+        }
     } catch {
-        return PlaybackType.Direct;
+        // Not logged in.
     }
+    return {playbackType};
 }
 
 async function getPlaylistByName(name: string): Promise<MediaPlaylist | undefined> {

@@ -172,12 +172,15 @@
         }
 
         &.text-light {
-            .provided-by .text {
+            .provided-by {
                 color: white;
-                opacity: 0.75;
 
-                .media:fullscreen & {
-                    opacity: 0.5;
+                 .text {
+                    opacity: 0.75;
+
+                    .media:fullscreen & {
+                        opacity: 0.5;
+                    }
                 }
             }
         }
@@ -232,6 +235,11 @@
 
             .media:fullscreen & {
                 font-size: max(0.375em, 1rem);
+            }
+
+            .icon-soundcloud {
+                fill: currentColor;
+                stroke: currentColor;
             }
         }
 

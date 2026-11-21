@@ -1,5 +1,6 @@
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
@@ -29,9 +30,13 @@ const sortTypes: Record<Field, SortType> = {
     Duration: 'number',
     FileIcon: '',
     PlayCount: 'number',
+    GlobalPlayCount: 'number',
+    GlobalLikes: 'number',
+    GlobalRating: 'number',
+    GlobalStats: '',
+    Followers: 'number',
     TrackCount: 'number',
     Year: 'number',
-    Views: 'number',
     Genre: 'locale',
     Owner: 'locale',
     BitRate: 'number',
@@ -196,8 +201,14 @@ function getNumber<T extends MediaObject>(item: T, field: Field): number {
             return (item as MediaItem).playedAt || 0;
         case 'PlayCount':
             return (item as MediaItem).playCount || 0;
-        case 'Views':
+        case 'GlobalPlayCount':
             return (item as MediaItem).globalPlayCount || 0;
+        case 'GlobalRating':
+            return (item as MediaItem).globalRating || 0;
+        case 'GlobalLikes':
+            return (item as MediaItem).globalLikes || 0;
+        case 'Followers':
+            return (item as MediaArtist).followers || 0;
         case 'TrackCount':
             return (item as MediaAlbum).trackCount || 0;
         case 'BitRate':

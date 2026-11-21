@@ -18,6 +18,9 @@ export const allMediaItemFields: readonly Field[] = [
     'Duration',
     'Year',
     'Genre',
+    'GlobalPlayCount',
+    'GlobalLikes',
+    'GlobalRating',
     'PlayCount',
     'LastPlayed',
     'Rating',
@@ -156,7 +159,7 @@ export const artistsLayout: MediaListLayout = {
         h2: 'Genre',
     },
     details: ['Name', 'Genre'],
-    extraFields: ['Description', 'AddedAt'],
+    extraFields: ['Description', 'AddedAt', 'Followers'],
 };
 
 export const playlistsLayout: MediaListLayout = {
@@ -168,7 +171,7 @@ export const playlistsLayout: MediaListLayout = {
         data: 'TrackCount',
     },
     details: ['Name', 'Owner', 'TrackCount', 'Progress'],
-    extraFields: ['Description', 'AddedAt', 'ModifiedAt'],
+    extraFields: ['Description', 'AddedAt', 'ModifiedAt', 'Genre', 'GlobalLikes'],
 };
 
 export function getDefaultLayout(itemType: ItemType): MediaListLayout {

@@ -6,6 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
+import {getService} from 'services/mediaServices';
 import {canScrobbleTrack, getScrobbledAt, getScrobbleAs} from 'services/scrobbleSettings';
 import {Logger, exists} from 'utils';
 import {AddMetadataOptions, bestOf, isSameTrack} from 'services/metadata';
@@ -23,18 +24,28 @@ export class LastFmApi {
     private readonly host = `https://ws.audioscrobbler.com/2.0`;
     private readonly placeholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
 
+    isLoggedIn(): boolean {
+        return !!getService('lastfm')?.isLoggedIn();
+    }
+
     async getSignature(params: Record<string, string>): Promise<string> {
         const keys = Object.keys(params);
-        let string = '';
-
+        let text = '';
         keys.sort();
-        keys.forEach((key) => (string += key + params[key]));
+        keys.forEach((key) => (text += key + params[key]));
 
-        const secret = await lastfmSettings.getSecret();
-
-        string += secret;
-
-        return md5(string);
+        if (lastfmSettings.credentialsLocked) {
+            const response = await fetch(
+                `${location.origin}/lastfm/sign?text=${text}&api_key=${lastfmSettings.apiKey}`
+            );
+            if (!response.ok) {
+                throw response;
+            }
+            return response.text();
+        } else {
+            const secret = await lastfmSettings.getSecret();
+            return md5(text + secret);
+        }
     }
 
     async scrobble(items: Listen[]): Promise<void> {

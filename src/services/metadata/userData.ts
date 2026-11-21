@@ -1,5 +1,6 @@
+import {WritableDeep} from 'type-fest';
 import {ListenData} from 'types/Listen';
-import MediaObject from 'types/MediaObject';
+import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import UserData from 'types/UserData';
 
@@ -28,7 +29,7 @@ export const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientD
     'nanoId',
 ];
 
-export function removeUserData<T extends Partial<MediaObject>>(item: T): Subtract<T, UserData> {
+export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<T, UserData> {
     const keys = Object.keys(item) as (keyof T)[];
     const result = keys.reduce(
         (result, key) => {
@@ -37,10 +38,10 @@ export function removeUserData<T extends Partial<MediaObject>>(item: T): Subtrac
             }
             return result;
         },
-        {} as unknown as Subtract<T, UserData>
+        {} as unknown as WritableDeep<MediaItem>
     );
-    if ((result as any).plex) {
-        delete (result as any).plex.playQueueItemID;
+    if (result.plex) {
+        delete result.plex.playQueueItemID;
     }
-    return result;
+    return result as Subtract<T, UserData>;
 }

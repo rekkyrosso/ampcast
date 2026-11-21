@@ -67,7 +67,7 @@ export default class HTML5Player implements Player<MediaItem> {
                 take(1),
                 switchMap(() => this.observeItem()),
                 switchMap((item) => {
-                    if (item && item.src !== this.loadedSrc) {
+                    if (item && !this.isLoaded(item)) {
                         return of(undefined).pipe(
                             mergeMap(() => this.createPlayer()),
                             mergeMap(() => this.loadAndPlay(item)),
@@ -249,13 +249,13 @@ export default class HTML5Player implements Player<MediaItem> {
     }
 
     load(item: MediaItem): void {
-        this.logger.log('load', item.src);
+        this.logger.log('load', item.src, item.startTime || 0);
         if (this.autoplay) {
             this.stopped = false;
         }
         this.item$.next(item);
         this.paused$.next(!this.autoplay);
-        if (item.src === this.loadedSrc) {
+        if (this.isLoaded(item)) {
             this.safeReload(item);
         }
     }
@@ -264,7 +264,7 @@ export default class HTML5Player implements Player<MediaItem> {
         this.logger.log('play');
         this.stopped = false;
         this.paused$.next(false);
-        if (this.src === this.loadedSrc) {
+        if (this.item && this.isLoaded(this.item)) {
             this.safePlay();
         }
     }
@@ -352,6 +352,15 @@ export default class HTML5Player implements Player<MediaItem> {
         return src;
     }
 
+    protected isLoaded(item: MediaItem): boolean {
+        try {
+            const mediaSrc = this.getMediaSrc(item);
+            return mediaSrc === this.loadedSrc;
+        } catch {
+            return false;
+        }
+    }
+
     protected async loadAndPlay(item: MediaItem): Promise<void> {
         const mediaSrc = this.getMediaSrc(item);
         const currentSrc = this.element.getAttribute('src');
@@ -361,7 +370,7 @@ export default class HTML5Player implements Player<MediaItem> {
             }
             this.element.setAttribute('src', mediaSrc);
         }
-        this.loadedSrc = item.src;
+        this.loadedSrc = mediaSrc;
         if (!this.paused && this.element.paused) {
             this.element.currentTime = item.startTime || 0;
             try {

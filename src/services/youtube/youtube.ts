@@ -1,3 +1,4 @@
+import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import MediaItem from 'types/MediaItem';
 import ItemType from 'types/ItemType';
@@ -5,6 +6,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
+import PlaybackData from 'types/PlaybackData';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -51,6 +53,10 @@ const youtube: PublicMediaService = {
     editablePlaylists: youtubePlaylists,
     root: youtubeSearch,
     sources: youtubeSources,
+    icons: {
+        [Action.AddToLibrary]: 'thumbs-up',
+        [Action.RemoveFromLibrary]: 'thumbs-up-fill',
+    },
     addMetadata,
     addToPlaylist,
     canPin,
@@ -58,7 +64,7 @@ const youtube: PublicMediaService = {
     createPlaylist,
     createSourceFromPin,
     editPlaylist,
-    getPlaybackType,
+    getPlaybackData,
     scrobble,
     observeConnecting,
     observeConnectionLogging,
@@ -173,6 +179,6 @@ async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
     }
 }
 
-async function getPlaybackType(): Promise<PlaybackType> {
-    return PlaybackType.IFrame;
+async function getPlaybackData(): Promise<PlaybackData> {
+    return {playbackType: PlaybackType.IFrame};
 }

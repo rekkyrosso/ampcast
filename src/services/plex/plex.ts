@@ -13,7 +13,7 @@ import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import PlaybackType from 'types/PlaybackType';
+import PlaybackData from 'types/PlaybackData';
 import ServiceType from 'types/ServiceType';
 import {exists, getMediaObjectId, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
@@ -104,7 +104,7 @@ const plex: PersonalMediaService = {
     getLyrics,
     getMediaObject,
     getPlayableUrl,
-    getPlaybackType,
+    getPlaybackData,
     getServerInfo,
     getThumbnailUrl,
     lookup,
@@ -306,8 +306,9 @@ function getPlayableUrl(item: MediaItem): string {
     return plexApi.getPlayableUrl(item);
 }
 
-async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
-    return plexApi.getPlaybackType(item);
+async function getPlaybackData(item: MediaItem): Promise<PlaybackData> {
+    const playbackType = await plexApi.getPlaybackType(item);
+    return {playbackType};
 }
 
 async function getServerInfo(): Promise<Record<string, string>> {

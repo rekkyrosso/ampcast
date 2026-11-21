@@ -10,7 +10,8 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import Albums from './Albums';
-import Artists from './Artists';
+import ArtistsAlbums from './ArtistsAlbums';
+import ArtistsTracks from './ArtistsTracks';
 import MediaItems from './MediaItems';
 import PinnedPlaylist from './PinnedPlaylist';
 import Playlists from './Playlists';
@@ -28,7 +29,13 @@ export interface PagedItemsProps<T extends MediaObject> {
 export default function PagedItems<T extends MediaObject>(props: PagedItemsProps<T>) {
     switch (props.source.itemType) {
         case ItemType.Artist:
-            return <Artists {...(props as PagedItemsProps<MediaArtist>)} />;
+            switch (props.source.childItemType) {
+                case ItemType.Media:
+                    return <ArtistsTracks {...(props as PagedItemsProps<MediaArtist>)} />;
+
+                default:
+                    return <ArtistsAlbums {...(props as PagedItemsProps<MediaArtist>)} />;
+            }
 
         case ItemType.Album:
             return <Albums {...(props as PagedItemsProps<MediaAlbum>)} />;

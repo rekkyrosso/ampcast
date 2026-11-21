@@ -33,10 +33,10 @@ const youtubeVideoItems: MediaSourceItems = {
         card: {
             h1: 'Title',
             h2: 'Owner',
-            h3: 'Views',
+            h3: 'GlobalStats',
             data: 'Duration',
         },
-        details: ['Title', 'Duration', 'Owner', 'Views'],
+        details: ['Title', 'Duration', 'Owner', 'GlobalPlayCount', 'GlobalLikes'],
     },
 };
 
@@ -44,7 +44,7 @@ export const youtubePlaylistItems: MediaSourceItems = {
     layout: {
         ...youtubeVideoItems.layout,
         view: 'card small',
-        details: ['Position', 'Title', 'Duration', 'Owner', 'Views'],
+        details: ['Position', 'Title', 'Duration', 'Owner', 'GlobalPlayCount', 'GlobalLikes'],
     },
     sort: {
         defaultSort: {

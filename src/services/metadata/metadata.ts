@@ -41,36 +41,40 @@ export async function addMetadata<T extends MediaItem>(item: T): Promise<T> {
         }
         if (mbItem) {
             const enhancedItem = bestOf(mbItem, item) as T;
-            const lastfmItem = await lastfmApi.addMetadata(enhancedItem);
-            return {
-                ...enhancedItem,
-                src: item.src,
-                thumbnails: lastfmItem.thumbnails,
-                duration: item.duration || lastfmItem.duration,
-            };
+            if (lastfmApi.isLoggedIn()) {
+                const lastfmItem = await lastfmApi.addMetadata(enhancedItem);
+                return {
+                    ...enhancedItem,
+                    src: item.src,
+                    thumbnails: lastfmItem.thumbnails,
+                    duration: item.duration || lastfmItem.duration,
+                };
+            } else {
+                return enhancedItem;
+            }
         }
-
-        // last.fm search.
-        const lastfmItems = await lastfmApi.search(`${artist} ${title}`);
-        const lastfmItem = lastfmItems.find(
-            (lastfmItem) =>
-                findBestMatch([lastfmItem], item) || findBestMatch([lastfmItem], transposedItem)
-        );
-        if (lastfmItem) {
-            const {title, artists, thumbnails} = lastfmItem;
-            return {
-                ...item,
-                src: item.src,
-                title,
-                artists,
-                thumbnails,
-            };
-        }
-
-        // last.fm track info.
-        const enhancedItem = await lastfmApi.addMetadata<T>(item, {overWrite: true});
-        if (enhancedItem !== item) {
-            return {...enhancedItem, src: item.src};
+        if (lastfmApi.isLoggedIn()) {
+            // last.fm search.
+            const lastfmItems = await lastfmApi.search(`${artist} ${title}`);
+            const lastfmItem = lastfmItems.find(
+                (lastfmItem) =>
+                    findBestMatch([lastfmItem], item) || findBestMatch([lastfmItem], transposedItem)
+            );
+            if (lastfmItem) {
+                const {title, artists, thumbnails} = lastfmItem;
+                return {
+                    ...item,
+                    src: item.src,
+                    title,
+                    artists,
+                    thumbnails,
+                };
+            }
+            // last.fm track info.
+            const enhancedItem = await lastfmApi.addMetadata<T>(item, {overWrite: true});
+            if (enhancedItem !== item) {
+                return {...enhancedItem, src: item.src};
+            }
         }
     }
     return item;
@@ -216,7 +220,7 @@ export async function createMediaItemFromUrl(
     if (hostname.includes('mixcloud.com')) {
         return mixcloudApi.getMediaItem(url);
     } else if (hostname.includes('soundcloud.com')) {
-        return soundcloudApi.getMediaItem(url);
+        return soundcloudApi.getMediaItemFromUrl(url);
     } else if (/youtu\.?be/.test(hostname)) {
         return youtubeApi.getMediaItem(url);
     } else {

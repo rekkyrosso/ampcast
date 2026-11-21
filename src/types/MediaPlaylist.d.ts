@@ -12,6 +12,7 @@ export default interface MediaPlaylist extends BaseMediaObject {
     readonly owner?: {
         readonly name: string;
         readonly url?: string;
+        readonly label?: string;
     };
     readonly trackCount?: number;
     readonly duration?: number;
@@ -27,5 +28,8 @@ export default interface MediaPlaylist extends BaseMediaObject {
         readonly droppable?: boolean;
         readonly droppableTypes?: readonly string[]; // External types.
         readonly moveable?: boolean;
+    };
+    readonly links?: BaseMediaObject['links'] & {
+        readonly owner?: string;
     };
 }

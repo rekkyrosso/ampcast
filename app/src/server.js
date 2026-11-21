@@ -2,9 +2,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import net from 'node:net';
 import http from 'node:http';
-import httpProxy from 'http-proxy';
 import {__dirname} from './config.js';
 import store from './store.js';
+import router from './router.js';
 
 const staticDir = path.resolve(__dirname, '../www');
 
@@ -22,64 +22,37 @@ const mimeTypes = {
     text: 'text/plain; charset=utf-8',
 };
 
-const proxy = httpProxy.createProxyServer({});
-
-const app = http.createServer(async (req, res) => {
-    if (req.url.startsWith('/bandcamp/api')) {
-        proxy.web(
-            req,
-            res,
-            {
-                target: `https://bandcamp.com/api/subsonic${req.url.replace('/bandcamp/api', '')}`,
-                changeOrigin: true,
-                followRedirects: true,
-            },
-            (err) => handleError(req, res, err)
-        );
-    } else {
-        const method = req.method;
-        const url = req.url.replace(/[?#].*$/, '');
-        try {
-            let pathname = url;
-            if (pathname.endsWith('/')) {
-                pathname += 'index.html';
-            }
-            const filePath = path.join(staticDir, pathname);
-            const pathTraversal = !filePath.startsWith(staticDir);
-            const exists =
-                !pathTraversal &&
-                (await fs.promises.stat(filePath).then(
-                    (stat) => stat.isFile(),
-                    () => false
-                ));
-            if (exists) {
-                const ext = path.extname(pathname).substring(1).toLowerCase();
-                const mimeType = mimeTypes[ext] || mimeTypes.text;
-                const stream = fs.createReadStream(filePath);
-                res.writeHead(200, {'Content-Type': mimeType});
-                stream.pipe(res);
-                console.info(`${method} ${url} OK`);
-            } else {
-                console.warn(`${method} ${url} NOT FOUND`);
-                res.writeHead(404, {'Content-Type': mimeTypes.text});
-                res.end('Not found');
-            }
-        } catch (err) {
-            handleError(req, res, err);
-        }
-    }
+const app = http.createServer((req, res) => {
+    router(req, res, handleRequest);
 });
 
-function handleError(req, res, err) {
-    try {
-        const pathname = req.url.replace(/[?#].*$/, '');
-        console.error(`${req.method} ${pathname} ERROR`);
-        console.error(err);
-        res.writeHead(500, {'Content-Type': mimeTypes.text});
-    } catch (err) {
-        console.error(err);
+async function handleRequest(req, res) {
+    const method = req.method;
+    const url = req.url.replace(/[?#].*$/, '');
+    let pathname = url;
+    if (pathname.endsWith('/')) {
+        pathname += 'index.html';
     }
-    res.end('Internal server error');
+    const filePath = path.join(staticDir, pathname);
+    const pathTraversal = !filePath.startsWith(staticDir);
+    const exists =
+        !pathTraversal &&
+        (await fs.promises.stat(filePath).then(
+            (stat) => stat.isFile(),
+            () => false
+        ));
+    if (exists) {
+        const ext = path.extname(pathname).substring(1).toLowerCase();
+        const mimeType = mimeTypes[ext] || mimeTypes.text;
+        const stream = fs.createReadStream(filePath);
+        res.writeHead(200, {'Content-Type': mimeType});
+        stream.pipe(res);
+        console.info(`${method} ${url} OK`);
+    } else {
+        console.warn(`${method} ${url} NOT FOUND`);
+        res.writeHead(404, {'Content-Type': mimeTypes.text});
+        res.end('Not found');
+    }
 }
 
 let server = null;

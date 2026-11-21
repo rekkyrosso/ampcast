@@ -41,6 +41,7 @@ const loginUrls = [
     'https://app.plex.tv/auth',
     'https://www.last.fm/api/auth',
     'https://oauth.ibroadcast.com/authorize',
+    'https://secure.soundcloud.com/authorize',
 ];
 
 let mainWindow;
@@ -248,15 +249,18 @@ app.whenReady().then(async () => {
     });
     const splash = await createSplashScreen(mainWindowState);
     try {
-        let [port] = await Promise.all([server.start(), components.whenReady()]);
-        let url = `http://localhost:${port}/`;
+        const [port] = await Promise.all([server.start(), components.whenReady()]);
+        const host = `http://localhost:${port}/`;
 
         protocol.handle('ampcast', (request) => {
             const pathname = request.url.slice('ampcast://'.length);
-            if (pathname.startsWith('auth/spotify/callback/')) {
+            if (
+                pathname.startsWith('auth/spotify/callback/') ||
+                pathname.startsWith('auth/soundcloud/callback/')
+            ) {
                 return new Response('', {
                     status: 302,
-                    headers: {Location: `${url}${pathname}`},
+                    headers: {Location: `${host}${pathname}`},
                 });
             } else {
                 return new Response('<h1>Not found</h1>', {
@@ -272,7 +276,7 @@ app.whenReady().then(async () => {
         Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
         createBridge();
 
-        await createMainWindow(url, mainWindowState);
+        await createMainWindow(host, mainWindowState);
         splash.destroy();
         await checkForUpdatesAndNotify();
 
@@ -280,7 +284,7 @@ app.whenReady().then(async () => {
         app.on('activate', async () => {
             if (BrowserWindow.getAllWindows().length === 0) {
                 if (!mainWindow) {
-                    await createMainWindow(url, mainWindowState);
+                    await createMainWindow(host, mainWindowState);
                 }
             }
         });

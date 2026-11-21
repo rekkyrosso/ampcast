@@ -11,7 +11,6 @@ export default interface MediaItem extends BaseMediaObject {
     readonly playedAt: number; // unix (a value of -1 means "playing now")
     // Everything below here should be optional.
     readonly linearType?: LinearType; // For radio streams
-    readonly playbackType?: PlaybackType;
     readonly isExternalMedia?: boolean; // Not provided by the associated `MediaService` (described by `src`)
     readonly isLivePlayback?: boolean;
     readonly artists?: readonly string[];
@@ -23,8 +22,10 @@ export default interface MediaItem extends BaseMediaObject {
     readonly unplayable?: boolean;
     readonly copyright?: string;
     // Playback.
-    readonly startTime?: number;
+    readonly playbackType?: PlaybackType;
+    readonly playbackExpiresAt?: number;
     readonly srcs?: readonly string[]; // Playable sources that can't be derived from `src`.
+    readonly startTime?: number;
     // Playlists.
     readonly playlistItemId?: string;
     // External IDs.
@@ -72,6 +73,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly owner?: {
         readonly name: string;
         readonly url?: string;
+        readonly label?: string;
     };
     // Scrobbling.
     readonly scrobbleAs?: {
@@ -90,6 +92,7 @@ export default interface MediaItem extends BaseMediaObject {
         readonly album?: string;
         readonly albumArtists?: readonly string[];
         readonly artists?: readonly string[];
+        readonly owner?: string;
     };
     readonly plex?: {
         readonly playQueueItemID?: number;

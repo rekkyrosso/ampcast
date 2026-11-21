@@ -13,7 +13,7 @@
 * Built-in visualizers: Milkdrop (Butterchurn) and others
 * Scrobbling for last.fm and ListenBrainz
 * Playback from last.fm/ListenBrainz (via search of logged in services)
-* Gapless playback / ReplayGain / Lyrics
+* ReplayGain / Lyrics
 * Internet radio
 
 ## Web app / PWA

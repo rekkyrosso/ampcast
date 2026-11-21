@@ -7,11 +7,11 @@ import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
 
 type ChildOf<T extends MediaObject> = T extends MediaArtist
-    ? MediaAlbum
+    ? MediaAlbum | MediaPlaylist | MediaItem
+    : T extends MediaArtist | MediaAlbum | MediaPlaylist
+    ? MediaItem
     : T extends MediaFolder
     ? MediaFolderItem
-    : T extends MediaAlbum | MediaPlaylist
-    ? MediaItem
     : never;
 
 export default ChildOf;

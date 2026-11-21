@@ -30,6 +30,8 @@ module.exports = (args) => {
         rimrafSync(wwwDir);
     } else {
         rimrafSync(`${wwwDir}/v${packageJson.version}`);
+        rimrafSync(`${wwwDir}/_worker.js`);
+        rimrafSync(`${wwwDir}/service-worker-v2.js`);
     }
 
     const encodeString = (string) => {
@@ -167,7 +169,7 @@ module.exports = (args) => {
                 __am_dev_token__: getEnv('APPLE_MUSIC_DEV_TOKEN'),
                 __ib_client_id__: getEnv('IBROADCAST_CLIENT_ID'),
                 __lf_api_key__: getEnv('LASTFM_API_KEY'),
-                __lf_api_secret__: getEnv('LASTFM_API_SECRET'),
+                __sc_client_id__: getEnv('SOUNDCLOUD_CLIENT_ID'),
                 __sp_client_id__: getEnv('SPOTIFY_CLIENT_ID'),
                 __td_client_id__: getEnv('TIDAL_CLIENT_ID'),
                 __yt_client_id__: getEnv('GOOGLE_CLIENT_ID'),
@@ -201,7 +203,7 @@ module.exports = (args) => {
                     },
                 ],
             }),
-            __dev__
+            __dev__ || target === 'electron'
                 ? undefined
                 : new CopyPlugin({
                       patterns: [
@@ -217,6 +219,17 @@ module.exports = (args) => {
                           },
                       ],
                   }),
+            ,
+            target === 'pwa' && !__dev__
+                ? new CopyPlugin({
+                      patterns: [
+                          {
+                              from: './src/_worker.js',
+                              to: wwwDir,
+                          },
+                      ],
+                  })
+                : undefined,
             ,
         ],
         resolve: {

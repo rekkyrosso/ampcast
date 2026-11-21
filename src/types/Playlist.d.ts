@@ -37,6 +37,7 @@ export default interface Playlist {
     remove(item: PlaylistItem): void;
     remove(items: readonly PlaylistItem[]): void;
     removeAt(index: number): void;
+    replaceAt(index: number, item: PlaylistItem): void;
     reverseAt(index: number, length: number): void;
     next(): void;
     prev(): void;

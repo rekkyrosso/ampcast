@@ -43,6 +43,8 @@ export default async function performAction<T extends MediaObject>(
             break;
 
         case Action.Rate:
+        case Action.Follow:
+        case Action.Unfollow:
         case Action.AddToLibrary:
         case Action.RemoveFromLibrary:
             performLibraryAction(action, item, payload);
@@ -224,10 +226,12 @@ async function performLibraryAction<T extends MediaObject>(
                 break;
             }
 
+            case Action.Follow:
             case Action.AddToLibrary:
                 await actionsStore.store(item, true);
                 break;
 
+            case Action.Unfollow:
             case Action.RemoveFromLibrary:
                 await actionsStore.store(item, false);
                 break;

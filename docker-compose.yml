@@ -16,11 +16,13 @@ services:
       - IBROADCAST_CLIENT_ID=""
       - LASTFM_API_KEY=""
       - LASTFM_API_SECRET=""
+      - SOUNDCLOUD_CLIENT_ID=""
+      - SOUNDCLOUD_CLIENT_SECRET=""
       - SPOTIFY_CLIENT_ID=""
 
       # Enabled media services.
       # Available services:
-      #    apple,spotify,bandcamp,
+      #    apple,spotify,bandcamp,soundcloud,
       #    airsonic,ampache,emby,gonic,ibroadcast,jellyfin,navidrome,plex,subsonic,
       #    youtube,
       #    internet-radio,

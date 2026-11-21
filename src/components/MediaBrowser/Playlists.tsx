@@ -51,7 +51,7 @@ export default function Playlists({service, source, ...props}: PagedItemsProps<M
             ) : source.secondaryItems?.layout?.view === 'none' ? (
                 playlistList
             ) : (
-                <Splitter id="playlists-items-layout" arrange="rows">
+                <Splitter id="two-panel-layout" arrange="rows">
                     {playlistList}
                     {playlistItems}
                 </Splitter>

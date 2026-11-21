@@ -2,8 +2,6 @@ const path = require('path');
 const fs = require('fs');
 const fsp = require('fs/promises');
 const http = require('http');
-const httpProxy = require('http-proxy');
-const proxy = httpProxy.createProxyServer({});
 const argv = require('minimist')(process.argv.slice(2));
 const dotenv = require('dotenv');
 const handleProxyLogin = require('./proxy-login');
@@ -11,6 +9,9 @@ const {host = 'localhost', port = 8000} = argv;
 const wwwDir = path.resolve(__dirname, './app/www');
 const devDir = path.resolve(__dirname, './www-dev');
 const runtimeDir = argv.dev ? devDir : wwwDir;
+const router = require('./router');
+
+dotenv.config({path: './.env'});
 
 const mimeTypes = {
     js: 'application/javascript; charset=utf-8',
@@ -23,41 +24,26 @@ const mimeTypes = {
     text: 'text/plain; charset=utf-8',
 };
 
-const server = http.createServer(async (req, res) => {
-    try {
-        if (req.url.startsWith('/bandcamp/api')) {
-            proxy.web(
-                req,
-                res,
-                {
-                    target: `https://bandcamp.com/api/subsonic${req.url.replace('/bandcamp/api', '')}`,
-                    changeOrigin: true,
-                    followRedirects: true,
-                },
-                (err) => handleError(req, res, err)
-            );
-        } else {
-            switch (req.method) {
-                case 'GET': {
-                    await handleGET(req, res);
-                    return;
-                }
-                case 'POST': {
-                    await handlePOST(req, res);
-                    return;
-                }
-
-                default: {
-                    console.warn(`${req.method} ${req.url} FORBIDDEN`);
-                    res.writeHead(403, {'Content-Type': mimeTypes.text});
-                    res.end('Forbidden');
-                }
-            }
-        }
-    } catch (err) {
-        handleError(req, res, err);
-    }
+const server = http.createServer((req, res) => {
+    router(req, res, handleRequest);
 });
+
+async function handleRequest(req, res) {
+    switch (req.method) {
+        case 'GET':
+            await handleGET(req, res);
+            break;
+
+        case 'POST':
+            await handlePOST(req, res);
+            break;
+
+        default:
+            console.warn(`${req.method} ${req.url} FORBIDDEN`);
+            res.writeHead(403, {'Content-Type': mimeTypes.text});
+            res.end('Forbidden');
+    }
+}
 
 let appHost = '';
 async function handleGET(req, res) {
@@ -105,7 +91,7 @@ async function handleGET(req, res) {
         }
         console.info(`${req.method} ${pathname} OK`);
     } else {
-        console.warn(`${req.method} ${pathname} NOT FOUND`);
+        console.warn(`${req.method} ${pathname} 404`);
         res.writeHead(404, {'Content-Type': mimeTypes.text});
         res.end('Not found');
     }
@@ -116,14 +102,13 @@ async function handlePOST(req, res) {
     if (pathname === '/proxy-login') {
         await handleProxyLogin(req, res);
     } else {
-        console.warn(`${req.method} ${pathname} FORBIDDEN`);
+        console.warn(`${req.method} ${pathname} 403`);
         res.writeHead(403, {'Content-Type': mimeTypes.text});
         res.end('Forbidden');
     }
 }
 
 async function handleBundleJs(res, path) {
-    dotenv.config({path: './.env'});
     const personalMediaServers = {};
     'airsonic|ampache|emby|gonic|jellyfin|navidrome|subsonic'.split('|').forEach((serverId) => {
         const SERVER_ID = serverId.toUpperCase();
@@ -142,7 +127,7 @@ async function handleBundleJs(res, path) {
         'GOOGLE_CLIENT_ID',
         'IBROADCAST_CLIENT_ID',
         'LASTFM_API_KEY',
-        'LASTFM_API_SECRET',
+        'SOUNDCLOUD_CLIENT_ID',
         'SPOTIFY_CLIENT_ID',
         'TIDAL_CLIENT_ID',
         'ENABLED_SERVICES',
@@ -156,18 +141,6 @@ async function handleBundleJs(res, path) {
     );
     res.write(text);
     res.end();
-}
-
-function handleError(req, res, err) {
-    try {
-        const pathname = req.url.replace(/[?#].*$/, '');
-        console.error(`${req.method} ${pathname} ERROR`);
-        console.error(err);
-        res.writeHead(500, {'Content-Type': mimeTypes.text});
-    } catch (err) {
-        console.error(err);
-    }
-    res.end('Internal server error');
 }
 
 function getEnv(key) {

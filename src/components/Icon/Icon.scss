@@ -345,7 +345,11 @@
     }
 
     &-soundcloud {
-        color: #ff5500;
+        .soundcloud-connected &,
+        &:not(.show-connectivity) {
+            fill: #ff5500;
+            stroke: #ff5500;
+        }
     }
 
     &-spotify {

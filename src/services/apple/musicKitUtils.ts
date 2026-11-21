@@ -173,8 +173,9 @@ export function createRelatedItemsPager<T extends MediaObject>(item: T): Pager<T
             case ItemType.Artist:
                 return createViewPager('artists', catalogId, 'similar-artists');
 
-            case ItemType.Playlist:
-                return createViewPager('playlists', catalogId, 'more-by-curator');
+            // This hardly ever works
+            // case ItemType.Playlist:
+            //     return createViewPager('playlists', catalogId, 'more-by-curator');
         }
     }
 }

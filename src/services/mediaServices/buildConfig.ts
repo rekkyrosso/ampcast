@@ -40,7 +40,7 @@ export default buildConfig;
 export const am_dev_token = decode(__am_dev_token__);
 export const ib_client_id = decode(__ib_client_id__);
 export const lf_api_key = decode(__lf_api_key__);
-export const lf_api_secret = decode(__lf_api_secret__);
+export const sc_client_id = decode(__sc_client_id__);
 export const sp_client_id = decode(__sp_client_id__);
 export const td_client_id = decode(__td_client_id__);
 export const yt_client_id = decode(__yt_client_id__);

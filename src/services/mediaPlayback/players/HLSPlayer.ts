@@ -92,7 +92,7 @@ export default class HLSPlayer extends HTML5Player {
             return super.loadAndPlay(item);
         }
 
-        if (this.loadedSrc !== item.src) {
+        if (!this.isLoaded(item)) {
             this.setMediaSrc(item);
             if (!this.paused) {
                 this.player!.startLoad(item.startTime || 0);
@@ -163,7 +163,7 @@ export default class HLSPlayer extends HTML5Player {
             this.loadedSrc = '';
             this.player.loadSource(mediaSrc);
             this.player.attachMedia(this.element);
-            this.loadedSrc = item.src;
+            this.loadedSrc = mediaSrc;
         } else {
             throw Error('HLS player not loaded');
         }

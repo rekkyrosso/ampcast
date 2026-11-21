@@ -11,7 +11,6 @@ const logger = new Logger('CovertArtController');
 export default class CovertArtController extends AbstractVisualizerPlayer<CoverArtVisualizer> {
     readonly player0: CovertArtPlayer;
     readonly player1: CovertArtPlayer;
-    private element: HTMLElement | null = null;
     private hidden$ = new BehaviorSubject(false);
     #currentIndex: 0 | 1 = 0;
 
@@ -64,7 +63,6 @@ export default class CovertArtController extends AbstractVisualizerPlayer<CoverA
         const beatsElement = element.querySelector('.beats-player') as HTMLElement;
         if (beatsElement) {
             element.hidden = this.hidden;
-            this.element = element;
         }
     }
 

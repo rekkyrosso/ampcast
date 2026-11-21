@@ -44,14 +44,14 @@ export class IcecastPlayer extends HTML5Player {
     }
 
     protected async loadAndPlay(item: MediaItem): Promise<void> {
-        this.loadedSrc = item.src;
+        const url = this.getMediaSrc(item);
+        this.loadedSrc = url;
 
         if (this.player) {
             await this.player.detachAudioElement();
         }
 
         let endpoints: readonly string[] = [];
-        const url = this.getMediaSrc(item);
         if (item.playbackType === PlaybackType.IcecastM3u) {
             endpoints = await parsePlaylistFromUrl(url);
         } else {

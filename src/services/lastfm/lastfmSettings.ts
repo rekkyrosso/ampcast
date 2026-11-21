@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {LiteStorage, Logger} from 'utils';
 import ampcastElectron from 'services/ampcastElectron';
-import {lf_api_key, lf_api_secret} from 'services/mediaServices/buildConfig';
+import {lf_api_key} from 'services/mediaServices/buildConfig';
 
 const logger = new Logger('lastfmSettings');
 
@@ -20,7 +20,7 @@ const lastfmSettings = {
     },
 
     set apiKey(apiKey: string) {
-        if (!lf_api_key) {
+        if (!this.credentialsLocked) {
             storage.setString('apiKey', apiKey);
             credentials$.next({...credentials$.value, apiKey});
         }
@@ -79,8 +79,8 @@ const lastfmSettings = {
     },
 
     async getSecret(): Promise<string> {
-        if (lf_api_secret) {
-            return lf_api_secret;
+        if (this.credentialsLocked) {
+            return '';
         } else if (ampcastElectron) {
             return ampcastElectron.getCredential('lastfm/secret');
         } else {
@@ -89,7 +89,7 @@ const lastfmSettings = {
     },
 
     async setSecret(secret: string): Promise<void> {
-        if (!lf_api_secret) {
+        if (!this.credentialsLocked) {
             if (ampcastElectron) {
                 await ampcastElectron.setCredential('lastfm/secret', secret);
             } else {
@@ -105,7 +105,7 @@ const lastfmSettings = {
         if (!lf_api_key) {
             storage.setString('apiKey', credentials$.value.apiKey);
         }
-        if (!lf_api_secret && !ampcastElectron) {
+        if (!ampcastElectron) {
             storage.setString('secret', credentials$.value.secret);
         }
     },

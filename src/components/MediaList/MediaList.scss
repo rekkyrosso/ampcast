@@ -107,6 +107,30 @@
         pointer-events: none;
     }
 
+    .stats {
+        line-height: normal;
+
+        .media-source-label {
+            display: inline-flex;
+
+            & + .media-source-label {
+                margin-left: 0.625em;
+            }
+        }
+
+        .icon {
+            margin-right: 0;
+
+            &-play {
+                scale: 0.67;
+            }
+
+            &-thumbs-up-fill {
+                margin-right: 0.2em;
+            }
+        }
+    }
+
     &:focus .list-view-row.selected .star-rating {
         pointer-events: auto;
     }
@@ -264,7 +288,7 @@
                 right: 5.5em;
             }
 
-            .text {
+            > .text {
                 font-size: 1.125em;
             }
         }
@@ -276,7 +300,7 @@
                 top: 2em;
             }
 
-            .text {
+            > .text {
                 font-size: 1em;
             }
         }
@@ -285,12 +309,20 @@
             top: 3.75em;
             right: 3em;
 
+            &.stats {
+                top: 4em;
+
+                > .text {
+                    font-size: 0.75em;
+                }
+            }
+
             &.rating {
                 right: auto;
                 margin-left: -1px;
             }
 
-            .text {
+            > .text {
                 font-size: 0.875em;
             }
         }
@@ -348,6 +380,10 @@
         .h2,
         .h3 {
             color: var(--grey2-color);
+
+            &.stats {
+                color: var(--grey1-color);
+            }
         }
 
         .duration,
@@ -415,7 +451,7 @@
             .h1 {
                 top: 0.375em;
 
-                .text {
+                > .text {
                     font-size: 1em;
                 }
             }
@@ -423,13 +459,25 @@
             .h2 {
                 top: 1.625em;
 
-                .text {
+                &.stats {
+                    top: 1.875em;
+
+                    > .text {
+                        font-size: 0.75em;
+                    }
+                }
+
+                > .text {
                     font-size: 0.875em;
                 }
             }
 
             .h3 {
                 top: 2.75em;
+
+                &.stats {
+                    top: 3.125em;
+                }
 
                 &.country {
                     top: 3.125em;
@@ -439,7 +487,7 @@
                     top: 3em;
                 }
 
-                .text {
+                > .text {
                     font-size: 0.75em;
                 }
             }
@@ -450,7 +498,7 @@
                     height: 1.25em;
                 }
 
-                .text {
+                > .text {
                     font-size: 0.625em;
                 }
             }
@@ -507,7 +555,11 @@
                 top: 1.375em;
                 right: 3em;
 
-                .text {
+                &.stats {
+                    top: 1.75em
+                }
+
+                > .text {
                     font-size: 0.75em;
                 }
             }
@@ -547,7 +599,7 @@
                 left: 2em;
                 right: 0.375em;
 
-                .text {
+                > .text {
                     font-size: 1em;
                 }
             }

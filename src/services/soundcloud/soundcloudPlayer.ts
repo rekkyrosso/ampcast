@@ -16,9 +16,10 @@ import {
     timer,
 } from 'rxjs';
 import MediaItem from 'types/MediaItem';
+import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import {loadScript, Logger} from 'utils';
-import soundcloud from './soundcloud';
+import {getService} from 'services/mediaServices';
 
 const logger = new Logger('soundcloudPlayer');
 
@@ -44,10 +45,11 @@ export class SoundCloudPlayer implements Player<MediaItem> {
     #volume = 1;
 
     constructor() {
+        const soundcloud = getService('soundcloud');
         this.element.className = 'soundcloud-player';
         this.element.allow = 'encrypted-media *; autoplay *;';
         this.element.hidden = true;
-        this.element.style.visibility = soundcloud.iframeAudioPlayback?.showContent
+        this.element.style.visibility = soundcloud?.iframeAudioPlayback?.showContent
             ? 'inherit'
             : 'hidden';
 
@@ -135,11 +137,15 @@ export class SoundCloudPlayer implements Player<MediaItem> {
     }
 
     canPlay(item: MediaItem): boolean {
-        return item.src.startsWith('soundcloud:');
+        const soundcloud = getService('soundcloud');
+        return (
+            item.src.startsWith('soundcloud:') &&
+            (item.playbackType === PlaybackType.IFrame || !soundcloud?.isLoggedIn())
+        );
     }
 
     load(item: MediaItem): void {
-        logger.log('load', item.src);
+        logger.log('load', item.src, item.startTime || 0);
         if (this.autoplay) {
             this.stopped = false;
         }
@@ -209,7 +215,7 @@ export class SoundCloudPlayer implements Player<MediaItem> {
         const item = this.item;
         if (item) {
             const [, type, id] = item.src.split(':');
-            return type === 'tracks' ? `https://api.soundcloud.com/tracks/${id}` : item.srcs?.[0];
+            return type === 'url' ? item.externalUrl : `https://api.soundcloud.com/tracks/${id}`;
         }
     }
 
@@ -244,7 +250,9 @@ export class SoundCloudPlayer implements Player<MediaItem> {
         player.bind(READY, () => {
             this.synchVolume();
 
-            player.bind(PLAY, () => this.playing$.next());
+            player.bind(PLAY, () => {
+                this.playing$.next();
+            });
             player.bind(PLAY_PROGRESS, ({currentPosition}: {currentPosition: number}) => {
                 if (!this.stopped) {
                     this.currentTime$.next(currentPosition / 1000);

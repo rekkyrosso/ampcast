@@ -4,7 +4,7 @@ import Dexie, {liveQuery} from 'dexie';
 import Bookmark from 'types/Bookmark';
 import MediaObject from 'types/MediaObject';
 import {Logger} from 'utils';
-import {dispatchMetadataChanges, removeUserData} from 'services/metadata';
+import {dispatchMetadataChanges} from 'services/metadata';
 import {isSourceHidden} from 'services/mediaServices/servicesSettings';
 
 const logger = new Logger('bookmarks');
@@ -36,7 +36,7 @@ export function observeBookmarks(): Observable<readonly Bookmark[]> {
 export async function addBookmark(item: MediaObject): Promise<void> {
     try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const {pager, ...bookmark} = removeUserData(item) as any;
+        const {pager, ...bookmark} = item as any;
         await store.bookmarks.put({...bookmark, bookmarkedAt: Date.now()});
         dispatchMetadataChanges({
             match: (object) => object.src === item.src,

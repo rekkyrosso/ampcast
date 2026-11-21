@@ -116,7 +116,9 @@ function RowIcon(item: PlaylistItem) {
         <Icon
             name={iconName}
             // YouTube is always playable.
-            className={serviceId === 'youtube' ? '' : 'show-connectivity'}
+            className={
+                serviceId === 'soundcloud' || serviceId === 'youtube' ? '' : 'show-connectivity'
+            }
         />
     );
 }

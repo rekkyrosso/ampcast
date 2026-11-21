@@ -107,10 +107,17 @@
     .genre {
         font-style: italic;
         font-size: 0.875em;
+        margin-top: 0.625em;
 
         .text-label {
             font-style: normal;
         }
+    }
+
+    .likes,
+    .plays,
+    .followers {
+        font-size: 0.875em;
     }
 
     .description {

@@ -398,8 +398,8 @@ export default class RadioPlayer implements Player<MediaItem> {
         }
         try {
             if (item.playbackType === undefined) {
-                const playbackType = await this.service?.getPlaybackType?.(item);
-                item = {...item, playbackType};
+                const playbackData = await this.service?.getPlaybackData?.(item);
+                item = {...item, ...playbackData};
                 items[position] = item; // Mutate.
             }
         } catch (err) {

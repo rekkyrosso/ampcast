@@ -5,6 +5,8 @@ const enum Action {
     Info = 'info',
     AddToLibrary = 'library-add',
     RemoveFromLibrary = 'library-remove',
+    Follow = 'follow', // maps to `AddToLibrary`
+    Unfollow = 'unfollow', // maps to `RemoveFromLibrary`
     AddStation = 'station-add',
     EditStation = 'station-edit',
     RemoveStation = 'station-remove',

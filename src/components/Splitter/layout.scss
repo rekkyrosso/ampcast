@@ -31,21 +31,18 @@
     }
 }
 
-#albums-tracks-layout,
-#artist-albums-tracks-layout,
-#artists-albums-layout,
-#playlists-items-layout {
+#two-panel-layout {
     & > .layout-pane-1 {
         min-height: 12.5rem;
         flex-basis: 50%;
     }
 
     & > .layout-pane-2 {
-        min-height: 13rem;
+        min-height: 15rem;
     }
 }
 
-#artists-albums-tracks-layout {
+#three-panel-layout {
     & > .layout-pane-1 {
         min-width: 7rem;
         flex-basis: 33%;

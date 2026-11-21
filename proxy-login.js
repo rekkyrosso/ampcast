@@ -1,10 +1,8 @@
 const md5 = require('md5');
 const argv = require('minimist')(process.argv.slice(2));
-const dotenv = require('dotenv');
 const isDocker = argv.host === '0.0.0.0';
 
 async function handleProxyLogin(req, res) {
-    dotenv.config({path: './.env'});
     const [, search] = req.url.split('?');
     const params = new URLSearchParams(search);
     const server = params.get('server');
@@ -12,7 +10,7 @@ async function handleProxyLogin(req, res) {
     const SERVER_ID = server.toUpperCase();
     const user = getEnv(`${SERVER_ID}_USER`);
     const password = getEnv(`${SERVER_ID}_PASSWORD`);
-    console.log('proxy-login:', {server, url});
+    console.log('proxy-login:', url);
     if (!user || !password) {
         res.writeHead(407, {'Content-Type': 'text/plain'});
         res.end('Proxy Authentication Required');
@@ -153,7 +151,6 @@ async function subsonicLogin(req, res, url, userName, password) {
         } else {
             try {
                 console.error(err);
-                console.log({url});
                 console.log('Subsonic login failed. Attempting legacy login...');
                 await login({
                     p: `enc:${Array.from(new TextEncoder().encode(password))
@@ -164,7 +161,6 @@ async function subsonicLogin(req, res, url, userName, password) {
             } catch (err) {
                 try {
                     console.error(err);
-                    console.log({url});
                     console.log('Subsonic login failed. Attempting simple login...');
                     await login({p: password, v: '1.12.0'}, true);
                 } catch (err) {

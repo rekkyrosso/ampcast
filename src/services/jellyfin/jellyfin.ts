@@ -15,7 +15,7 @@ import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import PlaybackType from 'types/PlaybackType';
+import PlaybackData from 'types/PlaybackData';
 import ServiceType from 'types/ServiceType';
 import {getMediaObjectId} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
@@ -104,7 +104,7 @@ const jellyfin: PersonalMediaService = {
     getLyrics,
     getMediaObject,
     getPlayableUrl,
-    getPlaybackType,
+    getPlaybackData,
     getServerInfo,
     lookup,
     scrobble,
@@ -247,8 +247,9 @@ function getPlayableUrl(item: MediaItem): string {
     return jellyfinApi.getPlayableUrl(item);
 }
 
-async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
-    return jellyfinApi.getPlaybackType(item);
+async function getPlaybackData(item: MediaItem): Promise<PlaybackData> {
+    const playbackType = await jellyfinApi.getPlaybackType(item);
+    return {playbackType};
 }
 
 async function getServerInfo(): Promise<Record<string, string>> {

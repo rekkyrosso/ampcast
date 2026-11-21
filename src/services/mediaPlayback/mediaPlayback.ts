@@ -10,6 +10,7 @@ import {
     filter,
     firstValueFrom,
     fromEvent,
+    interval,
     map,
     mergeMap,
     of,
@@ -24,6 +25,7 @@ import {
 } from 'rxjs';
 import MediaPlayback from 'types/MediaPlayback';
 import Player from 'types/Player';
+import PlaybackData from 'types/PlaybackData';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import RepeatMode from 'types/RepeatMode';
@@ -41,6 +43,7 @@ import playback, {observePaused} from './playback';
 import playbackSettings, {observePlaybackSettings} from './playbackSettings';
 import visualizerPlayer from './visualizerPlayer';
 import './scrobbler';
+import {nanoid} from 'nanoid';
 
 const logger = new Logger('mediaPlayback');
 const loadingLocked$ = new BehaviorSubject(!isMiniPlayer);
@@ -301,8 +304,16 @@ async function getPlayableItem(item: PlaylistItem | null): Promise<PlaylistItem 
         }
         if (item.playbackType === undefined) {
             // Whether to use HLS, Dash, etc.
-            const playbackType = await getPlaybackType(item);
-            item = {...item, playbackType};
+            const playbackData = await getPlaybackData(item);
+            item = {...item, ...playbackData};
+            const service = getServiceFromSrc(item);
+            if (service?.isLoggedIn()) {
+                // Only dispatch if we're logged in.
+                dispatchMetadataChanges({
+                    match: (object) => object.src === item!.src,
+                    values: playbackData,
+                });
+            }
         }
     } catch (err) {
         logger.error(err);
@@ -310,30 +321,22 @@ async function getPlayableItem(item: PlaylistItem | null): Promise<PlaylistItem 
     return item;
 }
 
-async function getPlaybackType(item: PlaylistItem): Promise<PlaybackType> {
-    let playbackType = item.playbackType;
+async function getPlaybackData(item: PlaylistItem): Promise<PlaybackData> {
+    let playbackData: PlaybackData = {playbackType: PlaybackType.Direct};
     try {
-        if (playbackType === undefined) {
+        if (item.playbackType === undefined) {
             const service = getServiceFromSrc(item);
-            if (service?.isLoggedIn() === false) {
-                // Don't dispatch if we're not logged in.
-                return PlaybackType.Direct;
-            }
-            if (service?.getPlaybackType) {
-                playbackType = await service.getPlaybackType(item);
+            if (service?.getPlaybackData) {
+                playbackData = await service.getPlaybackData(item);
             } else if (/^https?:/.test(item.src)) {
                 const lookup = await createMediaItemFromUrl(item.src);
-                playbackType = lookup.playbackType;
+                playbackData = {playbackType: lookup.playbackType || PlaybackType.Direct};
             }
-            dispatchMetadataChanges({
-                match: (object) => object.src === item.src,
-                values: {playbackType},
-            });
         }
     } catch (err) {
         logger.error(err);
     }
-    return playbackType ?? PlaybackType.Direct;
+    return playbackData;
 }
 
 const mediaPlayback: MediaPlayback = {
@@ -607,6 +610,30 @@ if (!isMiniPlayer) {
             distinctUntilChanged(),
             filter((isEmpty) => isEmpty),
             tap(() => (mediaPlayback.repeatMode = RepeatMode.None))
+        )
+        .subscribe(logger);
+
+    // Expired playback.
+    interval(60_000)
+        .pipe(
+            tap(() => {
+                playlist.getItems().forEach((item, index) => {
+                    // Replace expired items in the playback queue.
+                    if (item.playbackExpiresAt && Date.now() - item.playbackExpiresAt >= 0) {
+                        if (
+                            index === playlist.getCurrentIndex() &&
+                            (!playback.paused || playback.currentTime)
+                        ) {
+                            // Currently streaming.
+                            return;
+                        }
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const {playbackType, playbackExpiresAt, srcs, ...newItem} = item;
+                        newItem.id = nanoid();
+                        playlist.replaceAt(index, newItem);
+                    }
+                });
+            })
         )
         .subscribe(logger);
 }

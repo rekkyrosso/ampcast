@@ -17,7 +17,13 @@ import {otherTracksLayout, radiosLayout, videosLayout} from 'components/MediaLis
 
 export type CreateSingularMediaSourceParams<T extends MediaObject> = Pick<
     MediaSource<T>,
-    'itemType' | 'isPin' | 'primaryItems' | 'primaryItems' | 'secondaryItems' | 'tertiaryItems'
+    | 'itemType'
+    | 'childItemType'
+    | 'isPin'
+    | 'primaryItems'
+    | 'primaryItems'
+    | 'secondaryItems'
+    | 'tertiaryItems'
 > & {
     readonly src: string;
     readonly childSort?: SortParams;

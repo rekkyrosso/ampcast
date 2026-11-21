@@ -8,6 +8,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
+import PlaybackData from 'types/PlaybackData';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -85,7 +86,7 @@ const spotify: PublicMediaService = {
     getDroppedItems,
     getFilters,
     getMediaObject,
-    getPlaybackType,
+    getPlaybackData,
     lookup,
     lookupByISRC,
     removePlaylistItems,
@@ -284,8 +285,8 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
     return createMediaObject(object, inLibrary);
 }
 
-async function getPlaybackType(): Promise<PlaybackType> {
-    return PlaybackType.IFrame;
+async function getPlaybackData(): Promise<PlaybackData> {
+    return {playbackType: PlaybackType.IFrame};
 }
 
 async function getTracksById(trackIds: readonly string[]): Promise<readonly MediaItem[]> {

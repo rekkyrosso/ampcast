@@ -62,7 +62,7 @@ function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
         <>
             <div className="youtube-video-info">
                 <h4>Title: {video.title}</h4>
-                <Owner owner={video.owner} src={video.src} />
+                <Owner owner={video.owner} />
                 <p className="external-view">
                     View on YouTube: <ExternalLink icon="youtube" href={video.externalUrl} />
                 </p>

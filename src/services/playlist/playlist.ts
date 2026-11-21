@@ -47,7 +47,7 @@ export function getItems(): PlaylistItem[] {
 }
 
 function setItems(items: PlaylistItem[]): void {
-    items = items.concat(); // make sure we get a new array
+    items = items.slice(); // make sure we get a new array
     items$.next(items);
     if (items.length === 0) {
         setCurrentItemId('');
@@ -188,11 +188,11 @@ export async function injectAt(items: PlayableType, index: number): Promise<void
     const additions = await createMediaItems(items);
     if (additions.length > 0) {
         const newItems = additions.map((item) => ({
-            ...removeUserData(item),
+            ...removeUserData(removePlaybackData(item)),
             id: nanoid(),
             linearType: item.linearType === LinearType.Station ? item.linearType : undefined,
             playbackType: isDerivedPlaybackType(item) ? undefined : item.playbackType,
-            scrobbleOverride: undefined
+            scrobbleOverride: undefined,
         }));
         if (index >= 0 && index < all.length) {
             // insert
@@ -250,6 +250,18 @@ export function removeAt(index: number): void {
     }
 }
 
+export function replaceAt(index: number, item: PlaylistItem): void {
+    const currentItem = getAt(index);
+    if (currentItem) {
+        const items = getItems();
+        items[index] = item;
+        if (currentItem.id === getCurrentItemId()) {
+            setCurrentItemId(item.id);
+        }
+        setItems(items.slice());
+    }
+}
+
 export function reverseAt(index: number, length: number): void {
     const items = getItems();
     const reversals = items.slice(index, index + length).reverse();
@@ -303,6 +315,15 @@ function isDerivedPlaybackType(item: MediaItem): boolean {
     return item.playbackType === PlaybackType.HLS && /^(emby|jellyfin|plex):/.test(item.src);
 }
 
+function removePlaybackData<T extends MediaItem>(item: T): T {
+    if (item.playbackExpiresAt) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {playbackExpiresAt, playbackType, srcs, ...newItem} = item;
+        return newItem as T;
+    }
+    return item;
+}
+
 const playlist: Playlist = {
     get atEnd(): boolean {
         return getCurrentIndex() === getSize() - 1;
@@ -335,6 +356,7 @@ const playlist: Playlist = {
     prev,
     remove,
     removeAt,
+    replaceAt,
     reverseAt,
     shuffle,
 };
@@ -360,19 +382,20 @@ if (isMiniPlayer) {
         .pipe(
             skip(2),
             debounceTime(delayWriteTime),
-            mergeMap((items: PlaylistItem[]) => {
+            mergeMap((items) => {
                 items = items.map((item) => {
+                    item = removePlaybackData(item);
                     if (isDerivedPlaybackType(item)) {
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const {lookupStatus, playbackType, ...rest} = item;
-                        return rest;
-                    } else if ('lookupStatus' in item) {
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const {lookupStatus, ...rest} = item;
-                        return rest;
-                    } else {
-                        return item;
+                        const {playbackType, ...newItem} = item;
+                        item = newItem;
                     }
+                    if ('lookupStatus' in item) {
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const {lookupStatus, ...newItem} = item;
+                        item = newItem;
+                    }
+                    return item;
                 });
                 return playlistStore.setItems(items);
             })

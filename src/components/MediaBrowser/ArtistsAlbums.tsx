@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import Pager from 'types/Pager';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import MediaObjectBrowser from 'components/MediaObjectBrowser';
 import {albumTracksLayout} from 'components/MediaList/layouts';
@@ -9,7 +10,7 @@ import ArtistList from 'components/MediaList/ArtistList';
 import Splitter from 'components/Splitter';
 import {PagedItemsProps} from './PagedItems';
 
-export default function Artists({service, source, ...props}: PagedItemsProps<MediaArtist>) {
+export default function ArtistsAlbums({service, source, ...props}: PagedItemsProps<MediaArtist>) {
     const [[selectedArtist], setSelectedArtist] = useState<readonly MediaArtist[]>([]);
     const [[selectedAlbum], setSelectedAlbum] = useState<readonly MediaAlbum[]>([]);
     const [error, setError] = useState<unknown>();
@@ -29,7 +30,7 @@ export default function Artists({service, source, ...props}: PagedItemsProps<Med
         <AlbumList
             title={selectedArtist ? `${selectedArtist.title}: Albums` : ''}
             className="artist-albums"
-            pager={selectedArtist?.pager || null}
+            pager={(selectedArtist?.pager as Pager<MediaAlbum>) || null}
             source={source}
             level={2}
             onSelect={setSelectedAlbum}
@@ -51,7 +52,7 @@ export default function Artists({service, source, ...props}: PagedItemsProps<Med
     );
 
     const albumsAndTracks = (
-        <Splitter id="artist-albums-tracks-layout" arrange="rows">
+        <Splitter id="two-panel-layout" arrange="rows">
             {albumList}
             {trackList}
         </Splitter>
@@ -72,12 +73,12 @@ export default function Artists({service, source, ...props}: PagedItemsProps<Med
             ) : source.secondaryItems?.layout?.view === 'none' ? (
                 artistList
             ) : source.tertiaryItems?.layout?.view === 'none' ? (
-                <Splitter id="artists-albums-layout" arrange="rows">
+                <Splitter id="two-panel-layout" arrange="rows">
                     {artistList}
                     {albumList}
                 </Splitter>
             ) : (
-                <Splitter id="artists-albums-tracks-layout" arrange="columns">
+                <Splitter id="three-panel-layout" arrange="columns">
                     {artistList}
                     {albumsAndTracks}
                 </Splitter>

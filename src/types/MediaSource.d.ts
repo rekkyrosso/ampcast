@@ -38,6 +38,7 @@ export default interface MediaSource<T extends MediaObject = MediaObject> {
     readonly title: string;
     readonly icon: IconName;
     readonly itemType: T['itemType'];
+    readonly childItemType?: ChildOf<T>['itemType'];
     readonly mediaType?: T extends MediaItem ? MediaType : never;
     readonly linearType?: T extends MediaItem ? LinearType : never;
     readonly filterType?: FilterType;

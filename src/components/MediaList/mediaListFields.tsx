@@ -15,7 +15,7 @@ import MediaType from 'types/MediaType';
 import {getElapsedTimeText, srcToPath} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {ColumnSpec} from 'components/ListView';
-import {performAction} from 'components/Actions';
+import {getIconForAction, performAction} from 'components/Actions';
 import {
     AlbumTypeBadge,
     Badge,
@@ -197,6 +197,84 @@ const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
     <Text value={getCountString(item.playCount)} />
 );
 
+const GlobalStats: RenderField = (item) => {
+    const stats: React.JSX.Element[] = [];
+    if (item.itemType === ItemType.Artist && item.followers) {
+        const count = getCountString(item.followers);
+        stats.push(
+            <MediaSourceLabel
+                className="text"
+                icon="artist"
+                text={count}
+                title={`${count} followers`}
+                key="followers"
+            />
+        );
+    }
+    if (item.globalPlayCount) {
+        const count = getCountString(item.globalPlayCount);
+        stats.push(
+            <MediaSourceLabel
+                className="text"
+                icon="play"
+                text={count}
+                title={`${count} plays`}
+                key="plays"
+            />
+        );
+    }
+    if (item.globalLikes) {
+        const count = getCountString(item.globalLikes);
+        const icon = getIconForAction(item, Action.RemoveFromLibrary)
+        stats.push(
+            <MediaSourceLabel
+                className="text"
+                icon={icon}
+                text={count}
+                title={`${count} likes`}
+                key="likes"
+            />
+        );
+    }
+    if (item.globalRating) {
+        stats.push(
+            <MediaSourceLabel
+                className="text"
+                icon="star-fill"
+                text={item.globalRating}
+                title="Rating"
+                key="rating"
+            />
+        );
+    }
+    return stats;
+};
+
+const GlobalPlayCount: RenderField = (item) => {
+    if (item.globalPlayCount == null) {
+        return null;
+    }
+    return <Text value={getCountString(item.globalPlayCount)} />;
+};
+
+const GlobalLikes: RenderField = (item) => {
+    if (item.globalLikes == null) {
+        return null;
+    }
+    return <Text value={getCountString(item.globalLikes)} />;
+};
+
+const GlobalRating: RenderField = (item) => {
+    return <Text value={item.globalRating} />;
+};
+
+const Followers: RenderField<MediaArtist> = (item) => {
+    if (item.followers == null) {
+        return null;
+    }
+    return <Text value={getCountString(item.followers)} />;
+};
+
 const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => (
     <Text value={getCount(item.trackCount)} />
 );
@@ -214,16 +292,18 @@ const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
         return null;
     }
 };
-const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => <Text value={item.owner?.name} />;
+const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => {
+    const link = item.links?.owner;
+    return item.owner && link ? (
+        <InternalLink className="text" path={srcToPath(link)}>
+            {item.owner.name}
+        </InternalLink>
+    ) : (
+        <Text value={item.owner?.name} />
+    );
+};
 
 const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;
-
-const Views: RenderField = (item) => {
-    if (item.globalPlayCount == null) {
-        return null;
-    }
-    return <Text value={getCountStringWithLabel(item.globalPlayCount, 'view')} />;
-};
 
 const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
@@ -515,11 +595,40 @@ const mediaListFields: Record<Field, FieldSpec> = {
         width: 5,
         className: 'year',
     },
-    Views: {
-        id: 'Views',
-        title: 'Views',
-        render: Views,
-        className: 'views count',
+    GlobalStats: {
+        id: 'GlobalStats',
+        render: GlobalStats,
+        className: 'stats',
+    },
+    GlobalPlayCount: {
+        id: 'GlobalPlayCount',
+        title: 'Plays',
+        render: GlobalPlayCount,
+        align: 'right',
+        width: 5,
+        className: 'global-play-count play-count count',
+    },
+    GlobalLikes: {
+        id: 'GlobalLikes',
+        title: 'Likes',
+        render: GlobalLikes,
+        align: 'right',
+        width: 5,
+        className: 'likes count',
+    },
+    GlobalRating: {
+        id: 'GlobalRating',
+        title: 'Rating',
+        render: GlobalRating,
+        align: 'right',
+        width: 5,
+        className: 'global-rating count',
+    },
+    Followers: {
+        id: 'Followers',
+        title: 'Followers',
+        render: Followers,
+        className: 'followers count',
     },
     Genre: {id: 'Genre', title: 'Genre', render: Genre, width: 10, className: 'genre'},
     Owner: {id: 'Owner', title: 'Owner', render: Owner, className: 'owner'},
@@ -651,7 +760,7 @@ function getCount(count?: number): string {
     return isNaN(value) ? '' : value.toLocaleString();
 }
 
-function getCountString(count = 0): string {
+export function getCountString(count = 0): string {
     if (count < 10_000) {
         return getCount(count);
     } else if (count < 100_000) {
@@ -664,13 +773,5 @@ function getCountString(count = 0): string {
         return `${Math.round(count / 1_000_000)}M`;
     } else {
         return `${(count / 1_000_000_000).toFixed(1).replace('.0', '')}B`;
-    }
-}
-
-function getCountStringWithLabel(count = 0, label: string, labelPlural = label + 's'): string {
-    if (count === 1) {
-        return `1 ${label}`;
-    } else {
-        return `${getCountString(count)} ${labelPlural}`;
     }
 }

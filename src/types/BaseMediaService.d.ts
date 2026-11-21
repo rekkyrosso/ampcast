@@ -7,6 +7,7 @@ import FilterType from './FilterType';
 import ItemType from './ItemType';
 import LibraryAction from './LibraryAction';
 import Lyrics from './Lyrics';
+import MediaArtist from './MediaArtist';
 import MediaFilter from './MediaFilter';
 import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
@@ -14,7 +15,7 @@ import MediaPlaylist from './MediaPlaylist';
 import MediaService from './MediaService';
 import MediaSource, {AnyMediaSource} from './MediaSource';
 import Pager from './Pager';
-import PlaybackType from './PlaybackType';
+import PlaybackData from './PlaybackData';
 import Pin, {Pinnable} from './Pin';
 
 type BaseMediaService = Auth & {
@@ -66,6 +67,7 @@ type BaseMediaService = Auth & {
     ) => Promise<void>;
     bulkRate?: (items: readonly MediaObject[], ratings: readonly number[]) => Promise<void>;
     bulkStore?: (items: readonly MediaObject[], inLibrary: boolean) => Promise<void>;
+    canFollow?: (item: MediaArtist, inListView?: boolean) => boolean;
     canPin?: (item: MediaObject, inListView?: boolean) => boolean;
     canRate?: (item: MediaObject, inListView?: boolean) => boolean;
     canStore?: (item: MediaObject, inListView?: boolean) => boolean;
@@ -92,7 +94,7 @@ type BaseMediaService = Auth & {
     getLyrics?: (item: MediaItem) => Promise<Lyrics | null>;
     getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
     getPlayableUrl?: (item: MediaItem) => string;
-    getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
+    getPlaybackData?: (item: MediaItem) => Promise<PlaybackData>;
     getPlaylistByName?: (name: string) => Promise<MediaPlaylist | undefined>;
     getThumbnailUrl?: (url: string) => string;
     lookup?: (

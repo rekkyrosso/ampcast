@@ -50,7 +50,7 @@ export default function Albums({service, source, ...props}: PagedItemsProps<Medi
             ) : source.secondaryItems?.layout?.view === 'none' ? (
                 albumList
             ) : (
-                <Splitter id="albums-tracks-layout" arrange="rows">
+                <Splitter id="two-panel-layout" arrange="rows">
                     {albumList}
                     {trackList}
                 </Splitter>

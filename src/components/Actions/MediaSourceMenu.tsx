@@ -80,9 +80,11 @@ export function MediaSourceMenuItems({
         source.secondaryItems?.layout?.view !== 'none' &&
         source.itemType !== ItemType.Media
     ) {
-        const itemType = source.itemType === ItemType.Artist ? ItemType.Album : ItemType.Media;
-        secondaryMenuItems = getMenuItems(source, 2, itemType, syntheticAlbum);
-        if (source.tertiaryItems?.layout?.view !== 'none' && source.itemType === ItemType.Artist) {
+        const childItemType =
+            source.childItemType ??
+            (source.itemType === ItemType.Artist ? ItemType.Album : ItemType.Media);
+        secondaryMenuItems = getMenuItems(source, 2, childItemType, syntheticAlbum);
+        if (source.tertiaryItems?.layout?.view !== 'none' && childItemType !== ItemType.Media) {
             tertiaryMenuItems = getMenuItems(source, 3, ItemType.Media, syntheticAlbum);
         }
     }
@@ -234,7 +236,7 @@ function getViewName(view: string): string {
 }
 
 function getDefaultLabel(sourceId: string, itemType: ItemType): string {
-    const [serviceId] = sourceId.split('/');
+    const [serviceId] = sourceId.split(/[/:]/);
     return getMediaLabel(itemType, serviceId);
 }
 

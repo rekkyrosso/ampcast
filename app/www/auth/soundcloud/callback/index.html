@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Ampcast Redirect</title>
+<link rel="icon" sizes="any" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+DQo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZT0ib3JhbmdlIiBmaWxsPSJibGFjayIvPg0KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMiIgc3Ryb2tlLXdpZHRoPSJub25lIiBmaWxsPSJ3aGl0ZSIvPg0KPC9zdmc+">
+<script>
+    if (opener) {
+        try {
+            if (opener.location.origin === location.origin) {
+                const search = new URLSearchParams(location.search);
+                const message = {soundcloud_callback: true};
+                for (const [key, value] of search.entries()) {
+                    message[key] = value;
+                }
+                opener.postMessage(message, location.origin);
+            }
+        } catch {
+            try {
+                const search = new URLSearchParams(location.search);
+                const state = search.get('state');
+                const params = new URLSearchParams(`?${state}`);
+                const origin = params.get('o');
+                if (['https://ampcast.app', 'https://ampcast.dev', 'ampcast:/'].includes(origin)) {
+                    location.href = `${origin}${location.pathname}${location.search}`;
+                } else {
+                    window.close();
+                }
+            } catch {
+                window.close();
+            }
+        }
+    }
+</script>

@@ -170,7 +170,7 @@ class Lookup {
             const [serviceId, , id] = src.split(':');
             switch (serviceId) {
                 case 'soundcloud': {
-                    const track = await soundcloudApi.getMediaItem(linkedItem.externalUrl!);
+                    const track = await soundcloudApi.getMediaItemFromUrl(linkedItem.externalUrl!);
                     return bestOf(track, linkedItem);
                 }
 

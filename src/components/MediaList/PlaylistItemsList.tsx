@@ -48,9 +48,8 @@ export default function PlaylistItemsList({
     const moveable =
         unlocked &&
         config?.moveable &&
-        defaultSort &&
-        defaultSort.sortBy === sortParams?.sortBy &&
-        defaultSort.sortOrder === sortParams?.sortOrder;
+        defaultSort?.sortBy === sortParams?.sortBy &&
+        defaultSort?.sortOrder === sortParams?.sortOrder;
 
     useEffect(() => {
         setCursor(busy && complete ? 'progress' : undefined);

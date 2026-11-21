@@ -140,7 +140,7 @@ export class MixcloudPlayer implements Player<MediaItem> {
     }
 
     load(item: MediaItem): void {
-        logger.log('load', item.src);
+        logger.log('load', item.src, item.startTime || 0);
         if (this.autoplay) {
             this.stopped = false;
         }

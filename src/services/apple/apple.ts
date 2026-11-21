@@ -9,6 +9,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
+import PlaybackData from 'types/PlaybackData';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -93,7 +94,7 @@ const apple: PublicMediaService = {
     getDroppedItems,
     getFilters,
     getMediaObject,
-    getPlaybackType,
+    getPlaybackData,
     lookup,
     lookupByISRC,
     store,
@@ -355,8 +356,8 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
     return item;
 }
 
-async function getPlaybackType(): Promise<PlaybackType> {
-    return PlaybackType.HLS;
+async function getPlaybackData(): Promise<PlaybackData> {
+    return {playbackType: PlaybackType.HLS};
 }
 
 async function lookup(

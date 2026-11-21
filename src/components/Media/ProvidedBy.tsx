@@ -1,6 +1,6 @@
 import React from 'react';
 import MediaItem from 'types/MediaItem';
-import {isBranded} from 'services/mediaServices';
+import ServiceType from 'types/ServiceType';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import useMediaServices from 'hooks/useMediaServices';
 
@@ -9,7 +9,12 @@ export default function ProvidedBy({item}: {item: MediaItem | null}) {
     const [serviceId] = item?.src.split(':') || [];
     const service = services.find((service) => service.id === serviceId);
 
-    if (item && service && isBranded(service)) {
+    if (
+        item &&
+        service &&
+        service.serviceType === ServiceType.PublicMedia &&
+        serviceId !== 'internet-radio'
+    ) {
         return (
             <MediaSourceLabel
                 className="provided-by"

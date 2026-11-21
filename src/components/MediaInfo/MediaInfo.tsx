@@ -15,6 +15,7 @@ import DefaultActions, {ActionsProps} from 'components/Actions';
 import Badges from 'components/Badges';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
+import {getCountString} from 'components/MediaList/mediaListFields';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
 import Time from 'components/Time';
@@ -66,11 +67,13 @@ function MediaItemInfo({
                     <Duration duration={item.duration} />
                 )}
                 <Artist artist={item.artists?.join(', ')} />
+                <Owner owner={item.owner} />
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
                 {item.linearType ? <StationName stationName={item.stationName} /> : null}
-                <Owner owner={item.owner} src={item.src} />
                 <Genre genres={item.genres} />
+                <Plays playCount={item.globalPlayCount} />
+                <Likes likes={item.globalLikes} />
                 <div className="media-info-icon-bar">
                     <Badges item={item} />
                     <Actions item={item} />
@@ -96,6 +99,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                 <Artist artist={album.artists?.join(', ')} />
                 <Year year={album.year} />
                 <Genre genres={album.genres} />
+                <Likes likes={album.globalLikes} />
                 <div className="media-info-icon-bar">
                     <Badges item={album} />
                     <Actions item={album} />
@@ -113,8 +117,10 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
             <div className="media-info-main">
                 <Thumbnail item={artist} />
                 <Title title={artist.title} />
-                <Genre genres={artist.genres} />
                 <Country country={artist.origin} />
+                <Genre genres={artist.genres} />
+                <Followers followers={artist.followers} />
+                <Likes likes={artist.globalLikes} />
                 <div className="media-info-icon-bar">
                     <Badges item={artist} />
                     <Actions item={artist} />
@@ -132,9 +138,10 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
             <div className="media-info-main">
                 <Thumbnail item={playlist} />
                 <Title title={playlist.title} />
+                <Owner owner={playlist.owner} defaultLabel="Curator" />
                 <TrackCount trackCount={playlist.trackCount} />
-                <Owner owner={playlist.owner} src={playlist.src} />
                 <Genre genres={playlist.genres} />
+                <Likes likes={playlist.globalLikes} />
                 <div className="media-info-icon-bar">
                     <Actions item={playlist} />
                 </div>
@@ -171,7 +178,7 @@ function Description<T extends MediaPlaylist>({description}: Pick<T, 'descriptio
         return (
             <TextBox className="description">
                 {description.split(/\n\n+/).map((text, index) => (
-                    <p className={text.includes('\n') ? 'free-text' : ''} key={index}>
+                    <p className={/\n|https?:/.test(text) ? 'free-text' : ''} key={index}>
                         {text
                             .split('\n')
                             .map((line) => <>{line}</>)
@@ -216,17 +223,16 @@ function Artist({artist}: {artist?: string}) {
     ) : null;
 }
 
-export function Owner<T extends MediaItem | MediaPlaylist>({src, owner}: Pick<T, 'src' | 'owner'>) {
+export function Owner<T extends MediaItem | MediaPlaylist>({
+    owner,
+    defaultLabel = 'Owner',
+}: Pick<T, 'owner'> & {defaultLabel?: string}) {
     if (!owner || !owner.name) {
         return null;
     }
-
-    const [serviceId] = src.split(':');
-    const label = serviceId === 'youtube' ? 'Channel' : 'Curator';
-
     return (
         <p className="owner">
-            {label}:{' '}
+            {owner.label || defaultLabel}:{' '}
             {owner.url ? <ExternalLink href={owner.url}>{owner.name}</ExternalLink> : owner.name}
         </p>
     );
@@ -369,6 +375,30 @@ function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
 function Country({country}: {country?: string}) {
     if (country) {
         return <p className="country">From: {country}</p>;
+    } else {
+        return null;
+    }
+}
+
+function Followers({followers}: {followers?: number}) {
+    if (followers) {
+        return <p className="followers">Followers: {getCountString(followers)}</p>;
+    } else {
+        return null;
+    }
+}
+
+function Likes({likes}: {likes?: number}) {
+    if (likes) {
+        return <p className="likes">Likes: {getCountString(likes)}</p>;
+    } else {
+        return null;
+    }
+}
+
+function Plays({playCount}: {playCount?: number}) {
+    if (playCount) {
+        return <p className="plays">Plays: {getCountString(playCount)}</p>;
     } else {
         return null;
     }

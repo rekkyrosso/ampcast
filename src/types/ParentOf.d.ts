@@ -6,8 +6,8 @@ import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
 
 type ParentOf<T extends MediaObject> = T extends MediaItem
-    ? MediaAlbum | MediaPlaylist | MediaFolder
-    : T extends MediaAlbum
+    ? MediaArtist | MediaAlbum | MediaPlaylist | MediaFolder
+    : T extends MediaAlbum | MediaPlaylist
     ? MediaArtist
     : T extends MediaFolder
     ? MediaFolder | undefined

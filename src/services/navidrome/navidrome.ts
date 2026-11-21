@@ -13,7 +13,7 @@ import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import PlaybackType from 'types/PlaybackType';
+import PlaybackData from 'types/PlaybackData';
 import ServiceType from 'types/ServiceType';
 import {getMediaObjectId, getTextFromHtml} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
@@ -103,7 +103,7 @@ const navidrome: PersonalMediaService = {
     getLyrics,
     getMediaObject,
     getPlayableUrl,
-    getPlaybackType,
+    getPlaybackData,
     getServerInfo,
     getThumbnailUrl,
     lookup,
@@ -200,14 +200,13 @@ async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
     return subsonicApi.getLyrics(item);
 }
 
-const itemTypes: Record<string, ItemType> = {
-    album: ItemType.Album,
-    artist: ItemType.Artist,
-    playlist: ItemType.Playlist,
-    song: ItemType.Media,
-};
-
 async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
+    const itemTypes: Record<string, ItemType> = {
+        album: ItemType.Album,
+        artist: ItemType.Artist,
+        playlist: ItemType.Playlist,
+        song: ItemType.Media,
+    };
     const [, type, id] = src.split(':');
     const itemType = itemTypes[type];
     if (itemType === undefined) {
@@ -280,8 +279,9 @@ function getPlayableUrl(item: MediaItem): string {
     return subsonicApi.getPlayableUrl(item);
 }
 
-async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
-    return subsonicApi.getPlaybackType(item);
+async function getPlaybackData(item: MediaItem): Promise<PlaybackData> {
+    const playbackType = await subsonicApi.getPlaybackType(item);
+    return {playbackType};
 }
 
 async function getServerInfo(): Promise<Record<string, string>> {

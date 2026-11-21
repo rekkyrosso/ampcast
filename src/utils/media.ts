@@ -59,7 +59,7 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
 
 export function getItemTypeFromSrc(src: string): ItemType {
     const [, type = ''] = src.split(':');
-    if (type.includes('artist')) {
+    if (type.includes('artist') || type.includes('user')) {
         return ItemType.Artist;
     } else if (type.includes('playlist')) {
         return ItemType.Playlist;
@@ -92,6 +92,7 @@ export function getMediaLabel(itemType: ItemType, serviceId?: string): string {
                 case 'lastfm':
                 case 'listenbrainz':
                 case 'plex':
+                case 'soundcloud':
                     return 'Tracks';
 
                 case 'youtube':

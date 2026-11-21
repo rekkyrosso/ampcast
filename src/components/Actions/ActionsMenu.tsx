@@ -182,7 +182,7 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
 
             {item.inLibrary === false && service?.canStore?.(item, inListView) ? (
                 <PopupMenuItem<Action>
-                    label={getLabelForAction(service, Action.AddToLibrary)}
+                    label={getLabelForAction(item, Action.AddToLibrary)}
                     value={Action.AddToLibrary}
                     key={Action.AddToLibrary}
                 />
@@ -190,7 +190,7 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
 
             {item.inLibrary === true && service?.canStore?.(item, inListView) ? (
                 <PopupMenuItem<Action>
-                    label={getLabelForAction(service, Action.RemoveFromLibrary)}
+                    label={getLabelForAction(item, Action.RemoveFromLibrary)}
                     value={Action.RemoveFromLibrary}
                     disabled={service.id === 'apple'} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
                     key={Action.RemoveFromLibrary}

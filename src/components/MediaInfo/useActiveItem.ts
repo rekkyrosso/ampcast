@@ -58,7 +58,7 @@ async function addServiceMetadata<T extends MediaObject>(item: T): Promise<T> {
     try {
         const prevItem = item;
         const service = getServiceFromSrc(item);
-        if (service?.addMetadata) {
+        if (service?.addMetadata && !item.synthetic) {
             item = await service.addMetadata?.(item);
         }
         if (stationStore.canFavorite(item) && item.isFavoriteStation === undefined) {
@@ -92,6 +92,9 @@ async function addDescription<T extends MediaObject>(item: T): Promise<T> {
     // Add artist/album descriptions from last.fm.
     try {
         if (!isPersonalMedia(item) || item.description !== undefined) {
+            return item;
+        }
+        if (!lastfmApi.isLoggedIn()) {
             return item;
         }
         let description = '';

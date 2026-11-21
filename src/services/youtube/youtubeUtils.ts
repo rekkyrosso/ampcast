@@ -63,6 +63,7 @@ function createOwner({
         ? {
               name: channelTitle,
               url: `${youtube.url}/channel/${channelId}`,
+              label: 'Channel',
           }
         : undefined;
 }

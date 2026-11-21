@@ -5,7 +5,6 @@ import LibraryAction from 'types/LibraryAction';
 import LinearType from 'types/LinearType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import {canBookmark} from 'services/localdb/bookmarks';
 import {isListen} from 'services/localdb/listens';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
@@ -26,12 +25,16 @@ export interface ActionsProps {
 const defaultActionIcons: Record<LibraryAction, IconName> = {
     [Action.AddToLibrary]: 'heart',
     [Action.RemoveFromLibrary]: 'heart-fill',
+    [Action.Follow]: 'heart',
+    [Action.Unfollow]: 'heart-fill',
     [Action.Rate]: 'star',
 };
 
 const defaultActionLabels: Record<LibraryAction, string> = {
     [Action.AddToLibrary]: 'Add to library',
     [Action.RemoveFromLibrary]: 'Remove from library',
+    [Action.Follow]: 'Follow',
+    [Action.Unfollow]: 'Unfollow',
     [Action.Rate]: 'Rate',
 };
 
@@ -55,6 +58,14 @@ export default function Actions({item, location = 'list', parentPlaylist}: Actio
             performAction(Action.Unpin, [item]);
         } else {
             performAction(Action.Pin, [item]);
+        }
+    }, [item]);
+
+    const toggleFollowing = useCallback(() => {
+        if (item.inLibrary) {
+            performAction(Action.Unfollow, [item]);
+        } else {
+            performAction(Action.Follow, [item]);
         }
     }, [item]);
 
@@ -156,17 +167,46 @@ export default function Actions({item, location = 'list', parentPlaylist}: Actio
                 <IconButton
                     icon={
                         item.inLibrary
-                            ? getIconForAction(service, Action.RemoveFromLibrary)
-                            : getIconForAction(service, Action.AddToLibrary)
+                            ? getIconForAction(item, Action.RemoveFromLibrary)
+                            : getIconForAction(item, Action.AddToLibrary)
                     }
                     title={
                         item.inLibrary
-                            ? getLabelForAction(service, Action.RemoveFromLibrary)
-                            : getLabelForAction(service, Action.AddToLibrary)
+                            ? getLabelForAction(item, Action.RemoveFromLibrary)
+                            : getLabelForAction(item, Action.AddToLibrary)
                     }
                     tabIndex={tabIndex}
-                    disabled={service.id === 'apple' && item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
+                    disabled={
+                        item.inLibrary &&
+                        (service.id === 'apple' || // remove doesn't work (https://developer.apple.com/forums/thread/107807)
+                            service.id === 'soundcloud') // doesn't work for SoundCloud either
+                    }
                     onClick={toggleInLibrary}
+                    key="store"
+                />
+            ) : null}
+
+            {item.inLibrary !== undefined &&
+            item.itemType === ItemType.Artist &&
+            service?.canFollow?.(item, inListView) ? (
+                <IconButton
+                    icon={
+                        item.inLibrary
+                            ? getIconForAction(item, Action.Unfollow)
+                            : getIconForAction(item, Action.Follow)
+                    }
+                    title={
+                        item.inLibrary
+                            ? getLabelForAction(item, Action.Unfollow)
+                            : getLabelForAction(item, Action.Follow)
+                    }
+                    tabIndex={tabIndex}
+                    disabled={
+                        item.inLibrary &&
+                        (service.id === 'apple' || // remove doesn't work (https://developer.apple.com/forums/thread/107807)
+                            service.id === 'soundcloud') // doesn't work for SoundCloud either
+                    }
+                    onClick={toggleFollowing}
                     key="store"
                 />
             ) : null}
@@ -192,10 +232,12 @@ export default function Actions({item, location = 'list', parentPlaylist}: Actio
     );
 }
 
-export function getIconForAction(service: MediaService, action: LibraryAction): IconName {
-    return service.icons?.[action] || defaultActionIcons[action];
+export function getIconForAction(item: MediaObject, action: LibraryAction): IconName {
+    const service = getServiceFromSrc(item);
+    return service?.icons?.[action] || defaultActionIcons[action];
 }
 
-export function getLabelForAction(service: MediaService, action: LibraryAction): string {
-    return service.labels?.[action] || defaultActionLabels[action];
+export function getLabelForAction(item: MediaObject, action: LibraryAction): string {
+    const service = getServiceFromSrc(item);
+    return service?.labels?.[action] || defaultActionLabels[action];
 }

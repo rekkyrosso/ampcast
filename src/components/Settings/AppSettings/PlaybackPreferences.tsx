@@ -46,9 +46,7 @@ export default function PlaybackPreferences({onSubmit}: PlaybackPreferencesProps
                         defaultChecked={originalPreferences.miniPlayer}
                         onChange={(e) => (preferences.miniPlayer = e.target.checked)}
                     />
-                    <label htmlFor={`${id}-mini-player`}>
-                        Enable popout playback window (experimental)
-                    </label>
+                    <label htmlFor={`${id}-mini-player`}>Enable popout playback window</label>
                 </p>
             </fieldset>
             <DialogButtons />

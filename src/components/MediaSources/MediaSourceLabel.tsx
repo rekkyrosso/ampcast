@@ -7,18 +7,20 @@ export type MediaSourceLabelProps =
           icon: IconName;
           text: React.ReactNode;
           className?: string;
+          title?: string;
           showConnectivity?: never;
       }
     | {
           icon: MediaSourceIconName;
           text: React.ReactNode;
           className?: string;
+          title?: string;
           showConnectivity?: boolean;
       };
 
-export default function MediaSourceLabel({icon, text, className='', showConnectivity}: MediaSourceLabelProps) {
+export default function MediaSourceLabel({icon, text, className='', title, showConnectivity}: MediaSourceLabelProps) {
     return (
-        <span className={`media-source-label ${className}`}>
+        <span className={`media-source-label ${className}`} title={title}>
             <Icon name={icon} className={showConnectivity ? 'show-connectivity' : ''} />
             <span className="text">{text}</span>
         </span>
