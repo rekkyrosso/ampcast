@@ -20,11 +20,15 @@ async function router(req, res, defaultHandler) {
 }
 
 function handleBandcamp(req, res) {
+    const target = `https://bandcamp.com/api/subsonic${req.url.replace('/bandcamp/api', '')}`;
+
+    console.log('PROXY', target.replace(/\?.*$/, ''));
+
     proxy.web(
         req,
         res,
         {
-            target: `https://bandcamp.com/api/subsonic${req.url.replace('/bandcamp/api', '')}`,
+            target,
             changeOrigin: true,
             followRedirects: true,
         },
@@ -73,10 +77,10 @@ async function handleSoundCloudAuth(req, res) {
 
 function handleError(req, res, err) {
     try {
-        console.error(`${req.method} ${req.url} ERROR`);
+        console.info(`${req.method} ${req.url.replace(/\?.*$/, '')} ERROR`);
         console.error(err);
         res.writeHead(500, {
-            'Content-Type': 'text/plain; charset=utf-8',
+            'Content-Type': 'text/plain;charset=utf-8',
             'Cache-Control': 'no-store',
         });
     } catch (err) {
@@ -86,18 +90,18 @@ function handleError(req, res, err) {
 }
 
 function textResponse(req, res, status, text) {
-    console.info(`${req.method} ${req.url} ${status}`);
+    console.info(`${req.method} ${req.url.replace(/\?.*$/, '')} ${status === 200 ? 'OK' : status}`);
     res.writeHead(status, {
-        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Type': 'text/plain;charset=utf-8',
         'Cache-Control': 'no-store',
     });
     res.end(text);
 }
 
 function jsonResponse(req, res, json) {
-    console.info(`${req.method} ${req.url} OK`);
+    console.info(`${req.method} ${req.url.replace(/\?.*$/, '')} OK`);
     res.writeHead(200, {
-        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Type': 'application/json;charset=utf-8',
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff',
     });

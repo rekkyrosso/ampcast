@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useState} from 'react';
 import {copyToClipboard, Logger} from 'utils';
 import {CopyButton} from 'components/Button';
 import {DialogButtons, error} from 'components/Dialog';
@@ -11,15 +11,13 @@ import useCredentials from './useCredentials';
 const logger = new Logger('LastFmCredentials');
 
 export default function LastFmCredentials({service: lastfm}: MediaServiceCredentialsProps) {
-    const {apiKey, secret} = useCredentials();
-    const apiKeyRef = useRef<HTMLInputElement>(null);
-    const secretRef = useRef<HTMLInputElement>(null);
+    const credentials = useCredentials();
+    const [apiKey, setApiKey] = useState(credentials.apiKey);
+    const [secret, setSecret] = useState(credentials.secret);
     const callbackUrl = `${location.origin}/auth/lastfm/callback/`;
     const locked = lastfm.credentialsLocked;
 
     const handleSubmit = useCallback(async () => {
-        const apiKey = apiKeyRef.current!.value;
-        const secret = secretRef.current!.value;
         const currentSecret = await lastfmSettings.getSecret();
         if (apiKey !== lastfmSettings.apiKey || secret !== currentSecret) {
             lastfmSettings.apiKey = apiKey;
@@ -35,7 +33,7 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
                 await lastfm.logout();
             }
         }
-    }, [lastfm]);
+    }, [lastfm, apiKey, secret]);
 
     return (
         <form
@@ -51,26 +49,28 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
                     label="API Key"
                     name="lastfm-api-key"
                     defaultValue={apiKey}
-                    inputRef={apiKeyRef}
-                    autoFocus
+                    onChange={setApiKey}
+                    secret
                 />
                 {locked ? null : (
                     <CredentialsInput
-                        locked={lastfm.credentialsLocked}
                         label="Shared Secret"
                         name="lastfm-secret"
                         defaultValue={secret}
-                        inputRef={secretRef}
+                        onChange={setSecret}
+                        secret
                     />
                 )}
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>Callback URL:</p>
-                <p className="credentials-callback">
-                    <input type="text" value={callbackUrl} readOnly />
-                    <CopyButton onClick={() => copyToClipboard(callbackUrl)} />
-                </p>
+                <div className="requirement">
+                    <p>Callback URL:</p>
+                    <p className="credentials-callback">
+                        <input type="text" value={callbackUrl} readOnly />
+                        <CopyButton onClick={() => copyToClipboard(callbackUrl)} />
+                    </p>
+                </div>
             </fieldset>
             <DialogButtons />
         </form>

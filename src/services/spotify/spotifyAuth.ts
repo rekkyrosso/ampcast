@@ -97,27 +97,26 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
 
+        const cleanup = () => {
+            clearInterval(pollAuthWindowClosed);
+            window.removeEventListener('message', receiveMessage, false);
+            authWindow?.close();
+            authWindow = null;
+        };
+
         const receiveMessage = (event: {
             origin: string;
             data: {code: string; state: string; spotify_callback: boolean};
         }) => {
             if (event.data?.spotify_callback) {
-                clearInterval(pollAuthWindowClosed);
-                window.removeEventListener('message', receiveMessage, false);
-                authWindow?.close();
-                authWindow = null;
-
+                cleanup();
                 if (event.origin !== location.origin) {
                     reject({message: `Origin ${event.origin} does not match ${location.origin}`});
-                    return;
-                }
-
-                if (event.data.state !== state) {
+                } else if (event.data.state !== state) {
                     reject({message: 'State mismatch'});
-                    return;
+                } else {
+                    exchangeToken(event.data.code).then(resolve, reject);
                 }
-
-                exchangeToken(event.data.code).then(resolve, reject);
             }
         };
 
@@ -160,7 +159,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {
-                clearInterval(pollAuthWindowClosed);
+                cleanup();
                 reject({message: 'Cancelled'});
             }
         }, 500);
@@ -244,7 +243,8 @@ async function storeAccessToken(token: TokenResponse): Promise<void> {
     try {
         clearTimeout(refreshTokenTimerId);
         spotifySettings.token = token;
-        await nextAccessToken(token.access_token);
+        await checkConnection();
+        accessToken$.next(token.access_token);
         refreshTokenTimerId = setTimeout(
             () => refreshToken(),
             Math.max(token.expires_in - 60, 10) * 1000
@@ -254,11 +254,6 @@ async function storeAccessToken(token: TokenResponse): Promise<void> {
         connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
         await clearAccessToken();
     }
-}
-
-async function nextAccessToken(access_token: string): Promise<void> {
-    await checkConnection();
-    accessToken$.next(access_token);
 }
 
 async function clearAccessToken(): Promise<void> {

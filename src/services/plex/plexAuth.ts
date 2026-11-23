@@ -79,12 +79,16 @@ async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
 
         let authWindow: Window | null = null;
 
+        const cleanup = () => {
+            clearInterval(pollAuthWindowClosed);
+            window.removeEventListener('message', receiveMessage, false);
+            authWindow?.close();
+            authWindow = null;
+        };
+
         const receiveMessage = (event: {origin: string; data: any}) => {
             if (event.data?.plex_callback) {
-                clearInterval(pollAuthWindowClosed);
-                window.removeEventListener('message', receiveMessage, false);
-                authWindow?.close();
-                authWindow = null;
+                cleanup();
 
                 if (event.origin !== location.origin) {
                     reject({message: `Origin ${event.origin} does not match ${location.origin}`});
@@ -130,7 +134,7 @@ async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {
-                clearInterval(pollAuthWindowClosed);
+                cleanup();
                 reject({message: 'Cancelled'});
             }
         }, 500);

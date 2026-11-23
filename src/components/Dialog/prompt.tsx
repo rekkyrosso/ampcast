@@ -11,6 +11,7 @@ export interface PromptProps {
     message?: React.ReactNode;
     type?: HTMLInputElement['type'] | 'textarea';
     placeholder?: string;
+    required?: boolean;
     label?: React.ReactNode;
     suggestedValue?: string;
     okLabel?: React.ReactNode;
@@ -19,11 +20,14 @@ export interface PromptProps {
 export default async function prompt({
     system = false,
     ...props
-}: PromptProps & {system?: boolean}): Promise<string> {
-    return showDialog(
+}: PromptProps & {system?: boolean}): Promise<string | undefined> {
+    const value = await showDialog(
         (dialogProps: DialogProps) => <PromptDialog {...dialogProps} {...props} />,
         system
     );
+    if (value.startsWith('#')) {
+        return value.slice(1);
+    }
 }
 
 export type PromptDialogProps = DialogProps & PromptProps;
@@ -35,6 +39,7 @@ export function PromptDialog({
     placeholder = '',
     label,
     suggestedValue = '',
+    required = true,
     okLabel = 'OK',
     ...props
 }: PromptDialogProps) {
@@ -64,7 +69,7 @@ export function PromptDialog({
         defaultValue: suggestedValue,
         placeholder,
         autoFocus: true,
-        required: true,
+        required,
         spellCheck: false,
         autoComplete: 'off',
         autoCapitalize: 'off',
@@ -80,10 +85,10 @@ export function PromptDialog({
                     {type === 'textarea' ? (
                         <textarea {...inputProps} ref={focusRef as any} />
                     ) : (
-                        <input {...inputProps} ref={focusRef as any} />
+                        <input {...inputProps} type={type} ref={focusRef as any} />
                     )}
                 </p>
-                <DialogButtons value={value} submitText={okLabel} />
+                <DialogButtons value={`#${value}`} submitText={okLabel} />
             </form>
         </Dialog>
     );

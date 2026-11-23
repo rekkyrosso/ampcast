@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useState} from 'react';
 import {copyToClipboard, Logger} from 'utils';
 import {CopyButton} from 'components/Button';
 import {DialogButtons, error} from 'components/Dialog';
@@ -11,15 +11,13 @@ import useCredentials from './useCredentials';
 const logger = new Logger('SoundCloudCredentials');
 
 export default function SoundCloudCredentials({service: soundcloud}: MediaServiceCredentialsProps) {
-    const {clientId, secret} = useCredentials();
-    const clientIdRef = useRef<HTMLInputElement>(null);
-    const secretRef = useRef<HTMLInputElement>(null);
+    const credentials = useCredentials();
+    const [clientId, setClientId] = useState(credentials.clientId);
+    const [secret, setSecret] = useState(credentials.secret);
     const callbackUrl = soundcloudSettings.redirectUri;
     const locked = soundcloud.credentialsLocked;
 
     const handleSubmit = useCallback(async () => {
-        const clientId = clientIdRef.current!.value;
-        const secret = secretRef.current!.value;
         const currentSecret = await soundcloudSettings.getSecret();
         if (clientId !== soundcloudSettings.clientId || secret !== currentSecret) {
             soundcloudSettings.clientId = clientId;
@@ -35,7 +33,7 @@ export default function SoundCloudCredentials({service: soundcloud}: MediaServic
                 await soundcloud.logout();
             }
         }
-    }, [soundcloud]);
+    }, [soundcloud, clientId, secret]);
 
     return (
         <form
@@ -51,26 +49,28 @@ export default function SoundCloudCredentials({service: soundcloud}: MediaServic
                     label="Client ID"
                     name="soundcloud-client-id"
                     defaultValue={clientId}
-                    inputRef={clientIdRef}
+                    onChange={setClientId}
                     autoFocus
                 />
                 {locked ? null : (
                     <CredentialsInput
-                        locked={soundcloud.credentialsLocked}
                         label="Client Secret"
                         name="soundcloud-secret"
                         defaultValue={secret}
-                        inputRef={secretRef}
+                        onChange={setSecret}
+                        secret
                     />
                 )}
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>Redirect URI:</p>
-                <p className="credentials-callback">
-                    <input type="text" value={callbackUrl} readOnly />
-                    <CopyButton onClick={() => copyToClipboard(callbackUrl)} />
-                </p>
+                <div className="requirement">
+                    <p>Redirect URI:</p>
+                    <p className="credentials-callback">
+                        <input type="text" value={callbackUrl} readOnly />
+                        <CopyButton onClick={() => copyToClipboard(callbackUrl)} />
+                    </p>
+                </div>
             </fieldset>
             <DialogButtons />
         </form>

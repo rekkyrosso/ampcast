@@ -16,26 +16,18 @@ const credentials$ = new BehaviorSubject<LastFmCredentials>({apiKey: '', secret:
 
 const lastfmSettings = {
     get apiKey(): string {
-        return lf_api_key || storage.getString('apiKey');
+        return lf_api_key || storage.getSecret('apiKey');
     },
 
     set apiKey(apiKey: string) {
         if (!this.credentialsLocked) {
-            storage.setString('apiKey', apiKey);
+            storage.setSecret('apiKey', apiKey);
             credentials$.next({...credentials$.value, apiKey});
         }
     },
 
     get credentialsLocked(): boolean {
         return !!lf_api_key;
-    },
-
-    get token(): string {
-        return storage.getString('token');
-    },
-
-    set token(token: string) {
-        storage.setString('token', token);
     },
 
     get userId(): string {
@@ -84,7 +76,7 @@ const lastfmSettings = {
         } else if (ampcastElectron) {
             return ampcastElectron.getCredential('lastfm/secret');
         } else {
-            return storage.getString('secret');
+            return storage.getSecret('secret');
         }
     },
 
@@ -93,7 +85,7 @@ const lastfmSettings = {
             if (ampcastElectron) {
                 await ampcastElectron.setCredential('lastfm/secret', secret);
             } else {
-                storage.setString('secret', secret);
+                storage.setSecret('secret', secret);
             }
             credentials$.next({...credentials$.value, secret});
         }
@@ -103,10 +95,10 @@ const lastfmSettings = {
         storage.clear();
         // Restore credentials
         if (!lf_api_key) {
-            storage.setString('apiKey', credentials$.value.apiKey);
+            storage.setSecret('apiKey', credentials$.value.apiKey);
         }
         if (!ampcastElectron) {
-            storage.setString('secret', credentials$.value.secret);
+            storage.setSecret('secret', credentials$.value.secret);
         }
     },
 };

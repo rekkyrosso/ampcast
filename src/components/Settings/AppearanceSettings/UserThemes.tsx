@@ -23,7 +23,7 @@ export default function UserThemes() {
     const handleRenameClick = useCallback(async () => {
         if (selectedTheme) {
             const oldName = selectedTheme.name;
-            let newName = oldName;
+            let newName: string | undefined = oldName;
             let confirmed = false;
             while (newName && !confirmed) {
                 newName = await prompt({

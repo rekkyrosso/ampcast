@@ -73,7 +73,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
         if (
             service.credentialsRequired &&
             // Show credentials to docker users for sanity checking of server config.
-            (!service.credentialsLocked || __target__ === 'docker')
+            (!service.credentialsLocked || __target__ === 'docker' || __dev__)
         ) {
             tabs.push({
                 tab: 'Credentials',

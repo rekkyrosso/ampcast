@@ -324,10 +324,8 @@ export class LastFmApi {
     }
 
     async post(params: Record<string, string>): Promise<Response> {
-        const token = lastfmSettings.token;
-        const sk = lastfmSettings.sessionKey;
-        const api_key = lastfmSettings.apiKey;
-        params = {...params, api_key, token, sk};
+        const {sessionKey: sk, apiKey: api_key} = lastfmSettings;
+        params = {...params, api_key, sk};
         const headers = {'Content-Type': 'application/x-www-form-urlencoded'};
         const api_sig = await this.getSignature(params);
         const body = `${new URLSearchParams(params)}&api_sig=${api_sig}`;

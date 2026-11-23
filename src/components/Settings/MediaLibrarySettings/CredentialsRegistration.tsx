@@ -15,7 +15,7 @@ export default function CredentialsRegistration({
 }: CredentialsRegistrationProps) {
     return service.credentialsLocked ? (
         <div className="note credentials-locked">
-            <p>These settings are configured externally.</p>
+            <p>These settings are configured on your server.</p>
         </div>
     ) : (
         <fieldset className="credentials-registration">

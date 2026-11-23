@@ -126,7 +126,7 @@ export default async function importPlaylistsFromFile(files: FileList): Promise<
 async function importPlaylist(file: ImportedFile, confirmed = false): Promise<ResultType> {
     try {
         const playlist = file.data!;
-        let name = playlist.title;
+        let name: string | undefined = playlist.title;
         confirmed = confirmed || !playlists.getLocalPlaylistByName(name);
         while (name && !confirmed) {
             name = await prompt({

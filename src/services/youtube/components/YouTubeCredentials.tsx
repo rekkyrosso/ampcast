@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useId, useState} from 'react';
 import {copyToClipboard} from 'utils';
 import {CopyButton} from 'components/Button';
 import {DialogButtons} from 'components/Dialog';
@@ -10,19 +10,18 @@ import useCredentials from './useCredentials';
 
 export default function YouTubeCredentials({service: youtube}: MediaServiceCredentialsProps) {
     const id = useId();
-    const {clientId} = useCredentials();
-    const clientIdRef = useRef<HTMLInputElement>(null);
+    const credentials = useCredentials();
+    const [clientId, setClientId] = useState(credentials.clientId);
     const authorizedOrigin = location.origin;
 
     const handleSubmit = useCallback(async () => {
-        const clientId = clientIdRef.current!.value;
         if (clientId !== youtubeSettings.clientId) {
             youtubeSettings.clientId = clientId;
             if (youtube.isLoggedIn()) {
                 await youtube.logout();
             }
         }
-    }, [youtube]);
+    }, [youtube, clientId]);
 
     return (
         <form className="youtube-credentials" method="dialog" onSubmit={handleSubmit}>
@@ -34,24 +33,28 @@ export default function YouTubeCredentials({service: youtube}: MediaServiceCrede
                     label="OAuth Client ID"
                     name="youtube-client-id"
                     defaultValue={clientId}
-                    inputRef={clientIdRef}
+                    onChange={setClientId}
                     autoFocus
                 />
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>Authorized JavaScript origin:</p>
-                <p className="credentials-callback">
-                    <input type="text" value={authorizedOrigin} readOnly />
-                    <CopyButton onClick={() => copyToClipboard(authorizedOrigin)} />
-                </p>
-                <p>Selected APIs:</p>
-                <ul>
-                    <li>
-                        <input type="checkbox" id={`${id}-api`} checked readOnly />
-                        <label htmlFor={`${id}-api`}>YouTube Data API v3</label>
-                    </li>
-                </ul>
+                <div className="requirement">
+                    <p>Authorized JavaScript origin:</p>
+                    <p className="credentials-callback">
+                        <input type="text" value={authorizedOrigin} readOnly />
+                        <CopyButton onClick={() => copyToClipboard(authorizedOrigin)} />
+                    </p>
+                </div>
+                <div className="requirement">
+                    <p>Selected APIs:</p>
+                    <ul>
+                        <li>
+                            <input type="checkbox" id={`${id}-api`} checked readOnly />
+                            <label htmlFor={`${id}-api`}>YouTube Data API v3</label>
+                        </li>
+                    </ul>
+                </div>
             </fieldset>
             <DialogButtons />
         </form>

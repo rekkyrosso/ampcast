@@ -1,5 +1,6 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, Subject, distinctUntilChanged, filter, map, mergeMap} from 'rxjs';
+import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
+import {nanoid} from 'nanoid';
 import {Logger, openLoginPopup} from 'utils';
 import {getReadableErrorMessage} from 'services/errors';
 import lastfmApi from './lastfmApi';
@@ -9,14 +10,10 @@ const logger = new Logger('lastfmAuth');
 
 const lastfmApiHost = `https://ws.audioscrobbler.com/2.0`;
 
-const accessToken$ = new BehaviorSubject('');
+const isLoggedIn$ = new BehaviorSubject(false);
 const sessionKey$ = new BehaviorSubject('');
 const connecting$ = new BehaviorSubject(false);
 const connectionLogging$ = new Subject<string>();
-
-function observeAccessToken(): Observable<string> {
-    return accessToken$.pipe(distinctUntilChanged());
-}
 
 export function observeConnecting(): Observable<boolean> {
     return connecting$.pipe(distinctUntilChanged());
@@ -31,18 +28,15 @@ export function observeSessionKey(): Observable<string> {
 }
 
 export function isConnected(): boolean {
-    return !!lastfmSettings.token;
+    return !!lastfmSettings.sessionKey;
 }
 
 export function isLoggedIn(): boolean {
-    return !!accessToken$.value;
+    return isLoggedIn$.value;
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
-    return observeAccessToken().pipe(
-        map((token) => !!token),
-        distinctUntilChanged()
-    );
+    return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
 export async function login(): Promise<void> {
@@ -51,10 +45,8 @@ export async function login(): Promise<void> {
         try {
             connecting$.next(true);
             connectionLogging$.next('');
-            const token = await obtainAccessToken();
-            const sessionKey = await obtainSessionKey(token);
+            const sessionKey = await obtainSessionKey();
             sessionKey$.next(sessionKey);
-            accessToken$.next(token);
         } catch (err) {
             logger.error(err);
             connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
@@ -67,16 +59,15 @@ export async function logout(): Promise<void> {
     logger.log('disconnect');
     lastfmSettings.clear();
     sessionKey$.next('');
-    accessToken$.next('');
+    isLoggedIn$.next(false);
     connecting$.next(false);
 }
 
 export async function reconnect(): Promise<void> {
-    const token = lastfmSettings.token;
-    if (token) {
+    const sessionKey = lastfmSettings.sessionKey;
+    if (sessionKey) {
         connecting$.next(true);
-        sessionKey$.next(lastfmSettings.sessionKey);
-        accessToken$.next(token);
+        sessionKey$.next(sessionKey);
     }
 }
 
@@ -87,42 +78,45 @@ async function obtainAccessToken(): Promise<string> {
 
         let authWindow: Window | null = null;
 
+        const cleanup = () => {
+            clearInterval(pollAuthWindowClosed);
+            window.removeEventListener('message', receiveMessage, false);
+            authWindow?.close();
+            authWindow = null;
+        };
+
         const receiveMessage = (event: {
             origin: string;
             data: {token: string; lastfm_callback: boolean};
         }) => {
             if (event.data?.lastfm_callback) {
-                clearInterval(pollAuthWindowClosed);
-                window.removeEventListener('message', receiveMessage, false);
-                authWindow?.close();
-                authWindow = null;
-
-                if (event.origin !== location.origin) {
+                cleanup();
+                if (event.origin === location.origin) {
+                    resolve(event.data.token);
+                } else {
                     reject({message: `Origin ${event.origin} does not match ${location.origin}`});
-                    return;
                 }
-
-                resolve(event.data.token);
             }
         };
 
         window.addEventListener('message', receiveMessage, false);
 
         authWindow = openLoginPopup(
-            `${lastfmApiAuth}?api_key=${lastfmSettings.apiKey}&cb=${callback}`,
+            `${lastfmApiAuth}?state=${nanoid(128)}&cb=${callback}&api_key=${lastfmSettings.apiKey}`,
             'last.fm'
         );
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {
-                clearInterval(pollAuthWindowClosed);
+                cleanup();
                 reject({message: 'Cancelled'});
             }
         }, 500);
     });
 }
 
-async function obtainSessionKey(token: string): Promise<string> {
+async function obtainSessionKey(): Promise<string> {
+    const token = await obtainAccessToken();
     const api_key = lastfmSettings.apiKey;
     const method = 'auth.getSession';
     const params = {api_key, token, method};
@@ -135,30 +129,30 @@ async function obtainSessionKey(token: string): Promise<string> {
     }
     const {session} = await response.json();
     lastfmSettings.userId = session.name;
-    lastfmSettings.token = token;
     lastfmSettings.sessionKey = session.key;
     return session.key;
 }
 
-observeAccessToken()
+observeSessionKey()
     .pipe(
-        filter((token) => !!token),
+        filter((key) => !!key),
         mergeMap(() => checkConnection())
     )
-    .subscribe(logger);
+    .subscribe(isLoggedIn$);
 
-async function checkConnection(): Promise<void> {
+async function checkConnection(): Promise<boolean> {
     try {
         await lastfmApi.getUserInfo();
+        return true;
     } catch (err: any) {
         if (err.status === 401) {
             lastfmSettings.clear();
             sessionKey$.next('');
-            accessToken$.next('');
             connectionLogging$.next('Not authorized');
         } else {
             logger.error(err);
         }
+        return false;
     } finally {
         connecting$.next(false);
     }

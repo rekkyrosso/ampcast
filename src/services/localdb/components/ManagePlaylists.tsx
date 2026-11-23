@@ -24,7 +24,7 @@ export default function ManagePlaylists() {
     const handleRenameClick = useCallback(async () => {
         if (selectedPlaylist) {
             const oldName = selectedPlaylist.title;
-            let newName = oldName;
+            let newName: string | undefined = oldName;
             let confirmed = false;
             while (newName && !confirmed) {
                 newName = await prompt({

@@ -21,7 +21,7 @@ async function handleSoundCloudAuthToken(request, env) {
             const response = await fetch(`https://secure.soundcloud.com${pathname}`, {
                 method: request.method,
                 headers: {
-                    Accept: 'application/json; charset=utf-8',
+                    Accept: 'application/json;charset=utf-8',
                     'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
                 },
                 body: String(params),

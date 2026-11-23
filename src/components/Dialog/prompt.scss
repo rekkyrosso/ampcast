@@ -1,6 +1,8 @@
 .prompt-dialog {
     text-align: center;
 
+    input[type="text"],
+    input[type="password"],
     input[type="url"] {
         width: 24em;
     }

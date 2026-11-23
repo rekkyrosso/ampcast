@@ -84,7 +84,7 @@ export default function usePlaylistMenu(listViewRef: React.RefObject<ListViewHan
                         placeholder: examples.join('\n'),
                         okLabel: 'Add to playlist',
                     });
-                    const urls = list.match(/\S+/g);
+                    const urls = list?.match(/\S+/g);
                     if (urls) {
                         await inject.urls(urls, -1);
                     }

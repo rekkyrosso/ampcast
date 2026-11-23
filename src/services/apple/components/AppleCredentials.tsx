@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useId, useState} from 'react';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import CredentialsInput from 'components/Settings/MediaLibrarySettings/CredentialsInput';
 import CredentialsRegistration from 'components/Settings/MediaLibrarySettings/CredentialsRegistration';
@@ -8,18 +8,17 @@ import useCredentials from './useCredentials';
 
 export default function AppleCredentials({service: apple}: MediaServiceCredentialsProps) {
     const id = useId();
-    const {devToken} = useCredentials();
-    const devTokenRef = useRef<HTMLInputElement>(null);
+    const credentials = useCredentials();
+    const [devToken, setDevToken] = useState(credentials.devToken);
 
     const handleSubmit = useCallback(async () => {
-        const devToken = devTokenRef.current!.value;
         if (devToken !== appleSettings.devToken) {
             appleSettings.devToken = devToken;
             if (apple.isLoggedIn()) {
                 await apple.logout();
             }
         }
-    }, [apple]);
+    }, [apple, devToken]);
 
     return (
         <form className="apple-credentials" method="dialog" onSubmit={handleSubmit}>
@@ -31,19 +30,22 @@ export default function AppleCredentials({service: apple}: MediaServiceCredentia
                     label="Developer Token"
                     name="apple-dev-token"
                     defaultValue={devToken}
-                    inputRef={devTokenRef}
+                    onChange={setDevToken}
                     autoFocus
+                    secret
                 />
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>Enabled Services:</p>
-                <ul>
-                    <li>
-                        <input type="checkbox" id={`${id}-api1`} checked readOnly />
-                        <label htmlFor={`${id}-api1`}>Media Services (MusicKit)</label>
-                    </li>
-                </ul>
+                <div className="requirement">
+                    <p>Enabled Services:</p>
+                    <ul>
+                        <li>
+                            <input type="checkbox" id={`${id}-api1`} checked readOnly />
+                            <label htmlFor={`${id}-api1`}>Media Services (MusicKit)</label>
+                        </li>
+                    </ul>
+                </div>
             </fieldset>
             <DialogButtons />
         </form>

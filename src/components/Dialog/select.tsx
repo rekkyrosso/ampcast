@@ -17,11 +17,14 @@ export interface SelectProps {
 export default async function select({
     system = false,
     ...props
-}: SelectProps & {system?: boolean}): Promise<string> {
-    return showDialog(
+}: SelectProps & {system?: boolean}): Promise<string | undefined> {
+    const value = await showDialog(
         (dialogProps: DialogProps) => <SelectDialog {...dialogProps} {...props} />,
         system
     );
+    if (value.startsWith('#')) {
+        return value.slice(1);
+    }
 }
 
 export type SelectDialogProps = DialogProps & SelectProps;
@@ -36,7 +39,7 @@ export function SelectDialog({
 }: SelectDialogProps) {
     const id = useId();
     const ref = useRef<HTMLFormElement>(null);
-    const initialValue = suggestedValue || Object.keys(options)[0] || ''
+    const initialValue = suggestedValue || Object.keys(options)[0] || '';
     const [value, setValue] = useState(() => initialValue);
 
     if (typeof message === 'string') {
@@ -64,7 +67,7 @@ export function SelectDialog({
                         </li>
                     ))}
                 </ul>
-                <DialogButtons value={value} submitText={okLabel} />
+                <DialogButtons value={`#${value}`} submitText={okLabel} />
             </form>
         </Dialog>
     );

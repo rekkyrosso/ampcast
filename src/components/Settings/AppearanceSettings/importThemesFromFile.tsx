@@ -128,7 +128,7 @@ export default async function importThemesFromFile(files: FileList): Promise<voi
 async function importTheme(file: ImportedFile, confirmed = false): Promise<ResultType> {
     try {
         const theme = file.data!;
-        let name = theme.name;
+        let name: string | undefined = theme.name;
         confirmed = confirmed || !themeStore.getUserTheme(name);
         while (name && !confirmed) {
             name = await prompt({

@@ -95,6 +95,20 @@ export default class LiteStorage {
         this.setItem(key, String(Number(value)));
     }
 
+    getSecret<T extends string | ''>(key: string): T {
+        if (this.hasItem(key)) {
+            // Remove the non-obfuscated key
+            this.setSecret(key, this.getString(key));
+            this.removeItem(key);
+        }
+        const value = this.storageArea.getItem(encode(`${this.id}/${key}`)) || '';
+        return encode(value, -1) as T;
+    }
+
+    setSecret<T extends string>(key: string, value: T): void {
+        this.storageArea.setItem(encode(`${this.id}/${key}`), encode(value));
+    }
+
     getString<T extends string | ''>(key: string, defaultValue: T | '' = ''): T {
         return String(this.getItem(key) ?? defaultValue) as T;
     }
@@ -142,4 +156,12 @@ export default class LiteStorage {
             this.change$.next();
         }
     }
+}
+
+// Simple encoding but obfuscates enough.
+function encode(string: string, dir = 1): string {
+    return string
+        .split('')
+        .map((c) => String.fromCharCode(c.charCodeAt(0) + 31 * -dir))
+        .join('');
 }

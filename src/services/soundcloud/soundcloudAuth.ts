@@ -96,27 +96,26 @@ async function obtainAccessToken(): Promise<SoundCloud.Token> {
 
         let authWindow: Window | null = null;
 
+        const cleanup = () => {
+            clearInterval(pollAuthWindowClosed);
+            window.removeEventListener('message', receiveMessage, false);
+            authWindow?.close();
+            authWindow = null;
+        };
+
         const receiveMessage = (event: {
             origin: string;
             data: {code: string; state: string; soundcloud_callback: boolean};
         }) => {
             if (event.data?.soundcloud_callback) {
-                clearInterval(pollAuthWindowClosed);
-                window.removeEventListener('message', receiveMessage, false);
-                authWindow?.close();
-                authWindow = null;
-
+                cleanup();
                 if (event.origin !== location.origin) {
                     reject({message: `Origin ${event.origin} does not match ${location.origin}`});
-                    return;
-                }
-
-                if (event.data.state !== state) {
+                } else if (event.data.state !== state) {
                     reject({message: 'State mismatch'});
-                    return;
+                } else {
+                    exchangeToken(event.data.code).then(resolve, reject);
                 }
-
-                exchangeToken(event.data.code).then(resolve, reject);
             }
         };
 
@@ -138,8 +137,8 @@ async function obtainAccessToken(): Promise<SoundCloud.Token> {
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {
-                clearInterval(pollAuthWindowClosed);
-                reject({message: 'Not authorized'});
+                cleanup();
+                reject({message: 'Cancelled'});
             }
         }, 500);
     });

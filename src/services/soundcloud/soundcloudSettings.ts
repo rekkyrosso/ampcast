@@ -84,7 +84,7 @@ const soundcloudSettings = {
         } else if (ampcastElectron) {
             return ampcastElectron.getCredential('soundcloud/secret');
         } else {
-            return authStorage.getString('secret');
+            return authStorage.getSecret('secret');
         }
     },
 
@@ -93,7 +93,7 @@ const soundcloudSettings = {
             if (ampcastElectron) {
                 await ampcastElectron.setCredential('soundcloud/secret', secret);
             } else {
-                authStorage.setString('secret', secret);
+                authStorage.setSecret('secret', secret);
             }
             credentials$.next({...credentials$.value, secret});
         }
