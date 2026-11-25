@@ -64,13 +64,13 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <div className="requirement">
-                    <p>Callback URL:</p>
-                    <p className="credentials-callback">
+                <dl className="requirements">
+                    <dt>Callback URL:</dt>
+                    <dd className="credentials-callback">
                         <input type="text" value={callbackUrl} readOnly />
                         <CopyButton onClick={() => copyToClipboard(callbackUrl)} />
-                    </p>
-                </div>
+                    </dd>
+                </dl>
             </fieldset>
             <DialogButtons />
         </form>

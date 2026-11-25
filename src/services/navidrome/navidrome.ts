@@ -280,8 +280,7 @@ function getPlayableUrl(item: MediaItem): string {
 }
 
 async function getPlaybackData(item: MediaItem): Promise<PlaybackData> {
-    const playbackType = await subsonicApi.getPlaybackType(item);
-    return {playbackType};
+    return subsonicApi.getPlaybackData(item);
 }
 
 async function getServerInfo(): Promise<Record<string, string>> {

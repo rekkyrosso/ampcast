@@ -27,7 +27,7 @@ export default function useActiveItem<T extends MediaObject | null>(
                         tap((item) => setActiveItem(item)),
                         mergeMap((item) => addServiceMetadata(item)),
                         tap((item) => setActiveItem(item)),
-                        mergeMap((item) => addDescription(item as MediaItem)),
+                        mergeMap((item) => addDescription(item)),
                         tap((item) => setActiveItem(item as T)),
                         filter((item) => item.itemType === ItemType.Media),
                         mergeMap((item) => listenbrainzApi.addMetadata(item as MediaItem)),
@@ -92,9 +92,6 @@ async function addDescription<T extends MediaObject>(item: T): Promise<T> {
     // Add artist/album descriptions from last.fm.
     try {
         if (!isPersonalMedia(item) || item.description !== undefined) {
-            return item;
-        }
-        if (!lastfmApi.isLoggedIn()) {
             return item;
         }
         let description = '';

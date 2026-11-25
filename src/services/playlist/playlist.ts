@@ -20,7 +20,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import PlaybackType from 'types/PlaybackType';
 import Playlist, {PlayableType} from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
-import {exists, isMiniPlayer, moveSubset, shuffle as shuffleArray, Logger} from 'utils';
+import {Logger, exists, isMiniPlayer, moveSubset, shuffle as shuffleArray} from 'utils';
 import {
     LookupStartEvent,
     LookupEndEvent,
@@ -191,7 +191,11 @@ export async function injectAt(items: PlayableType, index: number): Promise<void
             ...removeUserData(removePlaybackData(item)),
             id: nanoid(),
             linearType: item.linearType === LinearType.Station ? item.linearType : undefined,
-            playbackType: isDerivedPlaybackType(item) ? undefined : item.playbackType,
+            playbackType:
+                isDerivedPlaybackType(item) || /^https?:/.test(item.src)
+                    ? undefined
+                    : item.playbackType,
+            proxy: undefined,
             scrobbleOverride: undefined,
         }));
         if (index >= 0 && index < all.length) {

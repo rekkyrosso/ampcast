@@ -9,7 +9,7 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import {filterNotEmpty, getTextFromHtml, loadLibrary, toUtf8, uniq} from 'utils';
+import {filterNotEmpty, getProxyUrl, getTextFromHtml, loadLibrary, toUtf8, uniq} from 'utils';
 import {addMetadataToRadioTrack, parsePlaylistFromUrl} from 'services/metadata';
 import HTML5Player from './HTML5Player';
 
@@ -45,7 +45,6 @@ export class IcecastPlayer extends HTML5Player {
 
     protected async loadAndPlay(item: MediaItem): Promise<void> {
         const url = this.getMediaSrc(item);
-        this.loadedSrc = url;
 
         if (this.player) {
             await this.player.detachAudioElement();
@@ -53,18 +52,19 @@ export class IcecastPlayer extends HTML5Player {
 
         let endpoints: readonly string[] = [];
         if (item.playbackType === PlaybackType.IcecastM3u) {
-            endpoints = await parsePlaylistFromUrl(url);
+            const urls = await parsePlaylistFromUrl(url);
+            endpoints = urls.map((url) => (item.proxy ? getProxyUrl(url) : url));
         } else {
-            endpoints = item.srcs?.[0] ? item.srcs : [url];
+            endpoints = [url];
         }
 
-        if (!endpoints?.[0]) {
+        if (!endpoints[0]) {
             throw Error('No media source');
         }
 
         const IcecastMetadataPlayer = await this.loadPlayer();
 
-        this.player = new IcecastMetadataPlayer(endpoints as string[], {
+        this.player = new IcecastMetadataPlayer(endpoints, {
             playbackMethod: 'html5',
             audioElement: this.element,
             metadataTypes: item.playbackType === PlaybackType.IcecastOgg ? ['icy', 'ogg'] : ['icy'],
@@ -83,6 +83,8 @@ export class IcecastPlayer extends HTML5Player {
                 }
             },
         });
+
+        this.loadedSrc = url;
 
         if (!this.paused) {
             try {
@@ -186,12 +188,16 @@ export class IcecastPlayer extends HTML5Player {
             return station;
         }
 
+        // Sites that play music only, without news, talk or ads.
+        const knownMusicOnlyHosts = ['somafm.com'];
+        const isProbablyMusic = knownMusicOnlyHosts.some((host) => station.src.includes(host));
+
         const item = await addMetadataToRadioTrack<PlaylistItem>({
             id: nanoid(),
-            src: `internet-radio:show:${metadata.StreamTitle}`,
+            src: `internet-radio:track:${metadata.StreamTitle}`,
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            linearType: LinearType.Show,
+            linearType: isProbablyMusic ? LinearType.MusicTrack : LinearType.Show,
             title,
             artists: artist ? [artist] : undefined,
             album,
@@ -234,7 +240,7 @@ export class IcecastPlayer extends HTML5Player {
 
         const item = await addMetadataToRadioTrack<PlaylistItem>({
             id: nanoid(),
-            src: `internet-radio:show:${artist}-${title}`,
+            src: `internet-radio:track:${artist}-${title}`,
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             linearType: LinearType.Show,

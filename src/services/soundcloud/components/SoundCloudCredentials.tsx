@@ -64,13 +64,13 @@ export default function SoundCloudCredentials({service: soundcloud}: MediaServic
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <div className="requirement">
-                    <p>Redirect URI:</p>
-                    <p className="credentials-callback">
+                <dl className="requirements">
+                    <dt>Redirect URI:</dt>
+                    <dd className="credentials-callback">
                         <input type="text" value={callbackUrl} readOnly />
                         <CopyButton onClick={() => copyToClipboard(callbackUrl)} />
-                    </p>
-                </div>
+                    </dd>
+                </dl>
             </fieldset>
             <DialogButtons />
         </form>

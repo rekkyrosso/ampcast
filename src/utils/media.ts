@@ -57,6 +57,14 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
     });
 }
 
+export function canProxy(): boolean {
+    return __target__ === 'docker' || __target__ === 'electron' || __dev__;
+}
+
+export function getProxyUrl(url: string): string {
+    return canProxy() ? `${location.origin}/stream?url=${encodeURIComponent(url)}` : url;
+}
+
 export function getItemTypeFromSrc(src: string): ItemType {
     const [, type = ''] = src.split(':');
     if (type.includes('artist') || type.includes('user')) {

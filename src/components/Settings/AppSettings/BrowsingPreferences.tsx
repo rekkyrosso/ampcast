@@ -39,7 +39,7 @@ export default function BrowsingPreferences({onSubmit}: BrowsingPreferencesProps
                         onChange={() => (preferences.linkBehavior = LinkBehavior.CmdKey)}
                     />
                     <label htmlFor={`${id}-link-behavior-cmd-key`}>
-                        When {browser.cmdKeyStr} key pressed
+                        When <kbd>{browser.cmdKeyStr}</kbd> key pressed
                     </label>
                 </p>
                 <p>
@@ -52,7 +52,7 @@ export default function BrowsingPreferences({onSubmit}: BrowsingPreferencesProps
                         onChange={() => (preferences.linkBehavior = LinkBehavior.CmdKeyDetails)}
                     />
                     <label htmlFor={`${id}-link-behavior-cmd-key-details`}>
-                        When {browser.cmdKeyStr} key pressed (details view only)
+                        When <kbd>{browser.cmdKeyStr}</kbd> key pressed (details view only)
                     </label>
                 </p>
             </fieldset>

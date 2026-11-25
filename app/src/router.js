@@ -9,6 +9,8 @@ export default async function router(req, res, defaultHandler) {
             handleBandcamp(req, res);
         } else if (req.url.startsWith('/soundcloud/oauth/token')) {
             await handleSoundCloudAuth(req, res);
+        } else if (req.url.startsWith('/stream')) {
+            handleStream(req, res);
         } else {
             await defaultHandler(req, res);
         }
@@ -36,7 +38,7 @@ async function handleSoundCloudAuth(req, res) {
         method: req.method,
         headers: {
             Accept: 'application/json; charset=utf-8',
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
         },
         body: data,
     });
@@ -46,6 +48,37 @@ async function handleSoundCloudAuth(req, res) {
     } else {
         textResponse(req, res, response.status, text);
     }
+}
+
+function handleStream(req, res) {
+    if (req.headers.origin) {
+        const originUrl = new URL(req.headers.origin);
+        if (originUrl.origin !== req.headers.host) {
+            textResponse(req, res, 403, 'Forbidden');
+            return;
+        }
+    }
+
+    const urlObject = new URL(`http://abc.xyz${req.url}`);
+    const url = urlObject.searchParams.get('url');
+    const targetUrl = new URL(url);
+    targetUrl.searchParams.set('ampcast', 1);
+
+    console.log('PROXY', url);
+
+    proxy.web(
+        req,
+        res,
+        {
+            target: targetUrl.href,
+            changeOrigin: true,
+            followRedirects: true,
+            headers: {
+                referer: '',
+            },
+        },
+        (err) => handleError(req, res, err)
+    );
 }
 
 function handleError(req, res, err) {

@@ -24,6 +24,7 @@ WORKDIR /app
 # copy build
 COPY --from=builder --chown=node:node /app/app/www ./app/www
 COPY --from=builder --chown=node:node /app/server.js ./server.js
+COPY --from=builder --chown=node:node /app/router.js ./router.js
 COPY --from=builder --chown=node:node /app/proxy-login.js ./proxy-login.js
 COPY --from=builder --chown=node:node /app/package.json ./package.json
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules

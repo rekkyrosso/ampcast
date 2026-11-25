@@ -6,7 +6,6 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
-import {getService} from 'services/mediaServices';
 import {canScrobbleTrack, getScrobbledAt, getScrobbleAs} from 'services/scrobbleSettings';
 import {Logger, exists} from 'utils';
 import {AddMetadataOptions, bestOf, isSameTrack} from 'services/metadata';
@@ -24,10 +23,6 @@ export class LastFmApi {
     private readonly host = `https://ws.audioscrobbler.com/2.0`;
     private readonly placeholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
 
-    isLoggedIn(): boolean {
-        return !!getService('lastfm')?.isLoggedIn();
-    }
-
     async getSignature(params: Record<string, string>): Promise<string> {
         const keys = Object.keys(params);
         let text = '';
@@ -36,7 +31,7 @@ export class LastFmApi {
 
         if (lastfmSettings.credentialsLocked) {
             const response = await fetch(
-                `${location.origin}/lastfm/sign?text=${text}&api_key=${lastfmSettings.apiKey}`
+                `${location.origin}/lastfm/sign?text=${text}&api_key=${this.apiKey}`
             );
             if (!response.ok) {
                 throw response;
@@ -97,6 +92,9 @@ export class LastFmApi {
         {overWrite, strictMatch}: AddMetadataOptions = {},
         signal?: AbortSignal
     ): Promise<T> {
+        if (!this.apiKey) {
+            return item;
+        }
         try {
             const {title, artists: [artist] = []} = item;
             const trackInfo = await this.getTrackInfo(title, artist, {
@@ -155,13 +153,13 @@ export class LastFmApi {
         item: MediaObject,
         signal?: AbortSignal
     ): Promise<readonly Thumbnail[] | undefined> {
-        const api_key = lastfmSettings.apiKey;
+        const api_key = this.apiKey;
         if (
             !api_key ||
             !item ||
             (item.itemType !== ItemType.Album && item.itemType !== ItemType.Media)
         ) {
-            return undefined;
+            return;
         }
         let thumbnails: readonly Thumbnail[] | undefined;
         let album: string | undefined;
@@ -194,6 +192,9 @@ export class LastFmApi {
         artist: string | undefined,
         {autoCorrect, signal, ...options}: InfoOptions = {}
     ): Promise<LastFm.AlbumInfo | undefined> {
+        if (!this.apiKey) {
+            return;
+        }
         try {
             if (artist) {
                 const params: Record<string, string> = {
@@ -222,6 +223,9 @@ export class LastFmApi {
         title: string,
         {autoCorrect, signal, ...options}: InfoOptions = {}
     ): Promise<LastFm.ArtistInfo | undefined> {
+        if (!this.apiKey) {
+            return;
+        }
         try {
             const params: Record<string, string> = {
                 method: 'artist.getInfo',
@@ -248,6 +252,9 @@ export class LastFmApi {
         artist: string | undefined,
         {autoCorrect, signal, ...options}: InfoOptions = {}
     ): Promise<LastFm.TrackInfo | undefined> {
+        if (!this.apiKey) {
+            return;
+        }
         try {
             if (artist) {
                 const params: Record<string, string> = {
@@ -291,29 +298,40 @@ export class LastFmApi {
     }
 
     async search(query: string): Promise<readonly MediaItem[]> {
-        const {
-            results: {trackmatches: {track: tracks = []} = {}},
-        } = await this.get<LastFm.TrackSearch>({
-            method: 'track.search',
-            track: query,
-            limit: 20,
-        });
-        return tracks.map((track) => ({
-            itemType: ItemType.Media,
-            mediaType: MediaType.Audio,
-            src: `lastfm:track:${nanoid()}`,
-            title: track.name,
-            artists: track?.artist ? [track.artist] : undefined,
-            duration: 0,
-            playedAt: 0,
-            thumbnails: this.createThumbnails(track.image),
-        }));
+        if (!this.apiKey) {
+            return [];
+        }
+        try {
+            const {
+                results: {trackmatches: {track: tracks = []} = {}},
+            } = await this.get<LastFm.TrackSearch>({
+                method: 'track.search',
+                track: query,
+                limit: 20,
+            });
+            return tracks.map((track) => ({
+                itemType: ItemType.Media,
+                mediaType: MediaType.Audio,
+                src: `lastfm:track:${nanoid()}`,
+                title: track.name,
+                artists: track?.artist ? [track.artist] : undefined,
+                duration: 0,
+                playedAt: 0,
+                thumbnails: this.createThumbnails(track.image),
+            }));
+        } catch (err) {
+            logger.error(err);
+            return [];
+        }
     }
 
     async get<T>(params: any, signal?: AbortSignal): Promise<T> {
+        if (!this.apiKey) {
+            throw Error('No API key');
+        }
         const path = `${this.host}?${new URLSearchParams({
             ...params,
-            api_key: lastfmSettings.apiKey,
+            api_key: this.apiKey,
             format: 'json',
         })}`;
         const response = await fetch(path, {method: 'GET', signal});
@@ -325,6 +343,12 @@ export class LastFmApi {
 
     async post(params: Record<string, string>): Promise<Response> {
         const {sessionKey: sk, apiKey: api_key} = lastfmSettings;
+        if (!api_key) {
+            throw Error('No API key');
+        }
+        if (!sk) {
+            throw Error('Not logged in');
+        }
         params = {...params, api_key, sk};
         const headers = {'Content-Type': 'application/x-www-form-urlencoded'};
         const api_sig = await this.getSignature(params);
@@ -334,6 +358,10 @@ export class LastFmApi {
             throw response;
         }
         return response;
+    }
+
+    private get apiKey(): string {
+        return lastfmSettings.apiKey;
     }
 
     private getScrobbleParams(item: MediaItem): Record<string, string> {

@@ -11,9 +11,19 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
+import PlaybackData from 'types/PlaybackData';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
-import {Logger, chunk, getLibraryIdFromPath, getMediaObjectId, removeSymbols, shuffle} from 'utils';
+import {
+    Logger,
+    canProxy,
+    chunk,
+    getLibraryIdFromPath,
+    getMediaObjectId,
+    getProxyUrl,
+    removeSymbols,
+    shuffle,
+} from 'utils';
 import {createMediaItemFromUrl} from 'services/metadata';
 
 const logger = new Logger('SubsonicApi');
@@ -26,7 +36,7 @@ export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings
 export default class SubsonicApi {
     private genres: readonly MediaFilter[] | undefined;
     #openSubsonic: Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined> | undefined;
-    proxy = '';
+    #proxy = '';
 
     constructor(
         private readonly serviceId: MediaServiceId,
@@ -41,6 +51,16 @@ export default class SubsonicApi {
         | Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined>
         | undefined {
         return this.#openSubsonic;
+    }
+
+    get proxy(): string {
+        return this.#proxy;
+    }
+
+    set proxy(proxy: string) {
+        if (canProxy()) {
+            this.#proxy = proxy;
+        }
     }
 
     async get<T>(
@@ -419,7 +439,7 @@ export default class SubsonicApi {
                 if (!url) {
                     throw Error('No radio stream URL');
                 }
-                return url;
+                return item.proxy ? getProxyUrl(url) : url;
             } else {
                 const [, type, ...rest] = item.src.split(':');
                 const id = rest.join(':');
@@ -438,19 +458,23 @@ export default class SubsonicApi {
         }
     }
 
-    async getPlaybackType(item: MediaItem): Promise<PlaybackType> {
-        if (item.playbackType !== undefined) {
-            return item.playbackType;
-        }
-        if (item.linearType === LinearType.Station) {
-            const url = item.srcs?.[0];
-            if (!url) {
-                throw Error('No radio stream URL');
+    async getPlaybackData(item: MediaItem): Promise<PlaybackData> {
+        if (item.playbackType === undefined) {
+            if (item.linearType === LinearType.Station) {
+                const url = item.srcs?.[0];
+                if (!url) {
+                    throw Error('No radio stream URL');
+                }
+                const {playbackType = PlaybackType.Direct, proxy} =
+                    await createMediaItemFromUrl(url);
+                return {playbackType, proxy};
+            } else {
+                return {playbackType: PlaybackType.Direct};
             }
-            const mediaItem = await createMediaItemFromUrl(url);
-            return mediaItem.playbackType || PlaybackType.Direct;
+        } else {
+            const {playbackType, proxy} = item;
+            return {playbackType, proxy};
         }
-        return PlaybackType.Direct;
     }
 
     async getPlaylist(id: string): Promise<Subsonic.Playlist> {
@@ -650,7 +674,11 @@ export default class SubsonicApi {
             );
             return data.searchResult3.album || [];
         } else {
-            return this.getAlbumList({size: albumCount, offset: albumOffset, type: 'alphabeticalByArtist'})
+            return this.getAlbumList({
+                size: albumCount,
+                offset: albumOffset,
+                type: 'alphabeticalByArtist',
+            });
         }
     }
 

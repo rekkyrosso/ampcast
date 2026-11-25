@@ -37,15 +37,17 @@ export default function AppleCredentials({service: apple}: MediaServiceCredentia
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <div className="requirement">
-                    <p>Enabled Services:</p>
-                    <ul>
-                        <li>
-                            <input type="checkbox" id={`${id}-api1`} checked readOnly />
-                            <label htmlFor={`${id}-api1`}>Media Services (MusicKit)</label>
-                        </li>
-                    </ul>
-                </div>
+                <dl className="requirements">
+                    <dt>Enabled Services:</dt>
+                    <dd>
+                        <ul>
+                            <li>
+                                <input type="checkbox" id={`${id}-api1`} checked readOnly />
+                                <label htmlFor={`${id}-api1`}>Media Services (MusicKit)</label>
+                            </li>
+                        </ul>
+                    </dd>
+                </dl>
             </fieldset>
             <DialogButtons />
         </form>

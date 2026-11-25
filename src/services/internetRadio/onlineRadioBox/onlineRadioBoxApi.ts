@@ -40,10 +40,7 @@ export async function fetchNowPlaying(
             onlineRadioBoxIds[station.src] = '';
         }
         let item = parseNowPlaying(station, nowPlaying);
-        if (
-            item?.src === prevTrack?.src ||
-            item?.src.replace(':show:', ':track:') === prevTrack?.src
-        ) {
+        if (item?.src === prevTrack?.src) {
             return prevTrack;
         }
         if (item) {
@@ -146,7 +143,7 @@ function createMediaItem(
     return {
         ...item,
         id: nanoid(),
-        src: `internet-radio:show:${station.id}-${artist}-${title}`,
+        src: `internet-radio:track:${station.id}-${artist}-${title}`,
         itemType: ItemType.Media,
         linearType: LinearType.Show,
         mediaType: MediaType.Audio,

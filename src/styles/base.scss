@@ -55,6 +55,14 @@ code {
     padding: 0 0.125em;
 }
 
+kbd {
+    border: 1px solid;
+    border-radius: 0.25em;
+    padding: 1px 0.25em;
+    background-color: var(--background-mark-color);
+    font-size: 0.875em;
+}
+
 .selected-text {
     color: var(--selected-text-color);
     background-color: var(--selected-color-blurred);

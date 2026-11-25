@@ -21,7 +21,7 @@ import MediaType from 'types/MediaType';
 import MediaService from 'types/MediaService';
 import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
-import {Logger} from 'utils';
+import {Logger, canProxy, getProxyUrl} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import observeInternetRadioTrack from 'services/internetRadio/observeInternetRadioTrack';
 import {getServiceFromSrc, waitForLogin} from 'services/mediaServices';
@@ -342,6 +342,8 @@ export default class HTML5Player implements Player<MediaItem> {
             return item.blobUrl;
         } else if (item.blob) {
             return URL.createObjectURL(item.blob);
+        } else if (/^https?:/.test(item.src) && item.proxy && canProxy()) {
+            return getProxyUrl(item.src);
         }
         const service = getServiceFromSrc(item);
         // This should throw if you're not logged in.

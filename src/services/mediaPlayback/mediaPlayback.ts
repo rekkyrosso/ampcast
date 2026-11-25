@@ -307,7 +307,7 @@ async function getPlayableItem(item: PlaylistItem | null): Promise<PlaylistItem 
             const playbackData = await getPlaybackData(item);
             item = {...item, ...playbackData};
             const service = getServiceFromSrc(item);
-            if (service?.isLoggedIn()) {
+            if (service?.isLoggedIn() !== false) {
                 // Only dispatch if we're logged in.
                 dispatchMetadataChanges({
                     match: (object) => object.src === item!.src,
@@ -330,7 +330,10 @@ async function getPlaybackData(item: PlaylistItem): Promise<PlaybackData> {
                 playbackData = await service.getPlaybackData(item);
             } else if (/^https?:/.test(item.src)) {
                 const lookup = await createMediaItemFromUrl(item.src);
-                playbackData = {playbackType: lookup.playbackType || PlaybackType.Direct};
+                playbackData = {
+                    playbackType: lookup.playbackType ?? PlaybackType.Direct,
+                    proxy: lookup.proxy,
+                };
             }
         }
     } catch (err) {

@@ -11,6 +11,8 @@ async function router(req, res, defaultHandler) {
             handleLastFmSign(req, res);
         } else if (req.url.startsWith('/soundcloud/oauth/token')) {
             await handleSoundCloudAuth(req, res);
+        } else if (req.url.startsWith('/stream')) {
+            handleStream(req, res);
         } else {
             await defaultHandler(req, res);
         }
@@ -60,7 +62,7 @@ async function handleSoundCloudAuth(req, res) {
             method: req.method,
             headers: {
                 Accept: 'application/json; charset=utf-8',
-                'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
             },
             body: String(params),
         });
@@ -75,12 +77,43 @@ async function handleSoundCloudAuth(req, res) {
     }
 }
 
+function handleStream(req, res) {
+    if (req.headers.origin) {
+        const originUrl = new URL(req.headers.origin);
+        if (originUrl.origin !== req.headers.host) {
+            textResponse(req, res, 403, 'Forbidden');
+            return;
+        }
+    }
+
+    const urlObject = new URL(`http://abc.xyz${req.url}`);
+    const url = urlObject.searchParams.get('url');
+    const targetUrl = new URL(url);
+    targetUrl.searchParams.set('ampcast', 1);
+
+    console.log('PROXY', url);
+
+    proxy.web(
+        req,
+        res,
+        {
+            target: targetUrl.href,
+            changeOrigin: true,
+            followRedirects: true,
+            headers: {
+                referer: '',
+            },
+        },
+        (err) => handleError(req, res, err)
+    );
+}
+
 function handleError(req, res, err) {
     try {
         console.info(`${req.method} ${req.url.replace(/\?.*$/, '')} ERROR`);
         console.error(err);
         res.writeHead(500, {
-            'Content-Type': 'text/plain;charset=utf-8',
+            'Content-Type': 'text/plain; charset=utf-8',
             'Cache-Control': 'no-store',
         });
     } catch (err) {
@@ -92,7 +125,7 @@ function handleError(req, res, err) {
 function textResponse(req, res, status, text) {
     console.info(`${req.method} ${req.url.replace(/\?.*$/, '')} ${status === 200 ? 'OK' : status}`);
     res.writeHead(status, {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-store',
     });
     res.end(text);
@@ -101,7 +134,7 @@ function textResponse(req, res, status, text) {
 function jsonResponse(req, res, json) {
     console.info(`${req.method} ${req.url.replace(/\?.*$/, '')} OK`);
     res.writeHead(200, {
-        'Content-Type': 'application/json;charset=utf-8',
+        'Content-Type': 'application/json; charset=utf-8',
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff',
     });

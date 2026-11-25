@@ -23,7 +23,7 @@ module.exports = (args) => {
     // icecast-metadata-player libs.
     const icecastPlayerPath =
         './node_modules/icecast-metadata-player/build/icecast-metadata-player';
-    const icecastPlayerVersion = '1.17.13';
+    const icecastPlayerVersion = '1.17.15';
     const icecastPlayer = `${icecastPlayerPath}-${icecastPlayerVersion}`;
 
     if (__dev__) {

@@ -23,7 +23,7 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import Pin, {Pinnable} from 'types/Pin';
-import PlaybackType from 'types/PlaybackType';
+import PlaybackData from 'types/PlaybackData';
 import ServiceType from 'types/ServiceType';
 import {
     getItemTypeFromSrc,
@@ -906,12 +906,12 @@ export default class SubsonicService implements PersonalMediaService {
         }
     }
 
-    async getPlaybackType(item: MediaItem): Promise<PlaybackType> {
-        return this.api.getPlaybackType(item);
-    }
-
     getPlayableUrl(item: MediaItem): string {
         return this.api.getPlayableUrl(item);
+    }
+
+    async getPlaybackData(item: MediaItem): Promise<PlaybackData> {
+        return this.api.getPlaybackData(item);
     }
 
     getServerInfo(): Promise<Record<string, string>> {

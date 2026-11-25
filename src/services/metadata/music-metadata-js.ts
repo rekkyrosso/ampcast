@@ -17,6 +17,7 @@ const noIAudioMetadata: IAudioMetadata = {
     } as any,
     format: {trackInfo: []} as any,
     native: {},
+    nativeTyped: {},
     quality: {warnings: []},
 };
 

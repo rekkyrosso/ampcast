@@ -40,13 +40,13 @@ export default function IBroadcastCredentials({service: ibroadcast}: MediaServic
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <div className="requirement">
-                    <p>Redirect URI:</p>
-                    <p className="credentials-callback">
+                <dl className="requirements">
+                    <dt>Redirect URI:</dt>
+                    <dd className="credentials-callback">
                         <input type="text" value={redirectUri} readOnly />
                         <CopyButton onClick={() => copyToClipboard(redirectUri)} />
-                    </p>
-                </div>
+                    </dd>
+                </dl>
             </fieldset>
             <DialogButtons />
         </form>

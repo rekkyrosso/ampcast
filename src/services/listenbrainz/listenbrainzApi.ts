@@ -1,5 +1,6 @@
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -39,7 +40,7 @@ export class ListenBrainzApi {
     async addMetadata<T extends MediaItem>(lookup: T | readonly T[]): Promise<T | readonly T[]> {
         const isArray = Array.isArray(lookup);
         const items: readonly T[] = isArray ? lookup : [lookup];
-        if (!lookup || items.length === 0 || !getService('listenbrainz')?.isLoggedIn()) {
+        if (!lookup || items.length === 0 || !this.token) {
             return lookup;
         }
         try {
@@ -51,8 +52,6 @@ export class ListenBrainzApi {
                     // `recording_mbid` is required for ListenBrainz playlists and
                     // preferred for submissions of listen data.
                     // Only search if it is `undefined`.
-                    // We're not much interested in the rest of the data returned
-                    // by the lookup endpoint.
                     recording_mbid === undefined &&
                     artist &&
                     `${artist}${title}`.length < MAX_MAPPING_QUERY_LENGTH
@@ -107,7 +106,12 @@ export class ListenBrainzApi {
             // Update `itemMap` with retrieved values.
             values.forEach((values, index) => {
                 const lookupItem = lookupItems[index];
-                itemMap[lookupItem.src] = {...lookupItem, ...values};
+                let linearType = lookupItem.linearType;
+                if (values.recording_mbid && linearType && linearType !== LinearType.Station) {
+                    linearType = LinearType.MusicTrack;
+                }
+                (values as any).linearType = linearType;
+                itemMap[lookupItem.src] = {...lookupItem, ...values, linearType};
             });
 
             dispatchMetadataChanges(
@@ -331,6 +335,10 @@ export class ListenBrainzApi {
         return response.json();
     }
 
+    private get token(): string {
+        return listenbrainzSettings.token;
+    }
+
     private createPlaylistTrack(item: MediaItem) {
         const host = this.webHost;
         const recording_mbid = item.recording_mbid;
@@ -355,12 +363,16 @@ export class ListenBrainzApi {
     }
 
     private async fetch(path: string, init: RequestInit, signed = false): Promise<Response> {
+        if (!this.token) {
+            throw Error('Not logged in');
+        }
+
         await this.applyRateLimiting();
 
         if (signed) {
             init.headers = {
                 ...init.headers,
-                Authorization: `Token ${listenbrainzSettings.token}`,
+                Authorization: `Token ${this.token}`,
             };
         }
 
@@ -426,6 +438,10 @@ export class ListenBrainzApi {
 
         const [serviceId] = item.src.split(':');
         switch (serviceId) {
+            case 'bandcamp':
+                info.music_service = 'bandcamp.com';
+                break;
+
             case 'soundcloud':
                 if (item.externalUrl) {
                     info.origin_url = item.externalUrl;

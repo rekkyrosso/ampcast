@@ -39,22 +39,22 @@ export default function YouTubeCredentials({service: youtube}: MediaServiceCrede
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <div className="requirement">
-                    <p>Authorized JavaScript origin:</p>
-                    <p className="credentials-callback">
+                <dl className="requirements">
+                    <dt>Authorized JavaScript origin:</dt>
+                    <dd className="credentials-callback">
                         <input type="text" value={authorizedOrigin} readOnly />
                         <CopyButton onClick={() => copyToClipboard(authorizedOrigin)} />
-                    </p>
-                </div>
-                <div className="requirement">
-                    <p>Selected APIs:</p>
-                    <ul>
-                        <li>
-                            <input type="checkbox" id={`${id}-api`} checked readOnly />
-                            <label htmlFor={`${id}-api`}>YouTube Data API v3</label>
-                        </li>
-                    </ul>
-                </div>
+                    </dd>
+                    <dt>Selected APIs:</dt>
+                    <dd>
+                        <ul>
+                            <li>
+                                <input type="checkbox" id={`${id}-api`} checked readOnly />
+                                <label htmlFor={`${id}-api`}>YouTube Data API v3</label>
+                            </li>
+                        </ul>
+                    </dd>
+                </dl>
             </fieldset>
             <DialogButtons />
         </form>

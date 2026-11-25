@@ -48,9 +48,7 @@ export async function findThumbnails(
         const [serviceId] = item.src.split(':');
         if (extendedSearch) {
             const [lastfmThumbnails, musicbrainzThumbnails] = await Promise.all([
-                lastfmApi.isLoggedIn()
-                    ? lastfmApi.getThumbnails(item, signal)
-                    : Promise.resolve(undefined),
+                lastfmApi.getThumbnails(item, signal),
                 getCoverArtThumbnails(item, true, signal),
             ]);
             thumbnails = lastfmThumbnails || musicbrainzThumbnails;

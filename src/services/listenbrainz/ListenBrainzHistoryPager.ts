@@ -1,6 +1,5 @@
 import {from, tap} from 'rxjs';
 import getYouTubeID from 'get-youtube-id';
-import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
@@ -126,45 +125,49 @@ export default class ListenBrainzHistoryPager extends SequentialPager<MediaItem>
     private getPlayableSrc(
         info: ListenBrainz.TrackMetadata['additional_info']
     ): string | undefined {
-        if (info) {
-            if (info.spotify_id) {
-                return this.getSpotifySrc(info.spotify_id);
-            }
-            const url = info.origin_url;
-            if (url) {
-                if (url.includes('apple.com')) {
-                    return this.getAppleSrc(url);
+        try {
+            if (info) {
+                if (info.spotify_id) {
+                    return this.getSpotifySrc(info.spotify_id);
                 }
-                if (url.includes('soundcloud.com')) {
-                    return this.getSoundCloudSrc(url);
+                const url = info.origin_url;
+                if (url) {
+                    if (url.includes('apple.com')) {
+                        return this.getAppleSrc(url);
+                    }
+                    if (url.includes('soundcloud.com')) {
+                        return this.getSoundCloudSrc(url);
+                    }
+                    if (url.includes('spotify.com')) {
+                        return this.getSpotifySrc(url);
+                    }
+                    if (url.includes('tidal.com')) {
+                        return 'tidal:';
+                    }
+                    if (/youtu\.?be/.test(url)) {
+                        return youtubeApi.getVideoSrc(url);
+                    }
                 }
-                if (url.includes('spotify.com')) {
-                    return this.getSpotifySrc(url);
-                }
-                if (url.includes('tidal.com')) {
-                    return 'tidal:';
-                }
-                if (/youtu\.?be/.test(url)) {
-                    return youtubeApi.getVideoSrc(url);
-                }
-            }
-            const musicServiceName = info.music_service_name?.toLowerCase();
-            if (musicServiceName) {
-                const lookupServiceIds = getMediaLookupServices().map((service) => service.id);
-                for (const serviceId of lookupServiceIds) {
-                    if (musicServiceName.includes(serviceId)) {
-                        return `${serviceId}:`;
+                const musicServiceName = info.music_service_name?.toLowerCase();
+                if (musicServiceName) {
+                    const lookupServiceIds = getMediaLookupServices().map((service) => service.id);
+                    for (const serviceId of lookupServiceIds) {
+                        if (musicServiceName.includes(serviceId)) {
+                            return `${serviceId}:`;
+                        }
                     }
                 }
             }
+        } catch (err) {
+            logger.error(err);
         }
     }
 
     private getAppleSrc(url: string): string | undefined {
         if (url) {
-            if (url.includes('i=')) {
-                const id = url.split('i=').pop();
-                return `apple:songs:${id}`;
+            const songId = new URL(url).searchParams.get('i');
+            if (songId) {
+                return `apple:songs:${songId}`;
             } else if (url.includes('music-video')) {
                 const [id] = new URL(url).pathname.split('/').reverse();
                 return `apple:music-videos:${id}`;
@@ -179,7 +182,7 @@ export default class ListenBrainzHistoryPager extends SequentialPager<MediaItem>
             if (type === 'tracks') {
                 return `soundcloud:${type}:${id}`;
             } else {
-                return `soundcloud:url:${nanoid()}`;
+                return `soundcloud:url:${url}`;
             }
         }
     }

@@ -41,26 +41,26 @@ export default function SpotifyCredentials({service: spotify}: MediaServiceCrede
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <div className="requirement">
-                    <p>Redirect URIs:</p>
-                    <p className="credentials-callback">
+                <dl className="requirements">
+                    <dt>Redirect URIs:</dt>
+                    <dd className="credentials-callback">
                         <input type="text" value={redirectUri} readOnly />
                         <CopyButton onClick={() => copyToClipboard(redirectUri)} />
-                    </p>
-                </div>
-                <div className="requirement">
-                    <p>APIs used:</p>
-                    <ul>
-                        <li>
-                            <input type="checkbox" id={`${id}-api1`} checked readOnly />
-                            <label htmlFor={`${id}-api1`}>Web API</label>
-                        </li>
-                        <li>
-                            <input type="checkbox" id={`${id}-api2`} checked readOnly />
-                            <label htmlFor={`${id}-api2`}>Web Playback SDK</label>
-                        </li>
-                    </ul>
-                </div>
+                    </dd>
+                    <dt>APIs used:</dt>
+                    <dd>
+                        <ul>
+                            <li>
+                                <input type="checkbox" id={`${id}-api1`} checked readOnly />
+                                <label htmlFor={`${id}-api1`}>Web API</label>
+                            </li>
+                            <li>
+                                <input type="checkbox" id={`${id}-api2`} checked readOnly />
+                                <label htmlFor={`${id}-api2`}>Web Playback SDK</label>
+                            </li>
+                        </ul>
+                    </dd>
+                </dl>
             </fieldset>
             <DialogButtons />
         </form>

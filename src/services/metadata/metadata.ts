@@ -5,7 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {Logger, mediaTypes, toUtf8, uniq} from 'utils';
+import {Logger, canProxy, getProxyUrl, mediaTypes, toUtf8, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import mixcloudApi from 'services/mixcloud/mixcloudApi';
@@ -24,24 +24,24 @@ export interface AddMetadataOptions {
 }
 
 export async function addMetadata<T extends MediaItem>(item: T): Promise<T> {
-    const {artists: [artist = ''] = [], title} = item;
-    if (artist) {
-        const transposedItem = {...item, title: artist, artists: [title]};
+    try {
+        const {artists: [artist = ''] = [], title} = item;
+        if (artist) {
+            const transposedItem = {...item, title: artist, artists: [title]};
 
-        // First use MusicBrainz API.
-        let mbItems: readonly MBMediaItem[] = [];
-        try {
-            mbItems = await musicbrainzApi.search(artist, title);
-        } catch (err) {
-            logger.error(err);
-        }
-        let mbItem = musicbrainzApi.findBestMatch(mbItems, item);
-        if (!mbItem) {
-            mbItem = musicbrainzApi.findBestMatch(mbItems, transposedItem);
-        }
-        if (mbItem) {
-            const enhancedItem = bestOf(mbItem, item) as T;
-            if (lastfmApi.isLoggedIn()) {
+            // First use MusicBrainz API.
+            let mbItems: readonly MBMediaItem[] = [];
+            try {
+                mbItems = await musicbrainzApi.search(artist, title);
+            } catch (err) {
+                logger.error(err);
+            }
+            let mbItem = musicbrainzApi.findBestMatch(mbItems, item);
+            if (!mbItem) {
+                mbItem = musicbrainzApi.findBestMatch(mbItems, transposedItem);
+            }
+            if (mbItem) {
+                const enhancedItem = bestOf(mbItem, item) as T;
                 const lastfmItem = await lastfmApi.addMetadata(enhancedItem);
                 return {
                     ...enhancedItem,
@@ -49,11 +49,7 @@ export async function addMetadata<T extends MediaItem>(item: T): Promise<T> {
                     thumbnails: lastfmItem.thumbnails,
                     duration: item.duration || lastfmItem.duration,
                 };
-            } else {
-                return enhancedItem;
             }
-        }
-        if (lastfmApi.isLoggedIn()) {
             // last.fm search.
             const lastfmItems = await lastfmApi.search(`${artist} ${title}`);
             const lastfmItem = lastfmItems.find(
@@ -76,6 +72,8 @@ export async function addMetadata<T extends MediaItem>(item: T): Promise<T> {
                 return {...enhancedItem, src: item.src};
             }
         }
+    } catch (err) {
+        logger.error(err);
     }
     return item;
 }
@@ -87,7 +85,6 @@ export async function addMetadataToRadioTrack<T extends MediaItem>(item: T): Pro
     } else {
         return {
             ...enhancedItem,
-            src: item.src.replace(':show:', ':track:'),
             linearType: LinearType.MusicTrack,
         };
     }
@@ -224,7 +221,13 @@ export async function createMediaItemFromUrl(
     } else if (/youtu\.?be/.test(hostname)) {
         return youtubeApi.getMediaItem(url);
     } else {
-        try {
+        const getDefaultStreamingItem = (): MediaItem => {
+            return createMediaItemByPlaybackType(
+                url,
+                url.endsWith('.m3u8') ? PlaybackType.HLS : PlaybackType.Direct
+            );
+        };
+        const getStreamingItem = async (url: string): Promise<MediaItem> => {
             let response: Response;
             try {
                 response = await fetch(url, {
@@ -235,47 +238,63 @@ export async function createMediaItemFromUrl(
                 if (err?.name === 'TimeoutError') {
                     throw err;
                 } else {
-                    response = await fetch(url, {signal: AbortSignal.timeout(timeout)});
+                    response = await fetch(url, {
+                        signal: AbortSignal.timeout(timeout),
+                    });
                 }
             }
 
-            if (response) {
-                const headers = response.headers;
-                const contentType = headers?.get('content-type')?.toLowerCase() || '';
+            if (!response.ok) {
+                throw response;
+            }
 
-                if (mediaTypes.hls.includes(contentType)) {
-                    // Only SomaFM supports `PlaybackType.HLSMetadata`.
-                    return createMediaItemByPlaybackType(url, PlaybackType.HLS);
-                } else if (mediaTypes.m3u.includes(contentType)) {
-                    const text = await response.text();
-                    return createMediaItemFromPlaylist(url, text);
-                }
+            const headers = response.headers;
+            const contentType = headers?.get('content-type')?.toLowerCase() || '';
 
-                const isIcy = await hasIcyMetadata(
-                    response,
-                    mediaTypes.ogg.includes(contentType) ? 'ogg' : 'icy'
+            if (mediaTypes.hls.includes(contentType)) {
+                // Only SomaFM supports `PlaybackType.HLSMetadata`.
+                return createMediaItemByPlaybackType(url, PlaybackType.HLS);
+            } else if (mediaTypes.m3u.includes(contentType)) {
+                const text = await response.text();
+                return createMediaItemFromPlaylist(url, text);
+            }
+
+            const isIcy = await hasIcyMetadata(
+                response,
+                mediaTypes.ogg.includes(contentType) ? 'ogg' : 'icy'
+            );
+
+            if (headers?.get('icy-name') || headers?.get('icy-url')) {
+                return createMediaItemFromIcecastHeaders(url, headers, isIcy);
+            } else if (mediaTypes.ogg.includes(contentType)) {
+                return createMediaItemByPlaybackType(
+                    url,
+                    isIcy ? PlaybackType.IcecastOgg : PlaybackType.Direct
                 );
-
-                if (headers?.get('icy-name') || headers?.get('icy-url')) {
-                    return createMediaItemFromIcecastHeaders(url, headers, isIcy);
-                } else if (mediaTypes.ogg.includes(contentType)) {
-                    return createMediaItemByPlaybackType(
-                        url,
-                        isIcy ? PlaybackType.IcecastOgg : PlaybackType.Direct
-                    );
-                } else if (isIcy) {
-                    return createMediaItemByPlaybackType(url, PlaybackType.Icecast);
-                } else if (searchForMetadata && response.body) {
-                    return createMediaItemFromStream(url, response.body, headers);
+            } else if (isIcy) {
+                return createMediaItemByPlaybackType(url, PlaybackType.Icecast);
+            } else if (searchForMetadata && response.body) {
+                return createMediaItemFromStream(url, response.body, headers);
+            } else {
+                return getDefaultStreamingItem();
+            }
+        };
+        try {
+            const item = await getStreamingItem(url);
+            return item;
+        } catch (err: any) {
+            logger.error(err);
+            if (err?.name !== 'TimeoutError' && canProxy()) {
+                try {
+                    const proxyUrl = getProxyUrl(url);
+                    const item = await getStreamingItem(proxyUrl);
+                    return {...item, src: url, proxy: true};
+                } catch (err) {
+                    logger.error(err);
                 }
             }
-        } catch (err) {
-            logger.error(err);
         }
-        return createMediaItemByPlaybackType(
-            url,
-            url.endsWith('.m3u8') ? PlaybackType.HLS : PlaybackType.Direct
-        );
+        return getDefaultStreamingItem();
     }
 }
 

@@ -263,9 +263,9 @@ export default class RadioPlayer implements Player<MediaItem> {
 
     canPlay(item: MediaItem): boolean {
         return (
-            (item.src.includes(':radio:') && !item.srcs) ||
             item.src.includes(':artist-radio:') ||
-            item.src.includes(':song-radio:')
+            item.src.includes(':song-radio:') ||
+            item.src.startsWith('plex:radio:')
         );
     }
 
